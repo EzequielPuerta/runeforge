@@ -28,6 +28,7 @@ export type {
 export type { CRUDIconSet, IconComponent, IconByNameComponent } from './icons/types.js';
 export { setIconSet, getIconSet } from './icons/context.js';
 export { defaultIconSet } from './icons/sets/default.js';
+export { bootstrapIconSet } from './icons/sets/bootstrap.js';
 
 // i18n
 export type { RuneforgeStrings } from './i18n/types.js';

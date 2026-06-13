@@ -14,40 +14,42 @@ A SvelteKit toolkit that forges forms, tables, actions, and CRUD workflows from 
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Requirements](#requirements)
-- [Key Features](#key-features)
-- [Installation](#installation)
-- [Basic Usage](#basic-usage)
-  - [1. Define your interface and metadata](#1-define-your-interface-and-metadata)
-  - [2. Create the model](#2-create-the-model)
-  - [3. Set up the server](#3-set-up-the-server)
-  - [4. Add the page component](#4-add-the-page-component)
-- [Components](#components)
-  - [GenericCRUD](#genericcrud)
-  - [PaginatedTable](#paginatedtable)
-  - [Form Components](#form-components)
-  - [Shared Components](#shared-components)
-- [Formatters](#formatters)
-  - [`formatBoolean`](#formatboolean)
-  - [`formatDatetime`](#formatdatetime)
-  - [`formatTruncateTextUpTo`](#formattruncatetextupto)
-  - [`formatInstance`](#formatinstance)
-- [Custom Cell Components](#custom-cell-components)
-  - [Example: avatar column](#example-avatar-column)
-  - [Example: icon column](#example-icon-column)
-- [Internationalization](#internationalization)
-  - [Switch to English](#switch-to-english)
-  - [Override individual strings](#override-individual-strings)
-  - [Full `RuneforgeStrings` reference](#full-runeforgestrings-reference)
-  - [Bundled locales](#bundled-locales)
-- [Icon System](#icon-system)
-- [Running Tests](#running-tests)
-  - [Unit Tests](#unit-tests)
-  - [End-to-End Tests](#end-to-end-tests)
-  - [Run All Tests](#run-all-tests)
-- [Development](#development)
-- [License](#license)
+- [Runeforge](#runeforge)
+  - [Table of Contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [Requirements](#requirements)
+  - [Key Features](#key-features)
+  - [Installation](#installation)
+  - [Basic Usage](#basic-usage)
+    - [1. Define your interface and metadata](#1-define-your-interface-and-metadata)
+    - [2. Create the model](#2-create-the-model)
+    - [3. Set up the server](#3-set-up-the-server)
+    - [4. Add the page component](#4-add-the-page-component)
+  - [Components](#components)
+    - [GenericCRUD](#genericcrud)
+    - [PaginatedTable](#paginatedtable)
+    - [Form Components](#form-components)
+    - [Shared Components](#shared-components)
+  - [Formatters](#formatters)
+    - [`formatBoolean`](#formatboolean)
+    - [`formatDatetime`](#formatdatetime)
+    - [`formatTruncateTextUpTo`](#formattruncatetextupto)
+    - [`formatInstance`](#formatinstance)
+  - [Custom Cell Components](#custom-cell-components)
+    - [Example: avatar column](#example-avatar-column)
+    - [Example: icon column](#example-icon-column)
+  - [Internationalization](#internationalization)
+    - [Switch to English](#switch-to-english)
+    - [Override individual strings](#override-individual-strings)
+    - [Full `RuneforgeStrings` reference](#full-runeforgestrings-reference)
+    - [Bundled locales](#bundled-locales)
+  - [Icon System](#icon-system)
+  - [Running Tests](#running-tests)
+    - [Unit Tests](#unit-tests)
+    - [End-to-End Tests](#end-to-end-tests)
+    - [Run All Tests](#run-all-tests)
+  - [Development](#development)
+  - [License](#license)
 
 ---
 
@@ -525,8 +527,7 @@ Runeforge ships with a default icon set. To use Bootstrap Icons instead:
 
 ```svelte
 <script>
-  import { setIconSet } from 'runeforge';
-  import bootstrapIcons from 'runeforge/icons/bootstrap';
+  import { setIconSet, bootstrapIcons } from 'runeforge';
 
   setIconSet(bootstrapIcons);
 </script>
