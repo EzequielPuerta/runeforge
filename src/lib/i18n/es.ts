@@ -1,0 +1,26 @@
+import type { RuneforgeStrings } from '$lib/i18n/types.js';
+
+export const es: RuneforgeStrings = {
+  showing: (start, end, total) => `Mostrando ${start}–${end} de ${total}`,
+  actions: 'Acciones',
+  filter: 'Filtrar',
+  filterColumn: (column) => `Filtrar ${column}`,
+  filterPlaceholder: 'Filtrar…',
+  clearFilter: 'Limpiar filtro',
+  emptyValue: '(vacío)',
+  previous: 'Anterior',
+  next: 'Siguiente',
+  selectPlaceholder: 'Seleccioná una opción',
+  selectSearch: 'Buscar...',
+  selectNoResults: 'Sin resultados',
+  view: 'Ver',
+  edit: 'Editar',
+  delete: 'Eliminar',
+  create: 'Crear',
+  save: 'Guardar',
+  saveAndContinue: 'Guardar y continuar',
+  cancel: 'Cancelar',
+  back: 'Volver',
+  required: (field) => `${field} es requerido`,
+  serverError: 'Error inesperado del servidor.',
+};
