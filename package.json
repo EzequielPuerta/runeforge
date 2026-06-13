@@ -1,6 +1,6 @@
 {
 	"name": "runeforge",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "SvelteKit toolkit for building metadata-driven CRUD interfaces with tables, forms, and actions",
 	"license": "MIT",
 	"author": "Ezequiel Puerta",
@@ -48,9 +48,9 @@
 	},
 	"peerDependencies": {
 		"@sveltejs/kit": "^2.0.0",
+		"daisyui": "^5.0.0",
 		"svelte": "^5.0.0",
-		"tailwindcss": "^4.0.0",
-		"daisyui": "^5.0.0"
+		"tailwindcss": "^4.0.0"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
@@ -59,7 +59,9 @@
 		"@sveltejs/kit": "^2.63.0",
 		"@sveltejs/package": "^2.5.8",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
+		"@tailwindcss/vite": "^4.3.1",
 		"@types/node": "^22",
+		"daisyui": "^5.5.23",
 		"eslint": "^10.4.1",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.19.0",
@@ -70,13 +72,10 @@
 		"svelte": "^5.56.1",
 		"svelte-bootstrap-icons": "^3.3.0",
 		"svelte-check": "^4.6.0",
+		"tailwindcss": "^4.3.1",
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.60.1",
 		"vite": "^8.0.16",
-		"@tailwindcss/vite": "^4.3.1",
-		"daisyui": "^5.5.23",
-		"tailwindcss": "^4.3.1",
 		"vitest": "^4.1.8"
-	},
-	"dependencies": {}
+	}
 }
