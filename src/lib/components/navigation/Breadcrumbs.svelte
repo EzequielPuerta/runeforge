@@ -84,4 +84,19 @@
     margin-inline: 0.5rem 0.75rem;
     rotate: 45deg;
   }
+
+  /*
+   * Tailwind preflight sets svg { display: block }, which stacks icons above
+   * labels when the <a>/<span> inline-flex class isn't generated from node_modules.
+   */
+  :global(.breadcrumbs > ul > li > a),
+  :global(.breadcrumbs > ul > li > span),
+  :global(.breadcrumbs > ol > li > a),
+  :global(.breadcrumbs > ol > li > span),
+  :global(.breadcrumbs > menu > li > a),
+  :global(.breadcrumbs > menu > li > span) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
 </style>

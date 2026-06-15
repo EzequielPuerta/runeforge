@@ -76,7 +76,8 @@
         {:else if p === page}
           <input
             type="number"
-            class="join-item btn btn-sm btn-active w-16 text-center appearance-none"
+            class="join-item btn btn-sm w-12 text-center appearance-none"
+            style="background-color: var(--color-base-100);"
             min="1"
             max={totalPages}
             value={page}
