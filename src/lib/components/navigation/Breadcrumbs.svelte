@@ -34,7 +34,7 @@
               {@const ItemIcon = item.icon}
               <ItemIcon class="size-4" />
             {/if}
-            <span class={item.prominent ? '' : 'hidden sm:inline'}>{item.label}</span>
+            <span>{item.label}</span>
           </a>
         {:else}
           <span class="inline-flex items-center gap-2">
@@ -42,7 +42,7 @@
               {@const ItemIcon = item.icon}
               <ItemIcon class="size-4" />
             {/if}
-            <span class={item.prominent ? '' : 'hidden sm:inline'}>{item.label}</span>
+            <span>{item.label}</span>
           </span>
         {/if}
       </li>

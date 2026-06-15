@@ -1,7 +1,6 @@
 import type { Component } from 'svelte';
 
 export type IconComponent = Component<{ size?: string | number; class?: string }>;
-export type IconByNameComponent = Component<{ name: string; size?: string | number; class?: string }>;
 
 export interface CRUDIconSet {
   sortNone: IconComponent;
@@ -17,5 +16,5 @@ export interface CRUDIconSet {
   folder: IconComponent;
   passwordShow: IconComponent;
   passwordHide: IconComponent;
-  renderByName?: IconByNameComponent;
+  getByName?: (name: string) => IconComponent | null;
 }

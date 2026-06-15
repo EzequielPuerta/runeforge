@@ -9,21 +9,13 @@
  *   import { bootstrapIconSet } from 'runeforge/icons/sets/bootstrap';
  *   setIconSet(bootstrapIconSet);
  */
-import {
-  ChevronExpand,
-  CaretUpFill,
-  CaretDownFill,
-  Funnel,
-  FunnelFill,
-  Plus,
-  Eye,
-  PencilSquare,
-  Trash3,
-  HouseDoor,
-  Folder,
-  EyeSlash,
-} from 'svelte-bootstrap-icons';
+import * as Icons from 'svelte-bootstrap-icons';
 import type { CRUDIconSet, IconComponent } from '$lib/icons/types.js';
+
+const {
+  ChevronExpand, CaretUpFill, CaretDownFill, Funnel, FunnelFill,
+  Plus, Eye, PencilSquare, Trash3, HouseDoor, Folder, EyeSlash,
+} = Icons;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function asIcon(c: any): IconComponent { return c as IconComponent; }
@@ -42,4 +34,6 @@ export const bootstrapIconSet: CRUDIconSet = {
   folder: asIcon(Folder),
   passwordShow: asIcon(Eye),
   passwordHide: asIcon(EyeSlash),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getByName: (name: string) => asIcon((Icons as Record<string, any>)[name]) ?? null,
 };

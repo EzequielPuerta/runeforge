@@ -43,7 +43,7 @@
 <div class="flex flex-col gap-1">
   {#if field.type === 'file'}
     <div class="flex justify-center">
-      <Avatar src={preview} text={avatarInitials} alt={labelText} class="w-32 rounded-full" textClass="text-3xl" />
+      <Avatar src={preview} text={avatarInitials} alt={labelText} class="w-20 rounded-full" textClass="text-xl" />
     </div>
   {/if}
 
@@ -59,25 +59,20 @@
       type="checkbox"
       id={field.attribute}
       {name}
-      class="toggle"
+      class="toggle toggle-primary"
       checked={!!saved}
       disabled={readonly}
     />
   {:else if field.type === 'file'}
     {#if !readonly}
-      <fieldset class="fieldset w-full p-0">
-        <input
-          type="file"
-          id={field.attribute}
-          {name}
-          class="file-input w-full"
-          class:file-input-error={!!error}
-          onchange={onFileChange}
-        />
-        {#if field.placeholder}
-          <Label text={field.placeholder} for={field.attribute} class="label" />
-        {/if}
-      </fieldset>
+      <input
+        type="file"
+        id={field.attribute}
+        {name}
+        class="file-input file-input-bordered w-full"
+        class:file-input-error={!!error}
+        onchange={onFileChange}
+      />
     {/if}
     <!-- read-only file value is shown as the avatar above -->
   {:else if field.type === 'select'}
@@ -121,14 +116,14 @@
     {/if}
   {:else if field.type === 'textarea'}
     {#if readonly}
-      <textarea id={field.attribute} class="textarea textarea-bordered w-full" value={displayValue} disabled></textarea>
+      <textarea id={field.attribute} class="textarea textarea-bordered bg-base-100 w-full" value={displayValue} disabled></textarea>
     {:else}
       <textarea
         id={field.attribute}
         {name}
         placeholder={field.placeholder ?? ''}
         bind:value={record[field.attribute]}
-        class="textarea textarea-bordered w-full"
+        class="textarea textarea-bordered bg-base-100 w-full"
         class:textarea-error={!!error}
       ></textarea>
     {/if}

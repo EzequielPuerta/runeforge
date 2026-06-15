@@ -25,7 +25,7 @@ export type {
 } from './types/crud.js';
 
 // Icon system
-export type { CRUDIconSet, IconComponent, IconByNameComponent } from './icons/types.js';
+export type { CRUDIconSet, IconComponent } from './icons/types.js';
 export { setIconSet, getIconSet } from './icons/context.js';
 export { defaultIconSet } from './icons/sets/default.js';
 export { bootstrapIconSet } from './icons/sets/bootstrap.js';

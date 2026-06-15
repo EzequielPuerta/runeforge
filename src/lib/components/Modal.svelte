@@ -13,7 +13,7 @@
   } = $props();
 </script>
 
-<div class="modal modal-open" role="dialog" aria-modal="true">
+<dialog class="modal" open>
   <div class="modal-box">
     <div class="flex items-center justify-between gap-4">
       <h3 class="text-lg font-bold">{title}</h3>
@@ -35,13 +35,8 @@
   </div>
 
   {#if onClose}
-    <div
-      class="modal-backdrop"
-      aria-label="Cerrar"
-      role="button"
-      tabindex="0"
-      onclick={onClose}
-      onkeydown={(e) => e.key === 'Enter' && onClose?.()}
-    ></div>
+    <div class="modal-backdrop">
+      <button onclick={onClose} aria-label="Cerrar"></button>
+    </div>
   {/if}
-</div>
+</dialog>

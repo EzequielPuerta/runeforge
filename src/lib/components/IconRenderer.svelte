@@ -12,11 +12,11 @@
   } = $props();
 
   const icons = $derived(getIconSet());
-  const IconComponent = $derived(icons?.renderByName ?? null);
+  const IconComponent = $derived(icons?.getByName?.(name) ?? null);
 </script>
 
 {#if IconComponent}
-  <IconComponent {name} {size} class={className} />
+  <IconComponent {size} class={className} />
 {:else}
   <span class={className} title={name}></span>
 {/if}
