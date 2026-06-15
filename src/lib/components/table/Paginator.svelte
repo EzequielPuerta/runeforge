@@ -24,6 +24,41 @@
   function next() {
     if (page < totalPages) page++;
   }
+
+  function buildPages(current: number, total: number): number[] {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+
+    const visible = new Set<number>();
+    visible.add(1);
+    visible.add(total);
+    for (let i = Math.max(1, current - 2); i <= Math.min(total, current + 2); i++) {
+      visible.add(i);
+    }
+
+    const sorted = Array.from(visible).sort((a, b) => a - b);
+    const result: number[] = [];
+    for (let i = 0; i < sorted.length; i++) {
+      if (i > 0 && sorted[i] - sorted[i - 1] > 1) result.push(0);
+      result.push(sorted[i]);
+    }
+    return result;
+  }
+
+  const pages = $derived(buildPages(page, totalPages));
+
+  function handlePageInput(e: KeyboardEvent) {
+    if (e.key !== 'Enter') return;
+    const val = parseInt((e.currentTarget as HTMLInputElement).value);
+    if (!isNaN(val) && val >= 1 && val <= totalPages) {
+      page = val;
+    } else {
+      (e.currentTarget as HTMLInputElement).value = String(page);
+    }
+  }
+
+  function resetInput(e: FocusEvent) {
+    (e.currentTarget as HTMLInputElement).value = String(page);
+  }
 </script>
 
 {#if totalPages > 1}
@@ -33,30 +68,27 @@
     </span>
 
     <div class="join">
-      <Button
-        class="join-item btn-sm"
-        disabled={page === 1}
-        onclick={prev}
-      >
-        «
-      </Button>
+      <Button class="join-item btn-sm" disabled={page === 1} onclick={prev}>«</Button>
 
-      {#each Array.from({ length: totalPages }, (_, i) => i + 1) as n (n)}
-        <Button
-          class={['join-item btn-sm', n === page && 'btn-active']}
-          onclick={() => (page = n)}
-        >
-          {n}
-        </Button>
+      {#each pages as p, i (i)}
+        {#if p === 0}
+          <Button class="join-item btn-sm" disabled>…</Button>
+        {:else if p === page}
+          <input
+            type="number"
+            class="join-item btn btn-sm btn-active w-16 text-center appearance-none"
+            min="1"
+            max={totalPages}
+            value={page}
+            onkeydown={handlePageInput}
+            onblur={resetInput}
+          />
+        {:else}
+          <Button class="join-item btn-sm" onclick={() => (page = p)}>{p}</Button>
+        {/if}
       {/each}
 
-      <Button
-        class="join-item btn-sm"
-        disabled={page === totalPages}
-        onclick={next}
-      >
-        »
-      </Button>
+      <Button class="join-item btn-sm" disabled={page === totalPages} onclick={next}>»</Button>
     </div>
   </div>
 {/if}

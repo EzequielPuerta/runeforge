@@ -49,3 +49,39 @@
     {/each}
   </ul>
 </div>
+
+<style>
+  /*
+   * DaisyUI breadcrumbs use @layer rules that Tailwind v4 doesn't propagate
+   * from node_modules. These unlayered rules override that gap.
+   */
+  :global(.breadcrumbs > ul),
+  :global(.breadcrumbs > ol),
+  :global(.breadcrumbs > menu) {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow-x: auto;
+  }
+
+  :global(.breadcrumbs > ul > li),
+  :global(.breadcrumbs > ol > li),
+  :global(.breadcrumbs > menu > li) {
+    display: flex;
+    align-items: center;
+  }
+
+  :global(.breadcrumbs > ul > li + li::before),
+  :global(.breadcrumbs > ol > li + li::before),
+  :global(.breadcrumbs > menu > li + li::before) {
+    content: '';
+    display: block;
+    opacity: 0.4;
+    border-top: 1px solid;
+    border-right: 1px solid;
+    width: 0.375rem;
+    height: 0.375rem;
+    margin-inline: 0.5rem 0.75rem;
+    rotate: 45deg;
+  }
+</style>
