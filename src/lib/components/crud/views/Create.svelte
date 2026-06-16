@@ -75,7 +75,6 @@
 <div class="flex flex-col gap-6">
 
   <Header
-    admin
     title={labelMany}
     breadcrumbs={[
       { label: labelMany, icon: entityIcon, link: { href: '#', onclick: (e) => { e.preventDefault(); onCancel?.(); } }, prominent: true },

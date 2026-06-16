@@ -23,6 +23,7 @@ A SvelteKit toolkit that forges forms, tables, actions, and CRUD workflows from 
   - [Theming](#theming)
     - [Tailwind source scanning](#tailwind-source-scanning)
     - [CSS variables](#css-variables)
+  - [Configuration](#configuration)
   - [Basic Usage](#basic-usage)
     - [1. Define your interface and metadata](#1-define-your-interface-and-metadata)
     - [2. Create the model](#2-create-the-model)
@@ -133,6 +134,25 @@ Responsive overrides work too:
 | `--runeforge-crud-title-size` | `1.875rem` | `<h1>` inside the `Header` component |
 | `--runeforge-breadcrumb-font-size` | `0.875rem` | Breadcrumb label text size |
 | `--runeforge-breadcrumb-icon-size` | `1rem` | Breadcrumb icon width and height |
+
+---
+
+## Configuration
+
+Global settings are applied once in your root layout via `setConfig`. This avoids passing the same prop to every CRUD component.
+
+```svelte
+<!-- +layout.svelte -->
+<script>
+  import { setConfig } from 'runeforge';
+
+  setConfig({ homeHref: '/admin' });
+</script>
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `homeHref` | `'/'` | URL for the home crumb in every breadcrumb trail |
 
 ---
 

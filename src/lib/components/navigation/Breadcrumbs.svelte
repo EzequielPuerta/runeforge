@@ -1,15 +1,14 @@
 <script lang="ts">
   import { getIconSet } from '$lib/icons/context.js';
   import { defaultIconSet } from '$lib/icons/sets/default.js';
+  import { getConfig } from '$lib/config/context.js';
   import type { BreadcrumbItem } from '$lib/types/breadcrumb.js';
 
   let {
     items = [],
-    admin = false,
     homeHref,
   }: {
     items?: BreadcrumbItem[];
-    admin?: boolean;
     homeHref?: string;
   } = $props();
 
@@ -18,7 +17,7 @@
   const home: BreadcrumbItem = $derived({
     label: 'Inicio',
     icon: icons.home,
-    link: { href: homeHref ?? (admin ? '/admin' : '/') },
+    link: { href: homeHref ?? getConfig().homeHref ?? '/' },
   });
 
   const allItems = $derived([home, ...items]);

@@ -24,6 +24,10 @@ export type {
   RowAction
 } from './types/crud.js';
 
+// Config
+export type { RuneforgeConfig } from './config/context.js';
+export { setConfig, getConfig } from './config/context.js';
+
 // Icon system
 export type { CRUDIconSet, IconComponent } from './icons/types.js';
 export { setIconSet, getIconSet } from './icons/context.js';
