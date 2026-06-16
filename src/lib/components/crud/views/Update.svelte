@@ -16,6 +16,7 @@
     labelOne = '',
     labelMany = '',
     icon,
+    idKey = '_id',
     fields = [] as FieldDefinition<T>[],
     instance = {} as T,
     update = {} as ActionConfiguration<T>,
@@ -27,6 +28,7 @@
     labelMany?: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     icon?: any;
+    idKey?: string;
     fields?: FieldDefinition<T>[];
     instance?: T;
     update?: ActionConfiguration<T>;
@@ -56,7 +58,7 @@
   );
 
   $effect(() => {
-    const id = (instance as Record<string, unknown>)._id;
+    const id = (instance as Record<string, unknown>)[idKey];
     if (!id) return;
     untrack(() => { record = seedFromInstance(instance as Record<string, unknown>); });
   });
@@ -130,7 +132,7 @@
       };
     }}
   >
-    <input type="hidden" name="id" value={String(record._id ?? '')} />
+    <input type="hidden" name="id" value={String(record[idKey] ?? '')} />
 
     {#each fields as field (field.attribute)}
       <Field {field} bind:record error={fieldErrors[field.attribute] ?? ''} />

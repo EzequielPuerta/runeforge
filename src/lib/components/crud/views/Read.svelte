@@ -15,6 +15,7 @@
     labelOne = '',
     labelMany = '',
     icon,
+    idKey = '_id',
     fields = [] as FieldDefinition<T>[],
     instance = {} as T,
     read = {} as ActionConfiguration<T>,
@@ -24,6 +25,7 @@
     labelMany?: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     icon?: any;
+    idKey?: string;
     fields?: FieldDefinition<T>[];
     instance?: T;
     read?: ActionConfiguration<T>;
@@ -37,7 +39,7 @@
 
   $effect(() => {
     const endpoint = read.endpoint;
-    const id = (instance as Record<string, unknown>)._id;
+    const id = (instance as Record<string, unknown>)[idKey];
     if (!endpoint || id == null) return;
 
     let cancelled = false;
@@ -50,7 +52,7 @@
         const data = result.data as Record<string, unknown> | undefined;
         const fetched = data
           ? Object.values(data).find(
-              (v) => v !== null && typeof v === 'object' && !Array.isArray(v) && '_id' in (v as object)
+              (v) => v !== null && typeof v === 'object' && !Array.isArray(v) && idKey in (v as object)
             )
           : undefined;
         if (fetched && typeof fetched === 'object') record = fetched as Record<string, unknown>;

@@ -284,6 +284,14 @@ The `load` function returns a single record when `?id=` is present (used by the 
 
 `dataKey` must match the key returned by the load function for the list. Each `endpoint` maps to a SvelteKit form action on the same page.
 
+If your records use a different identifier field than `_id` (e.g. a plain `id`), pass the `idKey` prop:
+
+```svelte
+<GenericCRUD idKey="id" ... />
+```
+
+This propagates to navigation URLs, form submissions, deletion calls, and the auto-excluded column list, so no other changes are needed on your end.
+
 ---
 
 ## Components

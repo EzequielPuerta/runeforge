@@ -35,12 +35,13 @@ function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;');
 }
 
-export function formatInstance<T extends { _id: string }>(
+export function formatInstance<T extends Record<string, unknown>>(
   attribute: keyof T & string,
   instances: T[],
-  urlPath: string
+  urlPath: string,
+  idKey: keyof T & string = '_id' as keyof T & string
 ): (value: unknown) => string {
-  const map = new Map(instances.map((i) => [i._id, i]));
+  const map = new Map(instances.map((i) => [String(i[idKey] ?? ''), i]));
   return (value) => {
     const id = String(value ?? '');
     const instance = map.get(id);

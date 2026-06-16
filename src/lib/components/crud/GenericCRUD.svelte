@@ -18,6 +18,7 @@
   let {
     data = undefined as Record<string, unknown> | undefined,
     dataKey = undefined as string | undefined,
+    idKey = '_id',
     labelOne = '',
     labelMany = '',
     icon,
@@ -34,6 +35,7 @@
   }: {
     data?: Record<string, unknown>;
     dataKey?: string;
+    idKey?: string;
     labelOne?: string;
     labelMany?: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -61,9 +63,11 @@
   const reading  = $derived(idParam !== null && viewParam === null);
   const editing  = $derived(idParam !== null && viewParam === 'edit');
 
+  const excluded = $derived(new Set([...AUTO_EXCLUDED, idKey]));
+
   const singleInstance = $derived<T | undefined>(
     (Object.values(page.data as Record<string, unknown>).find(
-      (v) => v !== null && typeof v === 'object' && !Array.isArray(v) && '_id' in (v as object)
+      (v) => v !== null && typeof v === 'object' && !Array.isArray(v) && idKey in (v as object)
     ) as T | undefined)
   );
 
@@ -72,10 +76,10 @@
   async function navList()      { await goto('?'); }
   async function navCreate()    { await goto('?view=create'); }
   async function navRead(item: T) {
-    await goto(`?id=${encodeURIComponent(String((item as Record<string, unknown>)._id ?? ''))}`);
+    await goto(`?id=${encodeURIComponent(String((item as Record<string, unknown>)[idKey] ?? ''))}`);
   }
   async function navEdit(item: T) {
-    await goto(`?id=${encodeURIComponent(String((item as Record<string, unknown>)._id ?? ''))}&view=edit`);
+    await goto(`?id=${encodeURIComponent(String((item as Record<string, unknown>)[idKey] ?? ''))}&view=edit`);
   }
 
   const resolvedColumns: ColumnDefinition<T>[] = $derived(
@@ -93,7 +97,7 @@
           }))
       : entityData.length > 0
         ? (Object.keys(entityData[0]) as (keyof T & string)[])
-            .filter((k) => k !== '_id')
+            .filter((k) => !excluded.has(k))
             .map((k) => ({ attribute: k, title: k }))
         : [])
   );
@@ -101,7 +105,7 @@
   const resolvedFields: FieldDefinition<T>[] = $derived(
     fields ?? (meta
       ? (Object.entries(meta) as [string, AttributeMetadata][])
-          .filter(([k, m]) => !AUTO_EXCLUDED.has(k) && !m.excludedFromCreate)
+          .filter(([k, m]) => !excluded.has(k) && !m.excludedFromCreate)
           .map(([k, m]) => ({
             attribute: k as keyof T & string,
             title: m.label,
@@ -114,7 +118,7 @@
           }))
       : entityData.length > 0
         ? (Object.entries(entityData[0]) as [string, unknown][])
-            .filter(([k]) => !AUTO_EXCLUDED.has(k))
+            .filter(([k]) => !excluded.has(k))
             .map(([k, v]) => ({ attribute: k as keyof T & string, type: inferType(k, v) }))
         : [])
   );
@@ -122,7 +126,7 @@
   const resolvedReadFields: FieldDefinition<T>[] = $derived(
     fields ?? (meta
       ? (Object.entries(meta) as [string, AttributeMetadata][])
-          .filter(([k, m]) => !AUTO_EXCLUDED.has(k) && !m.excludedFromRead)
+          .filter(([k, m]) => !excluded.has(k) && !m.excludedFromRead)
           .map(([k, m]) => ({
             attribute: k as keyof T & string,
             title: m.label,
@@ -135,7 +139,7 @@
           }))
       : entityData.length > 0
         ? (Object.entries(entityData[0]) as [string, unknown][])
-            .filter(([k]) => !AUTO_EXCLUDED.has(k))
+            .filter(([k]) => !excluded.has(k))
             .map(([k, v]) => ({ attribute: k as keyof T & string, type: inferType(k, v) }))
         : [])
   );
@@ -143,7 +147,7 @@
   const resolvedUpdateFields: FieldDefinition<T>[] = $derived(
     fields ?? (meta
       ? (Object.entries(meta) as [string, AttributeMetadata][])
-          .filter(([k, m]) => !AUTO_EXCLUDED.has(k) && !m.excludedFromUpdate)
+          .filter(([k, m]) => !excluded.has(k) && !m.excludedFromUpdate)
           .map(([k, m]) => ({
             attribute: k as keyof T & string,
             title: m.label,
@@ -156,7 +160,7 @@
           }))
       : entityData.length > 0
         ? (Object.entries(entityData[0]) as [string, unknown][])
-            .filter(([k]) => !AUTO_EXCLUDED.has(k))
+            .filter(([k]) => !excluded.has(k))
             .map(([k, v]) => ({ attribute: k as keyof T & string, type: inferType(k, v) }))
         : [])
   );
@@ -184,6 +188,7 @@
     {labelOne}
     {labelMany}
     {icon}
+    {idKey}
     fields={resolvedReadFields}
     instance={singleInstance ?? {} as T}
     {read}
@@ -194,6 +199,7 @@
     {labelOne}
     {labelMany}
     {icon}
+    {idKey}
     fields={resolvedUpdateFields}
     instance={singleInstance ?? {} as T}
     {update}
@@ -208,6 +214,7 @@
     {labelMany}
     {icon}
     {pageSize}
+    {idKey}
     {creation}
     {update}
     {read}

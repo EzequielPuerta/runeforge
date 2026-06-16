@@ -14,14 +14,14 @@ test.describe('PaginatedTable', () => {
 	test('navigates to page 2', async ({ page }) => {
 		const pager = page.locator('div.join');
 		await pager.getByRole('button', { name: '2' }).click();
-		await expect(pager.getByRole('button', { name: '2' })).toHaveClass(/btn-active/);
+		await expect(pager.locator('input[type="number"]')).toHaveValue('2');
 		await expect(page.locator('tbody tr:first-child td:first-child')).toHaveText('Alice 11');
 	});
 
 	test('last page has fewer rows', async ({ page }) => {
 		const pager = page.locator('div.join');
 		await pager.getByRole('button', { name: '3' }).click();
-		await expect(pager.getByRole('button', { name: '3' })).toHaveClass(/btn-active/);
+		await expect(pager.locator('input[type="number"]')).toHaveValue('3');
 		await expect(page.locator('tbody tr')).toHaveCount(5);
 	});
 
@@ -39,10 +39,10 @@ test.describe('PaginatedTable', () => {
 	test('resets to page 1 after sorting', async ({ page }) => {
 		const pager = page.locator('div.join');
 		await pager.getByRole('button', { name: '2' }).click();
-		await expect(pager.getByRole('button', { name: '2' })).toHaveClass(/btn-active/);
+		await expect(pager.locator('input[type="number"]')).toHaveValue('2');
 
 		await page.locator('thead').getByRole('button', { name: 'Name', exact: true }).click();
-		await expect(pager.getByRole('button', { name: '1' })).toHaveClass(/btn-active/);
+		await expect(pager.locator('input[type="number"]')).toHaveValue('1');
 		await expect(page.locator('tbody tr')).toHaveCount(10);
 	});
 

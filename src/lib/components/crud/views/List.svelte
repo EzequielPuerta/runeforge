@@ -22,6 +22,7 @@
     labelMany = '',
     icon,
     pageSize = 10,
+    idKey = '_id',
     creation = {} as ActionConfiguration<T>,
     update = {} as ActionConfiguration<T>,
     read = {} as ActionConfiguration<T>,
@@ -39,6 +40,7 @@
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     icon?: any;
     pageSize?: number;
+    idKey?: string;
     creation?: ActionConfiguration<T>;
     update?: ActionConfiguration<T>;
     read?: ActionConfiguration<T>;
@@ -67,7 +69,7 @@
   async function runEndpointAction(endpoint: string, items: T[]) {
     await Promise.all(items.map((item) => {
       const fd = new FormData();
-      fd.set('id', String((item as Record<string, unknown>)._id ?? ''));
+      fd.set('id', String((item as Record<string, unknown>)[idKey] ?? ''));
       return fetch(endpoint, { method: 'POST', body: fd });
     }));
     await invalidateAll();
