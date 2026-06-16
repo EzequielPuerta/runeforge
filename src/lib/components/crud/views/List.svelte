@@ -121,7 +121,7 @@
   </div>
 {/snippet}
 
-<div class="list-root flex flex-col gap-6">
+<div class="flex flex-col gap-6">
 
   <Header
     admin
@@ -159,18 +159,20 @@
     {/snippet}
   </Header>
 
-  <PaginatedTable
-    {data}
-    {columns}
-    {pageSize}
-    selectable={allowDelete}
-    {selected}
-    rowActions={showRowActions ? actionsCell : undefined}
-  />
+  <div class="table-wrapper">
+    <PaginatedTable
+      {data}
+      {columns}
+      {pageSize}
+      selectable={allowDelete}
+      {selected}
+      rowActions={showRowActions ? actionsCell : undefined}
+    />
+  </div>
 </div>
 
 <style>
-  .list-root {
+  .table-wrapper {
     width: 100%;
     max-width: var(--runeforge-crud-max-width);
     margin-inline: auto;
