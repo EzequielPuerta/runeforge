@@ -20,6 +20,9 @@ A SvelteKit toolkit that forges forms, tables, actions, and CRUD workflows from 
   - [Requirements](#requirements)
   - [Key Features](#key-features)
   - [Installation](#installation)
+  - [Theming](#theming)
+    - [Tailwind source scanning](#tailwind-source-scanning)
+    - [CSS variables](#css-variables)
   - [Basic Usage](#basic-usage)
     - [1. Define your interface and metadata](#1-define-your-interface-and-metadata)
     - [2. Create the model](#2-create-the-model)
@@ -83,6 +86,53 @@ Runeforge provides a set of composable, metadata-driven components for building 
 ```bash
 pnpm add runeforge
 ```
+
+---
+
+## Theming
+
+### Tailwind source scanning
+
+Runeforge components use Tailwind CSS utility classes internally. Tailwind v4 does not scan `node_modules` by default, so add an `@source` directive in your project's `app.css` to ensure every utility class is generated:
+
+```css
+@import "tailwindcss";
+@source "../node_modules/runeforge/dist";
+@plugin "daisyui";
+```
+
+### CSS variables
+
+Key visual properties are exposed as CSS custom properties so you can tune them per project. Set them on `:root` (or any narrower selector) in your `app.css`:
+
+```css
+:root {
+  --runeforge-crud-title-size: 1.875rem;
+  --runeforge-breadcrumb-font-size: 0.875rem;
+  --runeforge-breadcrumb-icon-size: 1rem;
+}
+```
+
+Responsive overrides work too:
+
+```css
+:root {
+  --runeforge-crud-title-size: 1.25rem;
+}
+@media (min-width: 768px) {
+  :root {
+    --runeforge-crud-title-size: 1.875rem;
+  }
+}
+```
+
+| Variable | Default | Affects |
+| --- | --- | --- |
+| `--runeforge-crud-max-width` | _(none)_ | Max width of the Header and List view; centers them when set |
+| `--runeforge-form-max-width` | `32rem` | Max width of the form/fields panel in Create, Update, and Read views |
+| `--runeforge-crud-title-size` | `1.875rem` | `<h1>` inside the `Header` component |
+| `--runeforge-breadcrumb-font-size` | `0.875rem` | Breadcrumb label text size |
+| `--runeforge-breadcrumb-icon-size` | `1rem` | Breadcrumb icon width and height |
 
 ---
 

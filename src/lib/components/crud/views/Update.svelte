@@ -108,7 +108,7 @@
     method="POST"
     action={update.endpoint ?? '?/update'}
     enctype={hasFileField ? 'multipart/form-data' : undefined}
-    class="mx-auto flex w-full max-w-lg flex-col gap-4 px-4"
+    class="mx-auto flex w-full flex-col gap-4 px-4"
     use:enhance={({ formData, cancel }) => {
       fieldErrors = {};
       internalError = '';
@@ -146,3 +146,9 @@
     </div>
   </form>
 </div>
+
+<style>
+  form {
+    max-width: var(--runeforge-form-max-width, 32rem);
+  }
+</style>

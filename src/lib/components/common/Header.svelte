@@ -16,7 +16,7 @@
   } = $props();
 </script>
 
-<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+<div class="header-root flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
   <div class="flex flex-col gap-1 flex-1">
     <h1>{title}</h1>
     <Breadcrumbs items={breadcrumbs} {admin} />
@@ -28,3 +28,15 @@
     </div>
   {/if}
 </div>
+
+<style>
+  h1 {
+    font-size: var(--runeforge-crud-title-size, 1.875rem);
+  }
+
+  .header-root {
+    width: 100%;
+    max-width: var(--runeforge-crud-max-width);
+    margin-inline: auto;
+  }
+</style>

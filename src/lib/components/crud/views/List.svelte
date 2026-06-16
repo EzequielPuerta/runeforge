@@ -121,7 +121,7 @@
   </div>
 {/snippet}
 
-<div class="flex flex-col gap-6">
+<div class="list-root flex flex-col gap-6">
 
   <Header
     admin
@@ -168,3 +168,11 @@
     rowActions={showRowActions ? actionsCell : undefined}
   />
 </div>
+
+<style>
+  .list-root {
+    width: 100%;
+    max-width: var(--runeforge-crud-max-width);
+    margin-inline: auto;
+  }
+</style>

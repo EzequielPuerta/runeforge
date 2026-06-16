@@ -71,7 +71,7 @@
     ]}
   />
 
-  <div class="mx-auto flex w-full max-w-lg flex-col gap-4 px-4">
+  <div class="fields-panel mx-auto flex w-full flex-col gap-4 px-4">
     {#each fields as field (field.attribute)}
       <Field {field} {record} readonly />
     {/each}
@@ -83,3 +83,9 @@
     </div>
   </div>
 </div>
+
+<style>
+  .fields-panel {
+    max-width: var(--runeforge-form-max-width, 32rem);
+  }
+</style>

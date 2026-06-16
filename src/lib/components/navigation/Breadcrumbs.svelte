@@ -24,7 +24,7 @@
   const allItems = $derived([home, ...items]);
 </script>
 
-<div class="breadcrumbs text-sm">
+<div class="breadcrumbs">
   <ul>
     {#each allItems as item, i (i)}
       <li>
@@ -32,7 +32,7 @@
           <a class="inline-flex items-center gap-2" {...item.link}>
             {#if item.icon}
               {@const ItemIcon = item.icon}
-              <ItemIcon class="size-4" />
+              <ItemIcon />
             {/if}
             <span>{item.label}</span>
           </a>
@@ -40,7 +40,7 @@
           <span class="inline-flex items-center gap-2">
             {#if item.icon}
               {@const ItemIcon = item.icon}
-              <ItemIcon class="size-4" />
+              <ItemIcon />
             {/if}
             <span>{item.label}</span>
           </span>
@@ -51,6 +51,16 @@
 </div>
 
 <style>
+  div {
+    font-size: var(--runeforge-breadcrumb-font-size, 0.875rem);
+  }
+
+  :global(.breadcrumbs svg) {
+    width: var(--runeforge-breadcrumb-icon-size, 1rem);
+    height: var(--runeforge-breadcrumb-icon-size, 1rem);
+    flex-shrink: 0;
+  }
+
   /*
    * DaisyUI breadcrumbs use @layer rules that Tailwind v4 doesn't propagate
    * from node_modules. These unlayered rules override that gap.
