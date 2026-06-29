@@ -13,6 +13,9 @@
     required = true,
     placeholder = '',
     invalid = false,
+    labelClass,
+    inputClass,
+    buttonClass,
   }: {
     name?: string;
     id?: string;
@@ -21,6 +24,9 @@
     required?: boolean;
     placeholder?: string;
     invalid?: boolean;
+    labelClass?: string;
+    inputClass?: string;
+    buttonClass?: string;
   } = $props();
 
   const icons = $derived(getIconSet() ?? defaultIconSet);
@@ -30,7 +36,8 @@
 <Label
   class={[
     'input input-bordered w-full',
-    { 'input-error': invalid }
+    { 'input-error': invalid },
+    labelClass
   ]}
 >
   <input
@@ -41,11 +48,11 @@
     {value}
     {autocomplete}
     type={visible ? 'text' : 'password'}
-    class="grow"
+    class={['grow', inputClass]}
   />
   <Button
     btn={false}
-    class="cursor-pointer opacity-60 hover:opacity-100"
+    class={['cursor-pointer opacity-60 hover:opacity-100', buttonClass].filter(Boolean).join(' ')}
     aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
     aria-pressed={visible}
     onclick={() => (visible = !visible)}
