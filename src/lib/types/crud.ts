@@ -31,6 +31,7 @@ export interface ActionConfiguration<T extends object = Record<string, unknown>>
   enabled?: boolean;
   label?: string;
   endpoint?: string;
+  confirm?: boolean;
   callback?: (items: T[]) => void | Promise<void>;
 }
 

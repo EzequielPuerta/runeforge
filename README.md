@@ -326,7 +326,7 @@ Key props:
 - `labelOne` / `labelMany` — singular and plural names for the entity
 - `columns` — `ColumnDefinition[]` for the table view
 - `fields` — `FieldDefinition[]` for form views
-- `creation`, `update`, `read`, `deletion` — `ActionConfiguration` objects that define handlers and permissions for each operation
+- `creation`, `update`, `read`, `deletion` — `ActionConfiguration` objects that define handlers and permissions for each operation. Set `confirm: true` on `deletion` to show a confirmation dialog before any delete (single row or batch)
 
 ### PaginatedTable
 
@@ -584,6 +584,8 @@ All UI strings default to **Spanish** (Argentina). To switch to another language
 | `saveAndContinue` | `string` | `Guardar y continuar` |
 | `cancel` | `string` | `Cancelar` |
 | `back` | `string` | `Volver` |
+| `confirm` | `string` | `Confirmar` |
+| `deleteConfirm` | `(count) => string` | `¿Seguro que querés eliminar 3 elementos?` |
 | `required` | `(field) => string` | `Título es requerido` |
 | `serverError` | `string` | `Error inesperado del servidor.` |
 

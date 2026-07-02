@@ -35,6 +35,10 @@ export interface RuneforgeStrings {
   cancel: string;
   back: string;
 
+  // CRUD delete confirmation
+  confirm: string;
+  deleteConfirm: (count: number) => string;
+
   // CRUD validation
   required: (field: string) => string;
   serverError: string;

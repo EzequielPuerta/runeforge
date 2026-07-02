@@ -21,6 +21,8 @@ export const es: RuneforgeStrings = {
   saveAndContinue: 'Guardar y continuar',
   cancel: 'Cancelar',
   back: 'Volver',
+  confirm: 'Confirmar',
+  deleteConfirm: (count) => `¿Seguro que querés eliminar ${count} elemento${count === 1 ? '' : 's'}?`,
   required: (field) => `${field} es requerido`,
   serverError: 'Error inesperado del servidor.',
 };

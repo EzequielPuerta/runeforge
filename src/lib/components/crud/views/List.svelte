@@ -3,6 +3,7 @@
   import { invalidateAll } from '$app/navigation';
   import Button from '$lib/components/form/Button.svelte';
   import Header from '$lib/components/common/Header.svelte';
+  import Modal from '$lib/components/Modal.svelte';
   import PaginatedTable from '$lib/components/table/PaginatedTable.svelte';
   import { getIconSet } from '$lib/icons/context.js';
   import { defaultIconSet } from '$lib/icons/sets/default.js';
@@ -65,6 +66,7 @@
   const showRowActions = $derived(allowRead || allowUpdate || allowDelete || actions.length > 0);
 
   let selected = new SvelteSet<number>();
+  let pendingDeletion = $state<T[] | null>(null);
 
   async function runEndpointAction(endpoint: string, items: T[]) {
     await Promise.all(items.map((item) => {
@@ -83,12 +85,27 @@
     }
   }
 
+  function requestDeletion(items: T[]) {
+    if (deletion.confirm) {
+      pendingDeletion = items;
+    } else {
+      runDeletion(items);
+    }
+  }
+
   function handleCreate() { onCreate?.(); }
 
-  async function handleDelete() {
+  function handleDelete() {
     const items = [...selected].map(i => data[i]);
     selected.clear();
-    await runDeletion(items);
+    requestDeletion(items);
+  }
+
+  async function confirmDeletion() {
+    if (pendingDeletion) {
+      await runDeletion(pendingDeletion);
+      pendingDeletion = null;
+    }
   }
 
   const rowActions = $derived<RowAction<T>[]>([
@@ -100,7 +117,7 @@
     })),
     ...(allowRead ? [{ label: readLabel, icon: icons.view, run: (item: T) => onView?.(item) }] : []),
     ...(allowUpdate ? [{ label: updateLabel, icon: icons.edit, run: (item: T) => onEdit?.(item) }] : []),
-    ...(allowDelete ? [{ label: deleteLabel, icon: icons.delete, class: 'text-error', run: (item: T) => runDeletion([item]) }] : []),
+    ...(allowDelete ? [{ label: deleteLabel, icon: icons.delete, class: 'text-error', run: (item: T) => requestDeletion([item]) }] : []),
   ]);
 </script>
 
@@ -171,6 +188,20 @@
     />
   </div>
 </div>
+
+{#if pendingDeletion !== null}
+  <Modal title={deleteLabel} onClose={() => (pendingDeletion = null)}>
+    <p>{strings.deleteConfirm(pendingDeletion.length)}</p>
+    <div class="flex justify-end gap-2 mt-4">
+      <Button variant="ghost" onclick={() => (pendingDeletion = null)}>
+        {strings.cancel}
+      </Button>
+      <Button variant="error" onclick={confirmDeletion}>
+        {strings.confirm}
+      </Button>
+    </div>
+  </Modal>
+{/if}
 
 <style>
   .table-wrapper {
