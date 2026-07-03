@@ -22,7 +22,7 @@ export const en: RuneforgeStrings = {
   cancel: 'Cancel',
   back: 'Back',
   confirm: 'Confirm',
-  deleteConfirm: (count) => `Are you sure you want to delete ${count} item${count === 1 ? '' : 's'}?`,
+  deleteConfirm: (count, actionLabel) => `Are you sure you want to ${String(actionLabel).toLowerCase()} ${count} item${count === 1 ? '' : 's'}?`,
   required: (field) => `${field} is required`,
   serverError: 'Unexpected server error.',
 };

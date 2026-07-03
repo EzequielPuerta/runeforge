@@ -191,7 +191,7 @@
 
 {#if pendingDeletion !== null}
   <Modal title={deleteLabel} onClose={() => (pendingDeletion = null)}>
-    <p>{strings.deleteConfirm(pendingDeletion.length)}</p>
+    <p>{strings.deleteConfirm(pendingDeletion.length, deleteLabel)}</p>
     <div class="flex justify-end gap-2 mt-4">
       <Button variant="ghost" onclick={() => (pendingDeletion = null)}>
         {strings.cancel}
