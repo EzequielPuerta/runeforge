@@ -14,7 +14,11 @@ export type {
   CellFormatter,
   SortDirection,
   IndexedRow,
-  DistinctEntry
+  DistinctEntry,
+  PaginatedEnvelope,
+  ServerPagination,
+  FilterSnapshot,
+  TableQuery
 } from './types/table.js';
 export type {
   ColumnDefinition,
@@ -60,7 +64,7 @@ export { default as TableBody } from './components/table/TableBody.svelte';
 export { default as SortHeader } from './components/table/SortHeader.svelte';
 export { default as Paginator } from './components/table/Paginator.svelte';
 export { default as ColumnFilter } from './components/table/ColumnFilter.svelte';
-export { SortState, FilterState } from './components/table/state.svelte.js';
+export { SortState, FilterState, snapshotFilter } from './components/table/state.svelte.js';
 export {
   cellRenderedText,
   isSortable,

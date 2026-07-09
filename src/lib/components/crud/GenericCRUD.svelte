@@ -7,6 +7,7 @@
   import Update from '$lib/components/crud/views/Update.svelte';
   import { AUTO_EXCLUDED } from '$lib/components/crud/utils/constants.js';
   import { resolveOptions, resolveFormatter, inferType } from '$lib/components/crud/utils/resolution.js';
+  import { isFilterable } from '$lib/components/table/utils.js';
   import type { AttributeMetadata } from '$lib/types/attribute.js';
   import type {
     ActionConfiguration,
@@ -14,6 +15,13 @@
     CustomAction,
     FieldDefinition,
   } from '$lib/types/crud.js';
+  import type {
+    FilterSnapshot,
+    PaginatedEnvelope,
+    ServerPagination,
+    SortDirection,
+    TableQuery,
+  } from '$lib/types/table.js';
 
   let {
     data = undefined as Record<string, unknown> | undefined,
@@ -52,8 +60,31 @@
     form?: { error?: string } | null;
   } = $props();
 
+  function isEnvelope(value: unknown): value is PaginatedEnvelope<T> {
+    return (
+      !!value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      Array.isArray((value as Record<string, unknown>).results) &&
+      typeof (value as Record<string, unknown>).count === 'number'
+    );
+  }
+
+  const rawSlice = $derived(data && dataKey ? data[dataKey] : undefined);
+  const envelope = $derived(isEnvelope(rawSlice) ? rawSlice : undefined);
   const entityData = $derived<T[]>(
-    data && dataKey ? (data[dataKey] as T[] ?? []) : []
+    envelope ? envelope.results : (Array.isArray(rawSlice) ? (rawSlice as T[]) : [])
+  );
+
+  const serverPagination = $derived<ServerPagination | undefined>(
+    envelope
+      ? {
+          page: envelope.page,
+          pageSize: envelope.pageSize,
+          totalPages: Math.max(1, Math.ceil(envelope.count / envelope.pageSize)),
+          total: envelope.count,
+        }
+      : undefined
   );
 
   const viewParam = $derived(page.url.searchParams.get('view'));
@@ -101,6 +132,72 @@
             .map((k) => ({ attribute: k, title: k }))
         : [])
   );
+
+  // Server-pagination mode only: GenericCRUD owns `page`/`ordering`/per-column
+  // filter query params the same way it already owns `view`/`id`, so pagination
+  // state survives reloads/direct links and `+page.svelte` never has to change.
+  const orderingParam = $derived(page.url.searchParams.get('ordering'));
+  const initialSort = $derived(
+    orderingParam
+      ? {
+          column: orderingParam.startsWith('-') ? orderingParam.slice(1) : orderingParam,
+          direction: (orderingParam.startsWith('-') ? 'desc' : 'asc') as SortDirection,
+        }
+      : undefined
+  );
+
+  const initialFilters = $derived.by<Partial<FilterSnapshot> | undefined>(() => {
+    if (!envelope) return undefined;
+    const text: Record<string, string> = {};
+    const values: Record<string, string[]> = {};
+    const dateRanges: Record<string, { from: string; to: string }> = {};
+    for (const col of resolvedColumns) {
+      if (!isFilterable(col)) continue;
+      const raw = page.url.searchParams.get(col.attribute);
+      if (raw != null) {
+        if (col.type === 'boolean') values[col.attribute] = raw.split(',').filter(Boolean);
+        else text[col.attribute] = raw;
+      }
+      const from = page.url.searchParams.get(`${col.attribute}_from`);
+      const to = page.url.searchParams.get(`${col.attribute}_to`);
+      if (from || to) dateRanges[col.attribute] = { from: from ?? '', to: to ?? '' };
+    }
+    return { text, values, dateRanges };
+  });
+
+  async function handlePaginationChange(query: TableQuery) {
+    // Local, synchronous query-string builder consumed immediately by goto();
+    // not rendered/reactive state, so plain URLSearchParams is correct here.
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity
+    const params = new URLSearchParams(page.url.searchParams);
+    params.delete('view');
+    params.delete('id');
+
+    if (query.page > 1) params.set('page', String(query.page));
+    else params.delete('page');
+
+    if (query.ordering) params.set('ordering', query.ordering);
+    else params.delete('ordering');
+
+    for (const col of resolvedColumns) {
+      params.delete(col.attribute);
+      params.delete(`${col.attribute}_from`);
+      params.delete(`${col.attribute}_to`);
+    }
+    for (const [k, v] of Object.entries(query.filters.text)) {
+      if (v) params.set(k, v);
+    }
+    for (const [k, vs] of Object.entries(query.filters.values)) {
+      if (vs.length) params.set(k, vs.join(','));
+    }
+    for (const [k, r] of Object.entries(query.filters.dateRanges)) {
+      if (r.from) params.set(`${k}_from`, r.from);
+      if (r.to) params.set(`${k}_to`, r.to);
+    }
+
+    const qs = params.toString();
+    await goto(qs ? `?${qs}` : '?', { keepFocus: true, noScroll: true });
+  }
 
   const resolvedFields: FieldDefinition<T>[] = $derived(
     fields ?? (meta
@@ -221,6 +318,10 @@
     {deletion}
     {actions}
     columns={resolvedColumns}
+    pagination={serverPagination}
+    {initialSort}
+    {initialFilters}
+    onPaginationChange={handlePaginationChange}
     onCreate={navCreate}
     onEdit={navEdit}
     onView={navRead}

@@ -13,6 +13,7 @@
     CustomAction,
     RowAction
   } from '$lib/types/crud.js';
+  import type { FilterSnapshot, ServerPagination, SortDirection, TableQuery } from '$lib/types/table.js';
   import { getStrings } from '$lib/i18n/context.js';
 
   const strings = getStrings();
@@ -30,6 +31,10 @@
     deletion = {} as ActionConfiguration<T>,
     actions = [] as CustomAction<T>[],
     columns = [] as ColumnDefinition<T>[],
+    pagination = undefined as ServerPagination | undefined,
+    initialSort = undefined as { column: string; direction: SortDirection } | undefined,
+    initialFilters = undefined as Partial<FilterSnapshot> | undefined,
+    onPaginationChange = undefined as ((query: TableQuery) => void) | undefined,
     onCreate,
     onEdit,
     onView,
@@ -48,6 +53,10 @@
     deletion?: ActionConfiguration<T>;
     actions?: CustomAction<T>[];
     columns?: ColumnDefinition<T>[];
+    pagination?: ServerPagination;
+    initialSort?: { column: string; direction: SortDirection };
+    initialFilters?: Partial<FilterSnapshot>;
+    onPaginationChange?: (query: TableQuery) => void;
     onCreate?: () => void;
     onEdit?: (item: T) => void;
     onView?: (item: T) => void;
@@ -67,6 +76,17 @@
 
   let selected = new SvelteSet<number>();
   let pendingDeletion = $state<T[] | null>(null);
+
+  // `selected` holds indices into `data`; if `data` is swapped for a different
+  // slice (page/sort/filter change in server mode) stale indices could point
+  // at unrelated rows, so clear on any data reference change.
+  let lastData: T[] | undefined;
+  $effect(() => {
+    if (data !== lastData) {
+      selected.clear();
+      lastData = data;
+    }
+  });
 
   async function runEndpointAction(endpoint: string, items: T[]) {
     await Promise.all(items.map((item) => {
@@ -185,6 +205,10 @@
       selectable={allowDelete}
       {selected}
       rowActions={showRowActions ? actionsCell : undefined}
+      {pagination}
+      {initialSort}
+      {initialFilters}
+      {onPaginationChange}
     />
   </div>
 </div>

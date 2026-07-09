@@ -48,9 +48,11 @@
     return () => calendarEl?.removeEventListener('change', handler);
   });
 
+  let debounceTimer: ReturnType<typeof setTimeout>;
   function setText(value: string) {
     filter.setText(column.attribute, value);
-    onchange?.();
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => onchange?.(), 300);
   }
   function toggle(value: string) {
     filter.toggleValue(column.attribute, value);

@@ -1,11 +1,18 @@
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import type { ColumnDefinition } from '$lib/types/crud.js';
 import { cellRenderedText, compare, isFilterable } from '$lib/components/table/utils.js';
-import type { IndexedRow, SortDirection } from '$lib/types/table.js';
+import type { FilterSnapshot, IndexedRow, SortDirection } from '$lib/types/table.js';
 
 export class SortState {
   column = $state<string | null>(null);
   direction = $state<SortDirection | null>(null);
+
+  constructor(initial?: { column: string | null; direction: SortDirection | null } | null) {
+    if (initial?.column) {
+      this.column = initial.column;
+      this.direction = initial.direction ?? 'desc';
+    }
+  }
 
   directionFor(attribute: string): SortDirection | null {
     return this.column === attribute ? this.direction : null;
@@ -49,6 +56,14 @@ export class FilterState {
   text = new SvelteMap<string, string>();
   values = new SvelteMap<string, SvelteSet<string>>();
   dateRanges = new SvelteMap<string, { from: string; to: string }>();
+
+  constructor(initial?: Partial<FilterSnapshot> | null) {
+    for (const [k, v] of Object.entries(initial?.text ?? {})) this.text.set(k, v);
+    for (const [k, v] of Object.entries(initial?.values ?? {})) {
+      this.values.set(k, new SvelteSet(v));
+    }
+    for (const [k, v] of Object.entries(initial?.dateRanges ?? {})) this.dateRanges.set(k, v);
+  }
 
   textFor(attribute: string): string {
     return this.text.get(attribute) ?? '';
@@ -118,4 +133,14 @@ export class FilterState {
       return true;
     });
   }
+}
+
+export function snapshotFilter(filter: FilterState): FilterSnapshot {
+  return {
+    text: Object.fromEntries(filter.text),
+    values: Object.fromEntries(
+      [...filter.values].map(([k, set]) => [k, [...set]]),
+    ),
+    dateRanges: Object.fromEntries(filter.dateRanges),
+  };
 }

@@ -3,9 +3,15 @@
   import TableBody from '$lib/components/table/TableBody.svelte';
   import Paginator from '$lib/components/table/Paginator.svelte';
   import TableHeader from '$lib/components/table/TableHeader.svelte';
-  import { SortState, FilterState } from '$lib/components/table/state.svelte.js';
-  import { distinctEntries } from '$lib/components/table/utils.js';
-  import type { IndexedRow } from '$lib/types/table.js';
+  import { SortState, FilterState, snapshotFilter } from '$lib/components/table/state.svelte.js';
+  import { distinctEntries, isFilterable } from '$lib/components/table/utils.js';
+  import type {
+    FilterSnapshot,
+    IndexedRow,
+    ServerPagination,
+    SortDirection,
+    TableQuery,
+  } from '$lib/types/table.js';
   import type { Snippet } from 'svelte';
   import type { ColumnDefinition } from '$lib/types/crud.js';
   import { getStrings } from '$lib/i18n/context.js';
@@ -20,6 +26,10 @@
     selected = $bindable(new SvelteSet<number>()),
     rowActions = undefined as Snippet<[T]> | undefined,
     actionsLabel = strings.actions,
+    pagination = undefined as ServerPagination | undefined,
+    initialSort = undefined as { column: string; direction: SortDirection } | undefined,
+    initialFilters = undefined as Partial<FilterSnapshot> | undefined,
+    onPaginationChange = undefined as ((query: TableQuery) => void) | undefined,
   }: {
     data?: T[];
     columns?: ColumnDefinition<T>[];
@@ -28,31 +38,88 @@
     selected?: SvelteSet<number>;
     rowActions?: Snippet<[T]>;
     actionsLabel?: string;
+    /** When provided, the table trusts `data` is already the requested page and
+     * defers pagination/sort/filter to `onPaginationChange` instead of computing
+     * them locally. Omit for the original fully-client-side behavior. */
+    pagination?: ServerPagination;
+    initialSort?: { column: string; direction: SortDirection };
+    initialFilters?: Partial<FilterSnapshot>;
+    onPaginationChange?: (query: TableQuery) => void;
   } = $props();
 
-  const sort = new SortState();
-  const filter = new FilterState();
+  // Intentional one-time hydration of local state from the initial prop
+  // values (not a live binding) — `svelte-check`'s state_referenced_locally
+  // warning is a false positive here.
+  const sort = new SortState(initialSort ?? null);
+  const filter = new FilterState(initialFilters ?? null);
 
-  let currentPage = $state(1);
+  let currentPage = $state(pagination?.page ?? 1);
+  let lastKnownPage = pagination?.page ?? 1;
 
-  const distinctValues = $derived(distinctEntries(data, columns));
+  const distinctValues = $derived(
+    pagination
+      ? Object.fromEntries(
+          columns
+            .filter((c) => isFilterable(c) && c.type === 'boolean')
+            .map((c) => [
+              c.attribute,
+              [
+                { key: 'true', row: {} as T },
+                { key: 'false', row: {} as T },
+              ],
+            ]),
+        )
+      : distinctEntries(data, columns)
+  );
 
   const indexed = $derived(data.map((row, index): IndexedRow<T> => ({ row, index })));
-  const filtered = $derived(indexed.filter(({ row }) => filter.matches(row, columns)));
-  const sorted = $derived(sort.apply(filtered, columns));
+  const filtered = $derived(pagination ? indexed : indexed.filter(({ row }) => filter.matches(row, columns)));
+  const sorted = $derived(pagination ? filtered : sort.apply(filtered, columns));
 
-  const totalPages = $derived(Math.ceil(sorted.length / pageSize));
-  const pageStart = $derived((currentPage - 1) * pageSize);
-  const pageData = $derived(sorted.slice(pageStart, pageStart + pageSize));
+  const effectivePageSize = $derived(pagination?.pageSize ?? pageSize);
+  const totalPages = $derived(pagination?.totalPages ?? Math.ceil(sorted.length / effectivePageSize));
+  const displayPage = $derived(pagination?.page ?? currentPage);
+  const pageStart = $derived((displayPage - 1) * effectivePageSize);
+  const pageData = $derived(pagination ? sorted : sorted.slice(pageStart, pageStart + effectivePageSize));
+  const totalCount = $derived(pagination?.total ?? sorted.length);
   const allChecked = $derived(pageData.length > 0 && pageData.every((e) => selected.has(e.index)));
   const someChecked = $derived(pageData.some((e) => selected.has(e.index)));
 
+  // Client mode only: server mode's totalPages is externally owned, clamping
+  // here would fight with URL-driven navigation while a page reload is pending.
   $effect(() => {
-    if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+    if (!pagination && currentPage > totalPages && totalPages > 0) currentPage = totalPages;
   });
 
-  function resetPage() {
+  // Server mode: external (URL/reload) page changes -> sync local state.
+  $effect(() => {
+    if (pagination && pagination.page !== lastKnownPage) {
+      currentPage = pagination.page;
+      lastKnownPage = pagination.page;
+    }
+  });
+
+  // Server mode: local (Paginator click) page changes -> notify caller.
+  $effect(() => {
+    if (pagination && currentPage !== lastKnownPage) {
+      lastKnownPage = currentPage;
+      onPaginationChange?.(currentQuery(currentPage));
+    }
+  });
+
+  function currentQuery(page: number): TableQuery {
+    return {
+      page,
+      ordering: sort.column ? (sort.direction === 'asc' ? sort.column : `-${sort.column}`) : null,
+      filters: snapshotFilter(filter),
+    };
+  }
+
+  function handleHeaderChange() {
     currentPage = 1;
+    if (!pagination) return;
+    lastKnownPage = 1;
+    onPaginationChange?.(currentQuery(1));
   }
 
   function toggleAll() {
@@ -82,7 +149,7 @@
         {distinctValues}
         hasRowActions={!!rowActions}
         {actionsLabel}
-        onchange={resetPage}
+        onchange={handleHeaderChange}
       />
       <TableBody
         {columns}
@@ -100,7 +167,7 @@
     bind:page={currentPage}
     {totalPages}
     {pageStart}
-    {pageSize}
-    total={sorted.length}
+    pageSize={effectivePageSize}
+    total={totalCount}
   />
 </div>

@@ -14,3 +14,29 @@ export type CellComponent<T extends object = Record<string, unknown>, V = unknow
 
 export type CellFormatter<T extends object = Record<string, unknown>, V = unknown> =
   (value: CellProps<T, V>['value'], row: CellProps<T, V>['row']) => string;
+
+export interface PaginatedEnvelope<T> {
+  results: T[];
+  count: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface ServerPagination {
+  page: number;
+  totalPages: number;
+  total: number;
+  pageSize: number;
+}
+
+export interface FilterSnapshot {
+  text: Record<string, string>;
+  values: Record<string, string[]>;
+  dateRanges: Record<string, { from: string; to: string }>;
+}
+
+export interface TableQuery {
+  page: number;
+  ordering: string | null;
+  filters: FilterSnapshot;
+}
