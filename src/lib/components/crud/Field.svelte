@@ -1,4 +1,5 @@
 <script lang="ts" generics="T extends object = Record<string, unknown>">
+  import 'cally';
   import Avatar from '$lib/components/Avatar.svelte';
   import Label from '$lib/components/form/Label.svelte';
   import Select from '$lib/components/form/Select.svelte';

@@ -1,4 +1,5 @@
 <script lang="ts" generics="T extends object">
+  import 'cally';
   import Label from '$lib/components/form/Label.svelte';
   import Button from '$lib/components/form/Button.svelte';
   import { getIconSet } from '$lib/icons/context.js';
@@ -106,14 +107,33 @@
         {dateRange.from || '…'} → {dateRange.to || '…'}
       </p>
     {/if}
+    {#if filter.hasActive(column.attribute)}
+      <Button variant="ghost" class="btn-sm mt-2 w-full" onclick={clear}>
+        {strings.clearFilter}
+      </Button>
+    {/if}
   {:else}
-    <input
-      type="text"
-      class="input input-bordered input-sm w-full"
-      placeholder={strings.filterPlaceholder}
-      value={filter.textFor(column.attribute)}
-      oninput={(e) => setText(e.currentTarget.value)}
-    />
+    <div class="relative">
+      <input
+        type="text"
+        class={['input input-bordered input-sm w-full', filter.hasActive(column.attribute) && 'pr-7']}
+        placeholder={strings.filterPlaceholder}
+        value={filter.textFor(column.attribute)}
+        oninput={(e) => setText(e.currentTarget.value)}
+      />
+      {#if filter.hasActive(column.attribute)}
+        {@const Icon = icons.clear}
+        <Button
+          variant="ghost"
+          class="btn-xs btn-square btn-circle absolute top-1/2 right-1 -translate-y-1/2"
+          aria-label={strings.clearFilter}
+          title={strings.clearFilter}
+          onclick={clear}
+        >
+          <Icon class="size-3" />
+        </Button>
+      {/if}
+    </div>
 
     {#if entries.length > 0 && entries.length < maxCheckboxValues}
       <div class="mt-2 flex max-h-60 flex-col gap-1 overflow-y-auto">
@@ -132,11 +152,5 @@
         {/each}
       </div>
     {/if}
-  {/if}
-
-  {#if filter.hasActive(column.attribute)}
-    <Button variant="ghost" class="btn-sm mt-2 w-full" onclick={clear}>
-      {strings.clearFilter}
-    </Button>
   {/if}
 </div>

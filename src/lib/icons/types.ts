@@ -8,6 +8,7 @@ export interface CRUDIconSet {
   sortDesc: IconComponent;
   filter: IconComponent;
   filterActive: IconComponent;
+  clear: IconComponent;
   create: IconComponent;
   view: IconComponent;
   edit: IconComponent;

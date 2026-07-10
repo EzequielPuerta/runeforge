@@ -14,7 +14,7 @@ import type { CRUDIconSet, IconComponent } from '$lib/icons/types.js';
 
 const {
   ChevronExpand, CaretUpFill, CaretDownFill, Funnel, FunnelFill,
-  Plus, Eye, PencilSquare, Trash3, HouseDoor, Folder, EyeSlash,
+  Plus, Eye, PencilSquare, Trash3, HouseDoor, Folder, EyeSlash, X,
 } = Icons;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,6 +26,7 @@ export const bootstrapIconSet: CRUDIconSet = {
   sortDesc: asIcon(CaretDownFill),
   filter: asIcon(Funnel),
   filterActive: asIcon(FunnelFill),
+  clear: asIcon(X),
   create: asIcon(Plus),
   view: asIcon(Eye),
   edit: asIcon(PencilSquare),

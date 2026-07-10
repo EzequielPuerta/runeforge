@@ -69,6 +69,7 @@ Runeforge provides a set of composable, metadata-driven components for building 
 - Svelte 5 (runes mode)
 - Tailwind CSS 4
 - DaisyUI 5
+- Cally
 
 ---
 

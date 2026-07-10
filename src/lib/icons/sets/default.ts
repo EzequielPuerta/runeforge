@@ -4,6 +4,7 @@ import SortAsc from '$lib/icons/defaults/SortAsc.svelte';
 import SortDesc from '$lib/icons/defaults/SortDesc.svelte';
 import Filter from '$lib/icons/defaults/Filter.svelte';
 import FilterActive from '$lib/icons/defaults/FilterActive.svelte';
+import Clear from '$lib/icons/defaults/Clear.svelte';
 import Create from '$lib/icons/defaults/Create.svelte';
 import View from '$lib/icons/defaults/View.svelte';
 import Edit from '$lib/icons/defaults/Edit.svelte';
@@ -19,6 +20,7 @@ export const defaultIconSet: CRUDIconSet = {
   sortDesc: SortDesc,
   filter: Filter,
   filterActive: FilterActive,
+  clear: Clear,
   create: Create,
   view: View,
   edit: Edit,
