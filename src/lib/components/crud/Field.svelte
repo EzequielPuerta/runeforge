@@ -1,5 +1,5 @@
 <script lang="ts" generics="T extends object = Record<string, unknown>">
-  import 'cally';
+  import { onMount } from 'svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import Label from '$lib/components/form/Label.svelte';
   import Select from '$lib/components/form/Select.svelte';
@@ -8,6 +8,10 @@
   import { getStrings } from '$lib/i18n/context.js';
 
   const strings = getStrings();
+
+  onMount(() => {
+    import('cally');
+  });
 
   let {
     field,

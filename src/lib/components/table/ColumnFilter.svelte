@@ -1,5 +1,5 @@
 <script lang="ts" generics="T extends object">
-  import 'cally';
+  import { onMount } from 'svelte';
   import Label from '$lib/components/form/Label.svelte';
   import Button from '$lib/components/form/Button.svelte';
   import { getIconSet } from '$lib/icons/context.js';
@@ -7,6 +7,10 @@
   import { getStrings } from '$lib/i18n/context.js';
 
   const strings = getStrings();
+
+  onMount(() => {
+    import('cally');
+  });
   import type { DistinctEntry } from '$lib/types/table.js';
   import type { FilterState } from '$lib/components/table/state.svelte.js';
   import type { ColumnDefinition } from '$lib/types/crud.js';
