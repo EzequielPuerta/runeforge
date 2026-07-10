@@ -112,7 +112,7 @@
       <calendar-date
         class="cally rounded-box border border-base-300 bg-base-100 shadow-sm"
         value={String(record[field.attribute] ?? '')}
-        onchange={(e: Event) => { record[field.attribute] = (e as Event & { detail: { value: string } }).detail.value; }}
+        onchange={(e: Event) => { record[field.attribute] = (e.currentTarget as HTMLElement & { value: string }).value; }}
       >
         <svg aria-label={strings.previous} class="fill-current size-4" {...{"slot": "previous"}} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
         <svg aria-label={strings.next} class="fill-current size-4" {...{"slot": "next"}} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>

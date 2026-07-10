@@ -23,7 +23,7 @@
   } = $props();
 </script>
 
-<tbody>
+<tbody data-testid="paginated-table-body">
   {#if rows.length === 0}
     <tr>
       <td colspan={colCount} class="py-10 text-center text-base-content/50">

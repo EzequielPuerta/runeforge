@@ -43,8 +43,8 @@
 
   $effect(() => {
     if (!calendarEl) return;
-    function handler(e: Event) {
-      const value = (e as CustomEvent<{ value: string }>).detail?.value ?? '';
+    function handler() {
+      const value = (calendarEl as HTMLElement & { value: string }).value ?? '';
       const [from = '', to = ''] = value.split('/');
       filter.setDateRange(column.attribute, from, to);
       onchange?.();
