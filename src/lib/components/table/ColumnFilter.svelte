@@ -107,7 +107,7 @@
       <calendar-month></calendar-month>
     </calendar-range>
     {#if dateRange.from || dateRange.to}
-      <p class="mt-2 text-xs text-base-content/60">
+      <p class="mt-2 text-center text-xs text-base-content/60">
         {dateRange.from || '…'} → {dateRange.to || '…'}
       </p>
     {/if}
