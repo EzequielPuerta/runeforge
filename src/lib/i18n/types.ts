@@ -1,45 +1,48 @@
 export interface RuneforgeStrings {
-  // Paginator
-  showing: (start: number, end: number, total: number) => string;
+	// Paginator
+	showing: (start: number, end: number, total: number) => string;
 
-  // Table header
-  actions: string;
+	// Table header
+	actions: string;
 
-  // Column filter
-  filter: string;
-  filterColumn: (column: string) => string;
-  filterPlaceholder: string;
-  clearFilter: string;
-  emptyValue: string;
+	// Column filter
+	filter: string;
+	filterColumn: (column: string) => string;
+	filterPlaceholder: string;
+	clearFilter: string;
+	emptyValue: string;
 
-  // Calendar navigation (ColumnFilter + Field datetime picker)
-  previous: string;
-  next: string;
+	// Calendar navigation (ColumnFilter + Field datetime picker)
+	previous: string;
+	next: string;
 
-  // Select
-  selectPlaceholder: string;
-  selectSearch: string;
-  selectNoResults: string;
+	// Select
+	selectPlaceholder: string;
+	selectSearch: string;
+	selectNoResults: string;
 
-  // CRUD List row actions
-  view: string;
-  edit: string;
-  delete: string;
+	// CRUD List row actions
+	view: string;
+	edit: string;
+	delete: string;
 
-  // CRUD List create button verb (entity name appended by the component)
-  create: string;
+	// CRUD List create button verb (entity name appended by the component)
+	create: string;
 
-  // CRUD forms
-  save: string;
-  saveAndContinue: string;
-  cancel: string;
-  back: string;
+	// CRUD List generic free-text search (search prop)
+	searchPlaceholder: string;
 
-  // CRUD delete confirmation
-  confirm: string;
-  deleteConfirm: (count: number, actionLabel: string) => string;
+	// CRUD forms
+	save: string;
+	saveAndContinue: string;
+	cancel: string;
+	back: string;
 
-  // CRUD validation
-  required: (field: string) => string;
-  serverError: string;
+	// CRUD delete confirmation
+	confirm: string;
+	deleteConfirm: (count: number, actionLabel: string) => string;
+
+	// CRUD validation
+	required: (field: string) => string;
+	serverError: string;
 }

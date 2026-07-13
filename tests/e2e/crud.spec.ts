@@ -69,7 +69,9 @@ test.describe('GenericCRUD', () => {
 		await page.waitForURL(/\?id=/);
 
 		await expect(page.getByRole('textbox', { name: 'Title' })).toHaveValue('Buy groceries');
-		await expect(page.getByRole('textbox', { name: 'Description' })).toHaveValue('Milk, eggs, bread');
+		await expect(page.getByRole('textbox', { name: 'Description' })).toHaveValue(
+			'Milk, eggs, bread'
+		);
 	});
 
 	test('read: "volver" returns to the list', async ({ page }) => {
@@ -87,7 +89,9 @@ test.describe('GenericCRUD', () => {
 		await page.waitForURL(/\?id=.+&view=edit/);
 
 		await expect(page.getByRole('textbox', { name: 'Title' })).toHaveValue('Buy groceries');
-		await expect(page.getByRole('textbox', { name: 'Description' })).toHaveValue('Milk, eggs, bread');
+		await expect(page.getByRole('textbox', { name: 'Description' })).toHaveValue(
+			'Milk, eggs, bread'
+		);
 	});
 
 	test('edit: saves changes and reflects them in the list', async ({ page }) => {
@@ -126,5 +130,47 @@ test.describe('GenericCRUD', () => {
 
 		await page.getByRole('button', { name: /Eliminar \(2\)/ }).click();
 		await expect(page.locator('tbody tr')).toHaveCount(1);
+	});
+
+	// ─── Custom bulk actions ────────────────────────────────────────────────────
+
+	test('customBulkActions: disabled until at least one row is selected', async ({ page }) => {
+		await expect(page.getByRole('button', { name: /^Complete \(/ })).toBeDisabled();
+	});
+
+	test('customBulkActions: runs the endpoint once per selected row and refreshes the list', async ({
+		page
+	}) => {
+		await page.locator('tbody tr:nth-child(1) input[type="checkbox"]').click();
+		await page.locator('tbody tr:nth-child(2) input[type="checkbox"]').click();
+
+		await page.getByRole('button', { name: /Complete \(2\)/ }).click();
+
+		const completedCells = page.locator('tbody tr td', { hasText: 'Sí' });
+		await expect(completedCells).toHaveCount(2);
+	});
+
+	test('customBulkActions: selection resets after running', async ({ page }) => {
+		await page.locator('tbody tr:nth-child(1) input[type="checkbox"]').click();
+		await page.getByRole('button', { name: /Complete \(1\)/ }).click();
+
+		await expect(page.getByRole('button', { name: /^Complete \(/ })).toBeDisabled();
+	});
+
+	// ─── Generic search ─────────────────────────────────────────────────────────
+
+	test('search: filters the list by title or description', async ({ page }) => {
+		await page.getByPlaceholder('Search tasks...').fill('groceries');
+		await expect(page.locator('tbody tr')).toHaveCount(1);
+		await expect(page.locator('tbody')).toContainText('Buy groceries');
+	});
+
+	test('search: clearing the input restores the full list', async ({ page }) => {
+		const input = page.getByPlaceholder('Search tasks...');
+		await input.fill('groceries');
+		await expect(page.locator('tbody tr')).toHaveCount(1);
+
+		await input.fill('');
+		await expect(page.locator('tbody tr')).toHaveCount(3);
 	});
 });

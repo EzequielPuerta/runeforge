@@ -1,11 +1,20 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { tasks, addTask, updateTask, deleteTask } from './store.js';
+import { tasks, addTask, updateTask, deleteTask, setTaskCompleted } from './store.js';
 
 export const load: PageServerLoad = ({ url }) => {
 	const id = url.searchParams.get('id');
 	const task = id ? tasks.find((t) => t._id === id) : undefined;
-	return { tasks, task };
+
+	const search = url.searchParams.get('search')?.trim().toLowerCase();
+	const visibleTasks = search
+		? tasks.filter(
+				(t) =>
+					t.title.toLowerCase().includes(search) || t.description.toLowerCase().includes(search)
+			)
+		: tasks;
+
+	return { tasks: visibleTasks, task };
 };
 
 export const actions: Actions = {
@@ -33,4 +42,18 @@ export const actions: Actions = {
 		deleteTask(id);
 		return { success: true };
 	},
+
+	complete: async ({ request }) => {
+		const data = await request.formData();
+		const id = String(data.get('id') ?? '');
+		setTaskCompleted(id, true);
+		return { success: true };
+	},
+
+	incomplete: async ({ request }) => {
+		const data = await request.formData();
+		const id = String(data.get('id') ?? '');
+		setTaskCompleted(id, false);
+		return { success: true };
+	}
 };

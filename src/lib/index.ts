@@ -2,30 +2,32 @@
 export type { BreadcrumbItem } from './types/breadcrumb.js';
 export { AttributeType } from './types/attribute.js';
 export type {
-  AttributeMetadata,
-  InterfaceMetadata,
-  SelectOption,
-  OptionsResolver,
-  FormatterResolver
+	AttributeMetadata,
+	InterfaceMetadata,
+	SelectOption,
+	OptionsResolver,
+	FormatterResolver
 } from './types/attribute.js';
 export type {
-  CellProps,
-  CellComponent,
-  CellFormatter,
-  SortDirection,
-  IndexedRow,
-  DistinctEntry,
-  PaginatedEnvelope,
-  ServerPagination,
-  FilterSnapshot,
-  TableQuery
+	CellProps,
+	CellComponent,
+	CellFormatter,
+	SortDirection,
+	IndexedRow,
+	DistinctEntry,
+	PaginatedEnvelope,
+	ServerPagination,
+	FilterSnapshot,
+	TableQuery
 } from './types/table.js';
 export type {
-  ColumnDefinition,
-  FieldDefinition,
-  ActionConfiguration,
-  CustomAction,
-  RowAction
+	ColumnDefinition,
+	FieldDefinition,
+	ActionConfiguration,
+	CustomAction,
+	CustomBulkAction,
+	RowAction,
+	SearchConfiguration
 } from './types/crud.js';
 
 // Config
@@ -66,11 +68,11 @@ export { default as Paginator } from './components/table/Paginator.svelte';
 export { default as ColumnFilter } from './components/table/ColumnFilter.svelte';
 export { SortState, FilterState, snapshotFilter } from './components/table/state.svelte.js';
 export {
-  cellRenderedText,
-  isSortable,
-  isFilterable,
-  compare,
-  distinctEntries
+	cellRenderedText,
+	isSortable,
+	isFilterable,
+	compare,
+	distinctEntries
 } from './components/table/utils.js';
 
 // CRUD components
@@ -83,14 +85,15 @@ export { default as CRUDList } from './components/crud/views/List.svelte';
 export { default as CRUDCreate } from './components/crud/views/Create.svelte';
 export { default as CRUDRead } from './components/crud/views/Read.svelte';
 export { default as CRUDUpdate } from './components/crud/views/Update.svelte';
+export { default as SearchInput } from './components/crud/SearchInput.svelte';
 
 // CRUD utilities
 export { AUTO_EXCLUDED } from './components/crud/utils/constants.js';
 export { resolveOptions, resolveFormatter, inferType } from './components/crud/utils/resolution.js';
 export { fieldLabel, initials } from './components/crud/utils/misc.js';
 export {
-  formatBoolean,
-  formatDatetime,
-  formatTruncateTextUpTo,
-  formatInstance
+	formatBoolean,
+	formatDatetime,
+	formatTruncateTextUpTo,
+	formatInstance
 } from './components/crud/utils/formatters.js';
