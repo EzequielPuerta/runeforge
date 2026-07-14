@@ -6,6 +6,7 @@
 	import Modal from '$lib/components/Modal.svelte';
 	import PaginatedTable from '$lib/components/table/PaginatedTable.svelte';
 	import SearchInput from '$lib/components/crud/SearchInput.svelte';
+	import { downloadCsv, downloadXlsx, type XlsxModule } from '$lib/components/table/export.js';
 	import { getIconSet } from '$lib/icons/context.js';
 	import { defaultIconSet } from '$lib/icons/sets/default.js';
 	import type {
@@ -45,6 +46,9 @@
 		initialSort = undefined as { column: string; direction: SortDirection } | undefined,
 		initialFilters = undefined as Partial<FilterSnapshot> | undefined,
 		onPaginationChange = undefined as ((query: TableQuery) => void) | undefined,
+		enableExport = false,
+		onExport = undefined as ((query: TableQuery) => Promise<T[]>) | undefined,
+		xlsx = undefined as XlsxModule | undefined,
 		onCreate,
 		onEdit,
 		onView,
@@ -69,6 +73,14 @@
 		initialSort?: { column: string; direction: SortDirection };
 		initialFilters?: Partial<FilterSnapshot>;
 		onPaginationChange?: (query: TableQuery) => void;
+		/** Shows an icon-only export button (CSV, and Excel if `xlsx` is provided). */
+		enableExport?: boolean;
+		/** Server-pagination mode only: fetch all rows matching the current query
+		 * (unpaginated) for export. Without it, export falls back to the loaded page. */
+		onExport?: (query: TableQuery) => Promise<T[]>;
+		/** Resolved `xlsx` (SheetJS) module, e.g. `import * as xlsx from 'xlsx'`.
+		 * Enables the "Export as Excel" option; omit to only offer CSV. */
+		xlsx?: XlsxModule;
 		onCreate?: () => void;
 		onEdit?: (item: T) => void;
 		onView?: (item: T) => void;
@@ -91,6 +103,25 @@
 	let pendingDeletion = $state<T[] | null>(null);
 	let pendingBulkAction = $state<{ action: CustomBulkAction<T>; items: T[] } | null>(null);
 	const selectedItems = $derived([...selected].map((i) => data[i]));
+
+	let visibleRows = $state<T[]>([]);
+	let exportQuery = $state<TableQuery | undefined>(undefined);
+	let exportPopoverEl: HTMLElement | undefined = $state();
+	const exportId = $props.id();
+
+	async function resolveExportRows(): Promise<T[]> {
+		if (!pagination) return visibleRows;
+		if (!onExport || !exportQuery) return data;
+		return onExport(exportQuery);
+	}
+
+	async function handleExport(format: 'csv' | 'xlsx') {
+		exportPopoverEl?.hidePopover();
+		const rows = await resolveExportRows();
+		const filename = `${labelMany || 'export'}-${new Date().toISOString().slice(0, 10)}`;
+		if (format === 'csv') downloadCsv(rows, columns, filename);
+		else if (xlsx) downloadXlsx(rows, columns, filename, xlsx);
+	}
 
 	// `selected` holds indices into `data`; if `data` is swapped for a different
 	// slice (page/sort/filter change in server mode) stale indices could point
@@ -230,6 +261,44 @@
 				<SearchInput config={search} />
 			{/if}
 
+			{#if enableExport}
+				{@const ExportIcon = icons.download}
+				<Button
+					variant="ghost"
+					class="btn-square"
+					popovertarget="export-menu-{exportId}"
+					style="anchor-name:--export-anchor-{exportId}"
+					aria-label={strings.export}
+					title={strings.export}
+				>
+					<ExportIcon class="size-4" />
+				</Button>
+				<div
+					popover="auto"
+					id="export-menu-{exportId}"
+					style="position-anchor:--export-anchor-{exportId}"
+					class="dropdown dropdown-end w-40 rounded-box border border-base-content/10 bg-base-100 p-1 shadow-lg"
+					bind:this={exportPopoverEl}
+				>
+					<Button
+						variant="ghost"
+						class="btn-sm w-full justify-start"
+						onclick={() => handleExport('csv')}
+					>
+						{strings.exportCsv}
+					</Button>
+					{#if xlsx}
+						<Button
+							variant="ghost"
+							class="btn-sm w-full justify-start"
+							onclick={() => handleExport('xlsx')}
+						>
+							{strings.exportExcel}
+						</Button>
+					{/if}
+				</div>
+			{/if}
+
 			{#each customBulkActions as bulkAction (bulkAction.label)}
 				{#if bulkAction.condition?.(selectedItems) ?? true}
 					{@const BulkIcon = bulkAction.icon}
@@ -282,6 +351,8 @@
 			{initialSort}
 			{initialFilters}
 			{onPaginationChange}
+			bind:visibleRows
+			bind:query={exportQuery}
 		/>
 	</div>
 </div>

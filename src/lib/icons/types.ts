@@ -17,5 +17,6 @@ export interface CRUDIconSet {
   folder: IconComponent;
   passwordShow: IconComponent;
   passwordHide: IconComponent;
+  download: IconComponent;
   getByName?: (name: string) => IconComponent | null;
 }

@@ -32,6 +32,11 @@ export interface RuneforgeStrings {
 	// CRUD List generic free-text search (search prop)
 	searchPlaceholder: string;
 
+	// CRUD List export menu
+	export: string;
+	exportCsv: string;
+	exportExcel: string;
+
 	// CRUD forms
 	save: string;
 	saveAndContinue: string;

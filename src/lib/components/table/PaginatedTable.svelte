@@ -30,6 +30,8 @@
     initialSort = undefined as { column: string; direction: SortDirection } | undefined,
     initialFilters = undefined as Partial<FilterSnapshot> | undefined,
     onPaginationChange = undefined as ((query: TableQuery) => void) | undefined,
+    visibleRows = $bindable<T[]>([]),
+    query = $bindable<TableQuery | undefined>(undefined),
   }: {
     data?: T[];
     columns?: ColumnDefinition<T>[];
@@ -45,6 +47,12 @@
     initialSort?: { column: string; direction: SortDirection };
     initialFilters?: Partial<FilterSnapshot>;
     onPaginationChange?: (query: TableQuery) => void;
+    /** Filtered + sorted rows before page slicing (client mode), or the
+     * current page's rows as-is (server mode). Read-only for callers. */
+    visibleRows?: T[];
+    /** Current ordering + filters snapshot, kept in sync for callers that
+     * need to replicate the active query (e.g. exporting server-side). */
+    query?: TableQuery;
   } = $props();
 
   // Intentional one-time hydration of local state from the initial prop
@@ -105,6 +113,14 @@
       lastKnownPage = currentPage;
       onPaginationChange?.(currentQuery(currentPage));
     }
+  });
+
+  // Surface the filtered+sorted rows and current query for callers (e.g. export).
+  $effect(() => {
+    visibleRows = sorted.map((e) => e.row);
+  });
+  $effect(() => {
+    query = currentQuery(displayPage);
   });
 
   function currentQuery(page: number): TableQuery {

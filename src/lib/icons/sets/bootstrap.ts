@@ -15,6 +15,7 @@ import type { CRUDIconSet, IconComponent } from '$lib/icons/types.js';
 const {
   ChevronExpand, CaretUpFill, CaretDownFill, Funnel, FunnelFill,
   Plus, Eye, PencilSquare, Trash3, HouseDoor, Folder, EyeSlash, X,
+  Download,
 } = Icons;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,6 +36,7 @@ export const bootstrapIconSet: CRUDIconSet = {
   folder: asIcon(Folder),
   passwordShow: asIcon(Eye),
   passwordHide: asIcon(EyeSlash),
+  download: asIcon(Download),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getByName: (name: string) => asIcon((Icons as Record<string, any>)[name]) ?? null,
 };

@@ -24,6 +24,7 @@
 		dataKey="tasks"
 		deletion={{ endpoint: '?/delete' }}
 		search={{ placeholder: 'Search tasks...' }}
+		enableExport
 		customBulkActions={[
 			{ label: 'Complete', icon: View, endpoint: '?/complete' },
 			{ label: 'Mark pending', icon: Edit, endpoint: '?/incomplete' }

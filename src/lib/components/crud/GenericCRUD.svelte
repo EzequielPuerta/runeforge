@@ -12,6 +12,7 @@
 		inferType
 	} from '$lib/components/crud/utils/resolution.js';
 	import { isFilterable } from '$lib/components/table/utils.js';
+	import type { XlsxModule } from '$lib/components/table/export.js';
 	import type { AttributeMetadata } from '$lib/types/attribute.js';
 	import type {
 		ActionConfiguration,
@@ -47,7 +48,10 @@
 		columns = undefined as ColumnDefinition<T>[] | undefined,
 		fields = undefined as FieldDefinition<T>[] | undefined,
 		meta = undefined as Partial<Record<string, AttributeMetadata>> | undefined,
-		form = null as { error?: string } | null
+		form = null as { error?: string } | null,
+		enableExport = false,
+		onExport = undefined as ((query: TableQuery) => Promise<T[]>) | undefined,
+		xlsx = undefined as XlsxModule | undefined
 	}: {
 		data?: Record<string, unknown>;
 		dataKey?: string;
@@ -68,6 +72,14 @@
 		fields?: FieldDefinition<T>[];
 		meta?: Partial<Record<string, AttributeMetadata>>;
 		form?: { error?: string } | null;
+		/** Shows an icon-only export button (CSV, and Excel if `xlsx` is provided). */
+		enableExport?: boolean;
+		/** Server-pagination mode only: fetch all rows matching the current query
+		 * (unpaginated) for export. Without it, export falls back to the loaded page. */
+		onExport?: (query: TableQuery) => Promise<T[]>;
+		/** Resolved `xlsx` (SheetJS) module, e.g. `import * as xlsx from 'xlsx'`.
+		 * Enables the "Export as Excel" option; omit to only offer CSV. */
+		xlsx?: XlsxModule;
 	} = $props();
 
 	function isEnvelope(value: unknown): value is PaginatedEnvelope<T> {
@@ -342,6 +354,9 @@
 		{initialSort}
 		{initialFilters}
 		onPaginationChange={handlePaginationChange}
+		{enableExport}
+		{onExport}
+		{xlsx}
 		onCreate={navCreate}
 		onEdit={navEdit}
 		onView={navRead}
