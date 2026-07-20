@@ -47,7 +47,8 @@
     const seeded: Record<string, unknown> = { ...inst };
     for (const f of fields) {
       if (f.type !== 'boolean' && f.type !== 'file') {
-        seeded[f.attribute] = String(inst[f.attribute] ?? '');
+        const raw = f.seed ? f.seed(inst) : inst[f.attribute];
+        seeded[f.attribute] = String(raw ?? '');
       }
     }
     return seeded;

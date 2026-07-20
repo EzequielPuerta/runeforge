@@ -72,13 +72,8 @@
 		fields?: FieldDefinition<T>[];
 		meta?: Partial<Record<string, AttributeMetadata>>;
 		form?: { error?: string } | null;
-		/** Shows an icon-only export button (CSV, and Excel if `xlsx` is provided). */
 		enableExport?: boolean;
-		/** Server-pagination mode only: fetch all rows matching the current query
-		 * (unpaginated) for export. Without it, export falls back to the loaded page. */
 		onExport?: (query: TableQuery) => Promise<T[]>;
-		/** Resolved `xlsx` (SheetJS) module, e.g. `import * as xlsx from 'xlsx'`.
-		 * Enables the "Export as Excel" option; omit to only offer CSV. */
 		xlsx?: XlsxModule;
 	} = $props();
 
@@ -241,7 +236,12 @@
 							autocomplete: m.autocomplete,
 							placeholder: m.placeholder,
 							default: m.default,
-							options: resolveOptions(m, data)
+							options: resolveOptions(m, data),
+							dependentOptions: m.dependentOptions
+								? (record: Record<string, unknown>) => m.dependentOptions!(data, record)
+								: undefined,
+							disabled: m.disabled,
+							seed: m.seed
 						}))
 				: entityData.length > 0
 					? (Object.entries(entityData[0]) as [string, unknown][])
@@ -263,7 +263,12 @@
 							autocomplete: m.autocomplete,
 							placeholder: m.placeholder,
 							default: m.default,
-							options: resolveOptions(m, data)
+							options: resolveOptions(m, data),
+							dependentOptions: m.dependentOptions
+								? (record: Record<string, unknown>) => m.dependentOptions!(data, record)
+								: undefined,
+							disabled: m.disabled,
+							seed: m.seed
 						}))
 				: entityData.length > 0
 					? (Object.entries(entityData[0]) as [string, unknown][])
@@ -285,7 +290,12 @@
 							autocomplete: m.autocomplete,
 							placeholder: m.placeholder,
 							default: m.default,
-							options: resolveOptions(m, data)
+							options: resolveOptions(m, data),
+							dependentOptions: m.dependentOptions
+								? (record: Record<string, unknown>) => m.dependentOptions!(data, record)
+								: undefined,
+							disabled: m.disabled,
+							seed: m.seed
 						}))
 				: entityData.length > 0
 					? (Object.entries(entityData[0]) as [string, unknown][])

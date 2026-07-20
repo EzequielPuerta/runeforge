@@ -43,6 +43,16 @@
   const preview = $derived(filePreview ?? (typeof saved === 'string' && saved ? saved : null));
   const avatarInitials = $derived(initials(record.firstName as string, record.lastName as string));
   const displayValue = $derived(saved == null ? '' : String(saved));
+  const selectOptions = $derived(field.dependentOptions ? field.dependentOptions(record) : (field.options ?? []));
+  const selectDisabled = $derived(field.disabled ? field.disabled(record) : false);
+
+  $effect(() => {
+    if (!field.dependentOptions) return;
+    const current = record[field.attribute];
+    if (current && !selectOptions.some((o) => o.value === String(current))) {
+      record[field.attribute] = '';
+    }
+  });
 </script>
 
 <div class="flex flex-col gap-1">
@@ -86,15 +96,16 @@
         type="text"
         id={field.attribute}
         class="input input-bordered w-full"
-        value={field.options?.find((o) => o.value === String(saved))?.label ?? displayValue}
+        value={selectOptions.find((o) => o.value === String(saved))?.label ?? displayValue}
         disabled
       />
     {:else}
       <Select
         name={field.attribute}
         bind:value={record[field.attribute] as string}
-        options={field.options ?? []}
+        options={selectOptions}
         placeholder={field.placeholder}
+        disabled={selectDisabled}
         {error}
       />
     {/if}

@@ -31,11 +31,19 @@ export type SelectOption = { value: string; label: string };
 export type OptionsResolver = SelectOption[] | ((data: any) => SelectOption[]);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type FormatterResolver = (data?: any) => CellFormatter<any, any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type DependentOptionsResolver = (data: any, record: Record<string, unknown>) => SelectOption[];
+export type DisabledResolver = (record: Record<string, unknown>) => boolean;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type SeedResolver = (instance: any) => unknown;
 
 export type AttributeMetadata = {
   label?: string;
   type?: AttributeType;
   options?: OptionsResolver;
+  dependentOptions?: DependentOptionsResolver;
+  disabled?: DisabledResolver;
+  seed?: SeedResolver;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   component?: CellComponent<any, any>;
   formatter?: FormatterResolver;

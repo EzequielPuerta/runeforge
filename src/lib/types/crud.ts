@@ -25,6 +25,10 @@ export interface FieldDefinition<T extends object = Record<string, unknown>> {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	default?: any;
 	options?: { value: string; label: string }[];
+	dependentOptions?: (record: Record<string, unknown>) => { value: string; label: string }[];
+	disabled?: (record: Record<string, unknown>) => boolean;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	seed?: (instance: any) => unknown;
 }
 
 export interface ActionConfiguration<T extends object = Record<string, unknown>> {
