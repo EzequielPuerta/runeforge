@@ -49,5 +49,12 @@ export interface RuneforgeStrings {
 
 	// CRUD validation
 	required: (field: string) => string;
+	invalidNumber: (field: string) => string;
+	integer: (field: string) => string;
+	min: (field: string, min: number) => string;
+	max: (field: string, max: number) => string;
+	minLength: (field: string, min: number) => string;
+	maxLength: (field: string, max: number) => string;
+	pattern: (field: string) => string;
 	serverError: string;
 }

@@ -7,9 +7,9 @@
 	import Update from '$lib/components/crud/views/Update.svelte';
 	import { AUTO_EXCLUDED } from '$lib/components/crud/utils/constants.js';
 	import {
-		resolveOptions,
 		resolveFormatter,
-		inferType
+		inferType,
+		buildFieldDefinitions
 	} from '$lib/components/crud/utils/resolution.js';
 	import { isFilterable } from '$lib/components/table/utils.js';
 	import type { XlsxModule } from '$lib/components/table/export.js';
@@ -226,23 +226,7 @@
 	const resolvedFields: FieldDefinition<T>[] = $derived(
 		fields ??
 			(meta
-				? (Object.entries(meta) as [string, AttributeMetadata][])
-						.filter(([k, m]) => !excluded.has(k) && !m.excludedFromCreate)
-						.map(([k, m]) => ({
-							attribute: k as keyof T & string,
-							title: m.label,
-							type: m.type ?? inferType(k, undefined),
-							required: m.required,
-							autocomplete: m.autocomplete,
-							placeholder: m.placeholder,
-							default: m.default,
-							options: resolveOptions(m, data),
-							dependentOptions: m.dependentOptions
-								? (record: Record<string, unknown>) => m.dependentOptions!(data, record)
-								: undefined,
-							disabled: m.disabled,
-							seed: m.seed
-						}))
+				? buildFieldDefinitions<T>(meta, data, 'excludedFromCreate', excluded)
 				: entityData.length > 0
 					? (Object.entries(entityData[0]) as [string, unknown][])
 							.filter(([k]) => !excluded.has(k))
@@ -253,23 +237,7 @@
 	const resolvedReadFields: FieldDefinition<T>[] = $derived(
 		fields ??
 			(meta
-				? (Object.entries(meta) as [string, AttributeMetadata][])
-						.filter(([k, m]) => !excluded.has(k) && !m.excludedFromRead)
-						.map(([k, m]) => ({
-							attribute: k as keyof T & string,
-							title: m.label,
-							type: m.type ?? inferType(k, undefined),
-							required: m.required,
-							autocomplete: m.autocomplete,
-							placeholder: m.placeholder,
-							default: m.default,
-							options: resolveOptions(m, data),
-							dependentOptions: m.dependentOptions
-								? (record: Record<string, unknown>) => m.dependentOptions!(data, record)
-								: undefined,
-							disabled: m.disabled,
-							seed: m.seed
-						}))
+				? buildFieldDefinitions<T>(meta, data, 'excludedFromRead', excluded)
 				: entityData.length > 0
 					? (Object.entries(entityData[0]) as [string, unknown][])
 							.filter(([k]) => !excluded.has(k))
@@ -280,23 +248,7 @@
 	const resolvedUpdateFields: FieldDefinition<T>[] = $derived(
 		fields ??
 			(meta
-				? (Object.entries(meta) as [string, AttributeMetadata][])
-						.filter(([k, m]) => !excluded.has(k) && !m.excludedFromUpdate)
-						.map(([k, m]) => ({
-							attribute: k as keyof T & string,
-							title: m.label,
-							type: m.type ?? inferType(k, undefined),
-							required: m.required,
-							autocomplete: m.autocomplete,
-							placeholder: m.placeholder,
-							default: m.default,
-							options: resolveOptions(m, data),
-							dependentOptions: m.dependentOptions
-								? (record: Record<string, unknown>) => m.dependentOptions!(data, record)
-								: undefined,
-							disabled: m.disabled,
-							seed: m.seed
-						}))
+				? buildFieldDefinitions<T>(meta, data, 'excludedFromUpdate', excluded)
 				: entityData.length > 0
 					? (Object.entries(entityData[0]) as [string, unknown][])
 							.filter(([k]) => !excluded.has(k))

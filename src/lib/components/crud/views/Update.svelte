@@ -6,7 +6,8 @@
   import Header from '$lib/components/common/Header.svelte';
   import { getIconSet } from '$lib/icons/context.js';
   import { defaultIconSet } from '$lib/icons/sets/default.js';
-  import { fieldLabel } from '$lib/components/crud/utils/misc.js';
+  import { validateAll } from '$lib/components/crud/utils/validation.js';
+  import { groupFields } from '$lib/components/crud/utils/grouping.js';
   import type { ActionConfiguration, FieldDefinition } from '$lib/types/crud.js';
   import { getStrings } from '$lib/i18n/context.js';
 
@@ -64,17 +65,7 @@
     untrack(() => { record = seedFromInstance(instance as Record<string, unknown>); });
   });
 
-  function validateAll(formData: FormData): Record<string, string> {
-    const errs: Record<string, string> = {};
-    for (const field of fields) {
-      if (field.required) {
-        const val = String(formData.get(field.attribute) ?? '').trim();
-        if (!val) errs[field.attribute] = strings.required(fieldLabel(field));
-      }
-    }
-    return errs;
-  }
-
+  const groups = $derived(groupFields(fields));
   const hasFileField = $derived(fields.some((f) => f.type === 'file'));
 
   const errorEntries = $derived([
@@ -114,7 +105,7 @@
     use:enhance={({ formData, cancel }) => {
       fieldErrors = {};
       internalError = '';
-      const errs = validateAll(formData);
+      const errs = validateAll(fields, formData, strings);
       if (Object.keys(errs).length > 0) {
         fieldErrors = errs;
         cancel();
@@ -134,8 +125,21 @@
   >
     <input type="hidden" name="id" value={String(record[idKey] ?? '')} />
 
-    {#each fields as field (field.attribute)}
-      <Field {field} bind:record error={fieldErrors[field.attribute] ?? ''} />
+    {#each groups as group, i (group.title ?? `_ungrouped_${i}`)}
+      {#if group.title}
+        <fieldset class="fieldset border border-base-300 rounded-box p-4">
+          <legend class="fieldset-legend px-2">{group.title}</legend>
+          <div class="flex flex-col gap-4">
+            {#each group.fields as field (field.attribute)}
+              <Field {field} bind:record error={fieldErrors[field.attribute] ?? ''} />
+            {/each}
+          </div>
+        </fieldset>
+      {:else}
+        {#each group.fields as field (field.attribute)}
+          <Field {field} bind:record error={fieldErrors[field.attribute] ?? ''} />
+        {/each}
+      {/if}
     {/each}
 
     <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">

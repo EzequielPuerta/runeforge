@@ -58,4 +58,11 @@ export type AttributeMetadata = {
   excludedFromRead?: boolean;
   sortable?: boolean;
   filterable?: boolean;
+  groupedAs?: string;
+  min?: number;
+  max?: number;
+  integer?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
 };

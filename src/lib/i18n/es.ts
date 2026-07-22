@@ -29,5 +29,12 @@ export const es: RuneforgeStrings = {
 	deleteConfirm: (count, actionLabel) =>
 		`¿Seguro que querés ${String(actionLabel).toLowerCase()} ${count} elemento${count === 1 ? '' : 's'}?`,
 	required: (field) => `${field} es requerido`,
+	invalidNumber: (field) => `${field} debe ser un número`,
+	integer: (field) => `${field} debe ser un número entero`,
+	min: (field, min) => `${field} debe ser mayor o igual a ${min}`,
+	max: (field, max) => `${field} debe ser menor o igual a ${max}`,
+	minLength: (field, min) => `${field} debe tener al menos ${min} caracteres`,
+	maxLength: (field, max) => `${field} debe tener como máximo ${max} caracteres`,
+	pattern: (field) => `${field} tiene un formato inválido`,
 	serverError: 'Error inesperado del servidor.'
 };

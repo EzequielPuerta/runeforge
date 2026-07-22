@@ -44,7 +44,7 @@
   const avatarInitials = $derived(initials(record.firstName as string, record.lastName as string));
   const displayValue = $derived(saved == null ? '' : String(saved));
   const selectOptions = $derived(field.dependentOptions ? field.dependentOptions(record) : (field.options ?? []));
-  const selectDisabled = $derived(field.disabled ? field.disabled(record) : false);
+  const fieldDisabled = $derived(field.disabled ? field.disabled(record) : false);
 
   $effect(() => {
     if (!field.dependentOptions) return;
@@ -76,7 +76,8 @@
       {name}
       class="toggle toggle-primary"
       checked={!!saved}
-      disabled={readonly}
+      disabled={readonly || fieldDisabled}
+      onchange={(e) => { record[field.attribute] = (e.currentTarget as HTMLInputElement).checked; }}
     />
   {:else if field.type === 'file'}
     {#if !readonly}
@@ -86,6 +87,7 @@
         {name}
         class="file-input file-input-bordered w-full"
         class:file-input-error={!!error}
+        disabled={fieldDisabled}
         onchange={onFileChange}
       />
     {/if}
@@ -105,7 +107,7 @@
         bind:value={record[field.attribute] as string}
         options={selectOptions}
         placeholder={field.placeholder}
-        disabled={selectDisabled}
+        disabled={fieldDisabled}
         {error}
       />
     {/if}
@@ -119,11 +121,11 @@
         disabled
       />
     {:else}
-      <input type="hidden" {name} value={String(record[field.attribute] ?? '')} />
+      <input type="hidden" {name} value={String(record[field.attribute] ?? '')} disabled={fieldDisabled} />
       <calendar-date
-        class="cally rounded-box border border-base-300 bg-base-100 shadow-sm"
+        class="cally rounded-box border border-base-300 bg-base-100 shadow-sm {fieldDisabled ? 'pointer-events-none opacity-50' : ''}"
         value={String(record[field.attribute] ?? '')}
-        onchange={(e: Event) => { record[field.attribute] = (e.currentTarget as HTMLElement & { value: string }).value; }}
+        onchange={(e: Event) => { if (fieldDisabled) return; record[field.attribute] = (e.currentTarget as HTMLElement & { value: string }).value; }}
       >
         <svg aria-label={strings.previous} class="fill-current size-4" {...{"slot": "previous"}} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
         <svg aria-label={strings.next} class="fill-current size-4" {...{"slot": "next"}} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
@@ -141,6 +143,7 @@
         bind:value={record[field.attribute]}
         class="textarea textarea-bordered bg-base-100 w-full"
         class:textarea-error={!!error}
+        disabled={fieldDisabled}
       ></textarea>
     {/if}
   {:else if readonly}
@@ -159,8 +162,10 @@
       placeholder={field.placeholder ?? ''}
       bind:value={record[field.attribute]}
       autocomplete={field.autocomplete}
+      step={field.type === 'number' ? 'any' : undefined}
       class="input input-bordered w-full"
       class:input-error={!!error}
+      disabled={fieldDisabled}
     />
   {/if}
 

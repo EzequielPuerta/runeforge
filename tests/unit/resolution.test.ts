@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { resolveOptions, resolveFormatter, inferType } from '$lib/components/crud/utils/resolution.js';
+import {
+	resolveOptions,
+	resolveFormatter,
+	inferType,
+	buildFieldDefinitions
+} from '$lib/components/crud/utils/resolution.js';
 import type { AttributeMetadata } from '$lib/types/attribute.js';
 
 describe('resolveOptions', () => {
@@ -59,5 +64,74 @@ describe('inferType', () => {
 	it('returns "text" as the default', () => {
 		expect(inferType('name', '')).toBe('text');
 		expect(inferType('city', '')).toBe('text');
+	});
+});
+
+describe('buildFieldDefinitions', () => {
+	const excluded = new Set(['_id']);
+
+	it('maps groupedAs/min/max/integer/minLength/maxLength/pattern through', () => {
+		const meta: Partial<Record<string, AttributeMetadata>> = {
+			quantity: {
+				label: 'Quantity',
+				type: 'number',
+				groupedAs: 'Stock',
+				min: 1,
+				max: 24,
+				integer: true
+			},
+			code: { label: 'Code', minLength: 3, maxLength: 8, pattern: '^[A-Z]+$' }
+		};
+
+		const fields = buildFieldDefinitions(meta, undefined, 'excludedFromCreate', excluded);
+
+		expect(fields).toEqual([
+			expect.objectContaining({
+				attribute: 'quantity',
+				groupedAs: 'Stock',
+				min: 1,
+				max: 24,
+				integer: true
+			}),
+			expect.objectContaining({
+				attribute: 'code',
+				minLength: 3,
+				maxLength: 8,
+				pattern: '^[A-Z]+$'
+			})
+		]);
+	});
+
+	it('filters out fields excluded via the given flag, and the excluded set', () => {
+		const meta: Partial<Record<string, AttributeMetadata>> = {
+			_id: { label: 'ID' },
+			name: { label: 'Name' },
+			internal: { label: 'Internal', excludedFromCreate: true }
+		};
+
+		const fields = buildFieldDefinitions(meta, undefined, 'excludedFromCreate', excluded);
+
+		expect(fields.map((f) => f.attribute)).toEqual(['name']);
+	});
+
+	it('respects a different excludedFlag per view', () => {
+		const meta: Partial<Record<string, AttributeMetadata>> = {
+			name: { label: 'Name', excludedFromRead: true }
+		};
+
+		expect(buildFieldDefinitions(meta, undefined, 'excludedFromCreate', excluded)).toHaveLength(1);
+		expect(buildFieldDefinitions(meta, undefined, 'excludedFromRead', excluded)).toHaveLength(0);
+	});
+
+	it('resolves disabled/dependentOptions/seed/default like the create/read/update blocks did', () => {
+		const disabled = (record: Record<string, unknown>) => !!record.locked;
+		const meta: Partial<Record<string, AttributeMetadata>> = {
+			amount: { label: 'Amount', disabled, default: 5 }
+		};
+
+		const fields = buildFieldDefinitions(meta, undefined, 'excludedFromCreate', excluded);
+
+		expect(fields[0].disabled).toBe(disabled);
+		expect(fields[0].default).toBe(5);
 	});
 });

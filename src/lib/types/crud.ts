@@ -29,6 +29,13 @@ export interface FieldDefinition<T extends object = Record<string, unknown>> {
 	disabled?: (record: Record<string, unknown>) => boolean;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	seed?: (instance: any) => unknown;
+	groupedAs?: string;
+	min?: number;
+	max?: number;
+	integer?: boolean;
+	minLength?: number;
+	maxLength?: number;
+	pattern?: string;
 }
 
 export interface ActionConfiguration<T extends object = Record<string, unknown>> {

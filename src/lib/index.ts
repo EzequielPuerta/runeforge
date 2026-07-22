@@ -89,7 +89,12 @@ export { default as SearchInput } from './components/crud/SearchInput.svelte';
 
 // CRUD utilities
 export { AUTO_EXCLUDED } from './components/crud/utils/constants.js';
-export { resolveOptions, resolveFormatter, inferType } from './components/crud/utils/resolution.js';
+export {
+	resolveOptions,
+	resolveFormatter,
+	inferType,
+	buildFieldDefinitions
+} from './components/crud/utils/resolution.js';
 export { fieldLabel, initials } from './components/crud/utils/misc.js';
 export {
 	formatBoolean,
@@ -97,3 +102,6 @@ export {
 	formatTruncateTextUpTo,
 	formatInstance
 } from './components/crud/utils/formatters.js';
+export { groupFields } from './components/crud/utils/grouping.js';
+export type { FieldGroup } from './components/crud/utils/grouping.js';
+export { validateAll } from './components/crud/utils/validation.js';

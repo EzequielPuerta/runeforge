@@ -6,6 +6,7 @@
   import Header from '$lib/components/common/Header.svelte';
   import { getIconSet } from '$lib/icons/context.js';
   import { defaultIconSet } from '$lib/icons/sets/default.js';
+  import { groupFields } from '$lib/components/crud/utils/grouping.js';
   import type { ActionConfiguration, FieldDefinition } from '$lib/types/crud.js';
   import { getStrings } from '$lib/i18n/context.js';
 
@@ -60,6 +61,8 @@
     })();
     return () => { cancelled = true; };
   });
+
+  const groups = $derived(groupFields(fields));
 </script>
 
 <div class="flex flex-col gap-6">
@@ -73,8 +76,21 @@
   />
 
   <div class="fields-panel mx-auto flex w-full flex-col gap-4 px-4">
-    {#each fields as field (field.attribute)}
-      <Field {field} {record} readonly />
+    {#each groups as group, i (group.title ?? `_ungrouped_${i}`)}
+      {#if group.title}
+        <fieldset class="fieldset border border-base-300 rounded-box p-4">
+          <legend class="fieldset-legend px-2">{group.title}</legend>
+          <div class="flex flex-col gap-4">
+            {#each group.fields as field (field.attribute)}
+              <Field {field} {record} readonly />
+            {/each}
+          </div>
+        </fieldset>
+      {:else}
+        {#each group.fields as field (field.attribute)}
+          <Field {field} {record} readonly />
+        {/each}
+      {/if}
     {/each}
 
     <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
