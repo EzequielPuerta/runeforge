@@ -29,8 +29,21 @@ A SvelteKit toolkit that forges forms, tables, actions, and CRUD workflows from 
     - [2. Create the model](#2-create-the-model)
     - [3. Set up the server](#3-set-up-the-server)
     - [4. Add the page component](#4-add-the-page-component)
+  - [Field System](#field-system)
+    - [Attribute reference](#attribute-reference)
+    - [Validation](#validation)
+    - [Conditional fields](#conditional-fields)
+    - [Field grouping](#field-grouping)
+    - [Default values](#default-values)
+    - [Select options](#select-options)
+    - [Embedded fields (sub-documents)](#embedded-fields-sub-documents)
   - [Components](#components)
     - [GenericCRUD](#genericcrud)
+      - [Free-text search](#free-text-search)
+      - [Custom row actions](#custom-row-actions)
+      - [Custom bulk actions](#custom-bulk-actions)
+      - [Exporting data (CSV/XLSX)](#exporting-data-csvxlsx)
+      - [Server-side pagination, sorting & filtering](#server-side-pagination-sorting--filtering)
     - [PaginatedTable](#paginatedtable)
     - [Form Components](#form-components)
     - [Shared Components](#shared-components)
@@ -70,14 +83,22 @@ Runeforge provides a set of composable, metadata-driven components for building 
 - Tailwind CSS 4
 - DaisyUI 5
 - Cally
+- `xlsx` (optional, only if you enable Excel export)
 
 ---
 
 ## Key Features
 
 - **GenericCRUD** — a single orchestrator component that wires together list, create, read, and update views from field and column definitions.
-- **PaginatedTable** — a full-featured table with sorting, filtering, pagination, and row selection.
-- **Field system** — declarative field definitions that drive both form rendering and display, supporting text, email, password, number, boolean, textarea, file, select, and datetime types.
+- **PaginatedTable** — a full-featured table with sorting, filtering, pagination, and row selection, usable either fully client-side or driven by a server-paginated backend.
+- **Field system** — declarative field definitions that drive both form rendering and display, supporting text, email, password, number, boolean, textarea, file, select, datetime, and embedded (sub-document list) types.
+- **Validation** — built-in `required`, `min`/`max`, `integer`, `minLength`/`maxLength`, and `pattern` rules, checked client-side before submit with consistent, translatable error messages.
+- **Conditional fields & field grouping** — disable a field based on the current values of others in the same form, and visually group related fields under a titled `fieldset`.
+- **Smart select fields** — options can be static, computed from page data, dependent on another field's value, or resolved live from the server as the user types.
+- **Embedded fields** — model one-to-many sub-documents (e.g. line items, adjustments) as an in-form add/edit list backed by a single JSON field.
+- **Custom row & bulk actions** — add entity-specific actions (in a panel or via redirect) alongside the built-in view/edit/delete, and bulk actions that operate on the current selection.
+- **CSV/XLSX export** — one-click export of the current table view, with optional Excel support via the `xlsx` package.
+- **Server-side pagination, sorting & filtering** — point `GenericCRUD`/`PaginatedTable` at a paginated envelope and it drives page/sort/filter state through the URL for you.
 - **Pluggable icon system** — swap the default icon set or use the included Bootstrap Icons alternative via `setIconSet`.
 - **Standalone components** — table, form, and navigation components can be used independently without the full CRUD orchestrator.
 
@@ -136,13 +157,15 @@ Responsive overrides work too:
 | `--runeforge-breadcrumb-font-size` | `0.875rem` | Breadcrumb label text size |
 | `--runeforge-breadcrumb-icon-size` | `1rem` | Breadcrumb icon width and height |
 
+Modal sizing (see [Shared Components](#shared-components)) is set per-instance via props rather than a CSS variable.
+
 ---
 
 ## Configuration
 
 Global settings are applied once in your root layout via `setConfig`. This avoids passing the same prop to every CRUD component.
 
-```svelte
+```ts
 <!-- +layout.svelte -->
 <script>
   import { setConfig } from 'runeforge';
@@ -204,7 +227,7 @@ export const articleMeta = {
 } satisfies InterfaceMetadata<IArticle>;
 ```
 
-Each metadata entry drives both the table column and the form field for that attribute. You can use `excludedFromList`, `excludedFromCreate`, `excludedFromRead`, or `excludedFromUpdate` to hide a field from specific views.
+Each metadata entry drives both the table column and the form field for that attribute. You can use `excludedFromList`, `excludedFromCreate`, `excludedFromRead`, or `excludedFromUpdate` to hide a field from specific views. The [Field System](#field-system) section below covers the full set of options — validation, conditional/grouped fields, smart selects, and embedded sub-documents.
 
 ### 2. Create the model
 
@@ -307,11 +330,234 @@ The `load` function returns a single record when `?id=` is present (used by the 
 
 If your records use a different identifier field than `_id` (e.g. a plain `id`), pass the `idKey` prop:
 
-```svelte
+```ts
 <GenericCRUD idKey="id" ... />
 ```
 
 This propagates to navigation URLs, form submissions, deletion calls, and the auto-excluded column list, so no other changes are needed on your end.
+
+---
+
+## Field System
+
+Every entry in an `InterfaceMetadata<T>` object is an `AttributeMetadata` — a superset of what drives the table column, the form input, and its validation. This section documents every option beyond the basics shown above.
+
+### Attribute reference
+
+| Option | Type | Applies to | Description |
+| --- | --- | --- | --- |
+| `label` | `string` | all | Column header, form label, and the field name used in validation messages |
+| `type` | `AttributeType` | all | `text` \| `email` \| `password` \| `number` \| `boolean` \| `textarea` \| `file` \| `select` \| `datetime` \| `embedded` |
+| `required` | `boolean` | all | Marks the label and enforces a non-empty value on submit |
+| `autocomplete` | `FullAutoFill` | text-like | Native `autocomplete` attribute |
+| `placeholder` | `string` | text-like, select | Placeholder text |
+| `default` | `value \| (data) => value` | all | Initial value on the create form — see [Default values](#default-values) |
+| `min` / `max` | `number` | `number` | Numeric range validation |
+| `integer` | `boolean` | `number` | Rejects non-whole numbers |
+| `minLength` / `maxLength` | `number` | text-like | Character-count validation |
+| `pattern` | `string` | text-like | Regex the value must match (`new RegExp(pattern)`) |
+| `disabled` | `(record) => boolean` | all | Conditionally disables the input — see [Conditional fields](#conditional-fields) |
+| `groupedAs` | `string` | all | Visually groups fields under a titled section — see [Field grouping](#field-grouping) |
+| `options` | `SelectOption[] \| (data) => SelectOption[]` | `select` | Static or computed option list — see [Select options](#select-options) |
+| `dependentOptions` | `(data, record) => SelectOption[]` | `select` | Options derived from other fields' current values |
+| `search` | `(query) => Promise<SelectOption[]>` | `select` | Server-side option search as the user types |
+| `seed` | `(instance) => unknown` | all | Overrides how the update form seeds this field from the loaded record |
+| `fields` | `InterfaceMetadata<any>` | `embedded` | Sub-field schema for each item — see [Embedded fields](#embedded-fields-sub-documents) |
+| `itemLabel` | `(item) => string` | `embedded` | Summary label for an item in the embedded list |
+| `component` | `CellComponent` | all | Custom cell renderer — see [Custom Cell Components](#custom-cell-components) |
+| `formatter` | `(data) => (value, row) => string` | all | Custom cell text — see [Formatters](#formatters) |
+| `excludedFromList/Create/Read/Update` | `boolean` | all | Hides the field from that specific view |
+| `sortable` / `filterable` | `boolean` | all | Table column controls |
+
+### Validation
+
+`required`, `min`/`max`, `integer`, `minLength`/`maxLength`, and `pattern` are checked client-side on submit, before the request hits your form action. Every failure is surfaced through the same field-level error UI (and the same translatable strings) regardless of which rule failed, so your server-side checks and Runeforge's checks look identical to the user.
+
+```ts
+code: {
+  label: 'Code',
+  type: AttributeType.text,
+  required: true,
+  pattern: '^[A-Z0-9]{3,8}$',
+},
+quantity: {
+  label: 'Quantity',
+  type: AttributeType.number,
+  min: 1,
+  max: 100,
+  integer: true,
+},
+notes: {
+  label: 'Notes',
+  type: AttributeType.textarea,
+  minLength: 3,
+  maxLength: 200,
+},
+```
+
+> [!TIP]
+> Client-side validation is a UX nicety, not a security boundary — always re-validate in your form actions.
+
+### Conditional fields
+
+`disabled` receives the form's current draft record (including in-progress edits to sibling fields) and returns whether the input should be disabled. It re-evaluates as the user types.
+
+```ts
+unlimited: {
+  label: 'Unlimited quantity',
+  type: AttributeType.boolean,
+  default: false,
+},
+quantity: {
+  label: 'Quantity',
+  type: AttributeType.number,
+  min: 1,
+  disabled: (record) => !!record.unlimited,
+},
+```
+
+### Field grouping
+
+Fields sharing the same `groupedAs` string render together inside a titled `fieldset`, at the position of the group's first field. Fields without `groupedAs` keep the original flat layout.
+
+```ts
+code: {
+  label: 'Code',
+  type: AttributeType.text,
+  groupedAs: 'Identification',
+},
+sku: {
+  label: 'SKU',
+  type: AttributeType.text,
+  groupedAs: 'Identification',
+},
+```
+
+### Default values
+
+`default` can be a plain value or a function of the page `data` object, evaluated once when the create form's fields are resolved — handy for defaulting a select to something derived from prefetched data.
+
+```ts
+published: {
+  label: 'Published',
+  type: AttributeType.boolean,
+  default: false,
+},
+assignedTo: {
+  label: 'Assigned to',
+  type: AttributeType.select,
+  options: (data: { users?: IUser[] }) => (data.users ?? []).map((u) => ({ value: u._id, label: u.name })),
+  default: (data: { currentUserId?: string }) => data.currentUserId ?? '',
+},
+```
+
+### Select options
+
+`select` fields support four ways of resolving their options, which can be combined as needed:
+
+- **Static** — a plain `SelectOption[]` array.
+- **Computed from page data** — a function of the page `data` object, useful for prefetched, related records (see `formatInstance` in [Formatters](#formatters) for rendering the resolved link back).
+- **Dependent** — `dependentOptions(data, record)` recomputes the option list from the *current draft record*, so one field's choices can depend on another's value. If the currently selected value is no longer in the recomputed list, it's cleared automatically.
+- **Server search** — `search(query)` is called (debounced) as the user types, instead of filtering the (possibly partial) `options` list in memory. Combine it with `options` to keep a usable list before the user starts typing.
+
+```ts
+// Dependent options: narrow "city" choices by the selected "country"
+country: {
+  label: 'Country',
+  type: AttributeType.select,
+  options: [{ value: 'ar', label: 'Argentina' }, { value: 'uy', label: 'Uruguay' }],
+},
+city: {
+  label: 'City',
+  type: AttributeType.select,
+  dependentOptions: (data, record) => CITIES_BY_COUNTRY[record.country as string] ?? [],
+},
+
+// Server-aware search: fall back to a prefetched slice, but query the
+// server for anything outside it.
+owner: {
+  label: 'Owner',
+  type: AttributeType.select,
+  placeholder: 'Choose an owner',
+  options: (data: { owners?: IOwner[] }) => (data.owners ?? []).map((o) => ({ value: o.id, label: o.name })),
+  search: async (query) => {
+    const fd = new FormData();
+    fd.set('query', query);
+    const res = await fetch('?/searchOwners', { method: 'POST', body: fd });
+    const result = deserialize(await res.text());
+    if (result.type !== 'success') return [];
+    return (result.data.owners ?? []).map((o: IOwner) => ({ value: o.id, label: o.name }));
+  },
+},
+```
+
+```ts
+// +page.server.ts
+export const actions: Actions = {
+  // ...create/update/delete
+  searchOwners: async ({ request }) => {
+    const data = await request.formData();
+    const query = String(data.get('query') ?? '');
+    return { owners: await Owner.find({ name: { $regex: query, $options: 'i' } }).limit(20).lean() };
+  },
+};
+```
+
+### Embedded fields (sub-documents)
+
+`AttributeType.embedded` models a one-to-many list of sub-records — line items, adjustments, contacts, anything you'd otherwise store as an array of objects — entirely within one form field. It renders as a list with an "+ Add" button; each item is added/edited through a modal built from the `fields` sub-schema, and removed with a single click. The whole list is serialized to JSON and submitted as a single hidden form field.
+
+```ts
+export interface IAdjustment {
+  kind: string;
+  amount: number;
+}
+
+export interface IWidget {
+  _id: string;
+  name: string;
+  adjustments: IAdjustment[];
+}
+
+export const widgetMeta = {
+  name: { label: 'Name', type: AttributeType.text, required: true },
+  adjustments: {
+    label: 'Adjustments',
+    type: AttributeType.embedded,
+    // Arrays of objects have no sensible plain-text table cell.
+    excludedFromList: true,
+    fields: {
+      kind: {
+        label: 'Kind',
+        type: AttributeType.select,
+        required: true,
+        options: [
+          { value: 'bonus', label: 'Bonus' },
+          { value: 'penalty', label: 'Penalty' },
+        ],
+      },
+      amount: { label: 'Amount', type: AttributeType.number, required: true, min: 0 },
+    },
+    itemLabel: (item) => `${item.kind === 'bonus' ? 'Bonus' : 'Penalty'}: ${item.amount}`,
+  },
+} satisfies InterfaceMetadata<IWidget>;
+```
+
+On the server, parse the field back out of `FormData` as JSON:
+
+```ts
+function widgetFromFormData(data: FormData) {
+  let adjustments: IAdjustment[];
+  try {
+    adjustments = JSON.parse(String(data.get('adjustments') ?? '[]'));
+  } catch {
+    adjustments = [];
+  }
+  return { name: String(data.get('name') ?? '').trim(), adjustments };
+}
+```
+
+Sub-fields support the same validation rules as top-level fields (`required`, `min`/`max`, `pattern`, etc.), checked when an item is added or edited in the modal. `itemLabel` controls how each item summarizes itself in the list; without it, Runeforge joins the resolved display value of every sub-field with `·`.
 
 ---
 
@@ -323,17 +569,183 @@ The main CRUD orchestrator. It manages navigation between List, Create, Read, an
 
 Key props:
 
-- `data` / `dataKey` — the record array and its primary key field
+- `data` / `dataKey` — the record array (or [server-paginated envelope](#server-side-pagination-sorting--filtering)) and its primary key field
 - `labelOne` / `labelMany` — singular and plural names for the entity
 - `columns` — `ColumnDefinition[]` for the table view
 - `fields` — `FieldDefinition[]` for form views
 - `creation`, `update`, `read`, `deletion` — `ActionConfiguration` objects that define handlers and permissions for each operation. Set `confirm: true` on `deletion` to show a confirmation dialog before any delete (single row or batch)
+- `actions` — `CustomAction[]`, extra per-row actions — see [Custom row actions](#custom-row-actions)
+- `customBulkActions` — `CustomBulkAction[]`, extra actions on the current selection — see [Custom bulk actions](#custom-bulk-actions)
+- `search` — `SearchConfiguration`, shows a free-text search box — see [Free-text search](#free-text-search)
+- `enableExport`, `onExport`, `xlsx` — CSV/Excel export — see [Exporting data](#exporting-data-csvxlsx)
+
+#### Free-text search
+
+Passing `search` renders a debounced search box in the header. Typing updates a URL search param (`?search=...` by default), resets pagination and any open create/read/edit view, and leaves interpreting the term entirely to your `load` function — it's the same mechanism server-side pagination uses, so it composes naturally with it.
+
+```ts
+<GenericCRUD
+  ...
+  search={{ param: 'q', placeholder: 'Search tasks...', debounceMs: 300 }}
+/>
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `param` | `'search'` | Query-string parameter name |
+| `placeholder` | `strings.searchPlaceholder` | Input placeholder |
+| `debounceMs` | `300` | Delay before the URL updates |
+
+#### Custom row actions
+
+`actions` adds entries to the per-row action menu, alongside the built-in view/edit/delete. Each `CustomAction` resolves in one of two ways — provide exactly one of `view` or `href`:
+
+- `href(item)` — plain navigation, e.g. deep-linking into another CRUD's filtered list.
+- `view` — a Svelte component of your own that `GenericCRUD` mounts directly (no wrapper) when the action runs. Since you own the whole component, you decide how it presents itself — typically as a modal built on the exported `Modal` component, sized however that action needs via `Modal`'s `class`/`width`/`maxWidth`/`height`/`maxHeight` props (see [Shared Components](#shared-components)).
+
+```ts
+import ArchiveIcon from './icons/Archive.svelte';
+import ArchiveForm from './ArchiveForm.svelte';
+
+const actions: CustomAction<IWidget>[] = [
+  {
+    label: 'Archive',
+    icon: ArchiveIcon,
+    endpoint: '?/archive',
+    view: ArchiveForm,
+    condition: (item) => !item.archived,
+  },
+  {
+    label: 'Open in new tab',
+    icon: ExternalLinkIcon,
+    href: (item) => `/widgets/${item._id}`,
+  },
+];
+```
+
+```svelte
+<GenericCRUD ... {actions} />
+```
+
+A `view` component receives `instance`, `label`, `endpoint`, `serverError`, `onCancel`, and `onSuccess` — the same shape Create/Update use internally — so it can reuse `enhance`-based form submission while rendering as a parametrized modal:
+
+```svelte
+<!-- ArchiveForm.svelte -->
+<script lang="ts">
+  import { enhance } from '$app/forms';
+  import { Modal } from 'runeforge';
+
+  let { instance, label, endpoint, serverError, onCancel, onSuccess } = $props();
+</script>
+
+<Modal title={label} onClose={onCancel} maxWidth="28rem">
+  <form
+    method="POST"
+    action={endpoint}
+    use:enhance={() => async ({ result, update }) => {
+      await update({ reset: false });
+      if (result.type === 'success') onSuccess();
+    }}
+  >
+    <input type="hidden" name="id" value={instance._id} />
+    {#if serverError}<p class="text-error">{serverError}</p>{/if}
+    <div class="flex justify-end gap-2 mt-4">
+      <button type="button" onclick={onCancel}>Cancel</button>
+      <button type="submit">{label}</button>
+    </div>
+  </form>
+</Modal>
+```
+
+#### Custom bulk actions
+
+`customBulkActions` adds buttons next to the built-in Delete button in the header, operating on the current row selection. Each one is disabled until at least one row is selected, and (like deletion) can require confirmation.
+
+```ts
+<GenericCRUD
+  ...
+  customBulkActions={[
+    { label: 'Complete', icon: CheckIcon, endpoint: '?/complete' },
+    { label: 'Mark pending', icon: UndoIcon, endpoint: '?/incomplete', variant: 'error', confirm: true },
+  ]}
+/>
+```
+
+`endpoint` is called once per selected row (`POST` with an `id` field), then the list is refreshed. `variant` matches DaisyUI's `btn-*` modifiers (`'primary'`, `'error'`, `'ghost'`, ...). `condition(selectedItems)` can hide the action entirely based on the current selection.
+
+#### Exporting data (CSV/XLSX)
+
+`enableExport` adds an export button to the header offering CSV (always) and Excel (when an `xlsx` module is supplied). Runeforge never bundles `xlsx` itself — install it separately and pass the resolved module in, so the dependency stays fully optional:
+
+```bash
+pnpm add xlsx
+```
+
+```ts
+<script>
+  import { GenericCRUD } from 'runeforge';
+  import * as xlsx from 'xlsx';
+</script>
+
+<GenericCRUD ... enableExport {xlsx} />
+```
+
+In client-pagination mode, export includes every row currently matching the table's filters (not just the visible page). In [server-pagination mode](#server-side-pagination-sorting--filtering), pass `onExport` to fetch the full, unpaginated result set for the current query — without it, export falls back to just the currently loaded page:
+
+```ts
+<GenericCRUD
+  ...
+  enableExport
+  onExport={async (query) => {
+    const params = new URLSearchParams();
+    if (query.ordering) params.set('ordering', query.ordering);
+    // ...translate query.filters into your API's params
+    const res = await fetch(`/api/widgets/export?${params}`);
+    return res.json();
+  }}
+/>
+```
+
+#### Server-side pagination, sorting & filtering
+
+By default, `GenericCRUD` and `PaginatedTable` paginate, sort, and filter the full `data` array in the browser. For large datasets, return a `PaginatedEnvelope<T>` from your `load` function instead — `{ results, count, page, pageSize }` — and Runeforge switches to server mode automatically: it drives `page`, `ordering`, and per-column filter values through the URL, and expects your `load` function to read them back.
+
+```ts
+// +page.server.ts
+export const load: PageServerLoad = ({ url }) => {
+  const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
+  const ordering = url.searchParams.get('ordering');
+  const name = url.searchParams.get('name'); // per-column text filter
+
+  let rows = [...allWidgets];
+  if (name) rows = rows.filter((w) => w.name.toLowerCase().includes(name.toLowerCase()));
+  if (ordering) {
+    const desc = ordering.startsWith('-');
+    const field = desc ? ordering.slice(1) : ordering;
+    rows = [...rows].sort((a, b) => (desc ? -1 : 1) * compare(a[field], b[field]));
+  }
+
+  const pageSize = 20;
+  const start = (page - 1) * pageSize;
+  return { widgets: { results: rows.slice(start, start + pageSize), count: rows.length, page, pageSize } };
+};
+```
+
+```ts
+<GenericCRUD
+  ...
+  data={{ widgets: data.widgets }}
+  dataKey="widgets"
+/>
+```
+
+No other prop changes are needed — column sorting/filtering UI, the paginator, and (with `onExport`) export all keep working the same way, just backed by the server instead of the in-memory array. Boolean-column filters send comma-separated values (`?active=true,false`); date-range filters send `<attribute>_from`/`<attribute>_to`.
 
 ### PaginatedTable
 
-A standalone table component with built-in sort, filter, and pagination.
+A standalone table component with built-in sort, filter, and pagination — the same engine `GenericCRUD` uses internally.
 
-```svelte
+```ts
 <script>
   import { PaginatedTable } from 'runeforge';
 </script>
@@ -341,7 +753,7 @@ A standalone table component with built-in sort, filter, and pagination.
 <PaginatedTable {data} {columns} />
 ```
 
-Sort and filter state can be managed externally via the exported `SortState` and `FilterState` classes.
+Sort and filter state can be managed externally via the exported `SortState` and `FilterState` classes. Pass a `pagination` prop (`ServerPagination`) plus `onPaginationChange` to opt into the same [server-driven mode](#server-side-pagination-sorting--filtering) `GenericCRUD` uses. `bind:visibleRows` and `bind:query` expose the currently filtered/sorted rows and query snapshot, useful for building your own export UI on top of the raw table.
 
 ### Form Components
 
@@ -349,13 +761,13 @@ Individual form primitives styled with DaisyUI:
 
 - `Button` — styled action button
 - `Label` — form label with optional required marker
-- `Select` — dropdown with option group support
-- `PasswordInput` — password field with show/hide toggle
+- `Select` — dropdown with option group support, optional in-memory filtering, and an optional `search` prop for server-resolved options (see [Select options](#select-options))
+- `PasswordInput` — password field with show/hide toggle; `labelClass`, `inputClass`, and `buttonClass` props let you restyle the wrapper, input, and toggle button independently
 
 ### Shared Components
 
 - `Avatar` — user avatar display
-- `Modal` — DaisyUI modal wrapper
+- `Modal` — DaisyUI modal wrapper. Size it with Tailwind utility classes via `class` (e.g. `class="max-w-4xl"`), or with explicit `width`/`maxWidth`/`height`/`maxHeight` CSS lengths, which are applied as inline styles and take priority over `class`
 - `Breadcrumbs` — navigation breadcrumb trail
 - `IconRenderer` — renders icons from the active icon set
 
@@ -369,7 +781,7 @@ Formatters are functions you attach to a metadata field to control how its value
 
 Converts a boolean to a readable label.
 
-> [!INFO]
+> [!NOTE]
 > Defaults to `Sí` / `No` because this was created at Argentina papá! 🇦🇷.
 
 ```ts
@@ -388,7 +800,7 @@ isActive: {
 
 Formats a `Date` value using the tokens `dd`, `mm`, `YYYY`, `HH`, `MM`, `ss`.
 
-> [!INFO]
+> [!NOTE]
 > Defaults to `'dd/mm/YYYY HH:MM'`.
 
 ```ts
@@ -462,7 +874,7 @@ interface CellProps<T extends object, V> {
 
 The following renders a user photo with a fallback to initials, using data from sibling fields on the row:
 
-```svelte
+```ts
 <!-- components/UserAvatar.svelte -->
 <script lang="ts">
   import { Avatar } from 'runeforge';
@@ -500,7 +912,7 @@ export const userMeta = {
 
 A simpler case — render a Bootstrap icon by name stored as a plain string:
 
-```svelte
+```ts
 <!-- components/IconCell.svelte -->
 <script lang="ts">
   import { IconRenderer } from 'runeforge';
@@ -538,7 +950,7 @@ All UI strings default to **Spanish** (Argentina). To switch to another language
 
 ### Switch to English
 
-```svelte
+```ts
 <!-- +layout.svelte -->
 <script>
   import { setStrings, en } from 'runeforge';
@@ -549,7 +961,7 @@ All UI strings default to **Spanish** (Argentina). To switch to another language
 
 ### Override individual strings
 
-```svelte
+```ts
 <script>
   import { setStrings } from 'runeforge';
 
@@ -576,21 +988,36 @@ All UI strings default to **Spanish** (Argentina). To switch to another language
 | `next` | `string` | `Siguiente` |
 | `selectPlaceholder` | `string` | `Seleccioná una opción` |
 | `selectSearch` | `string` | `Buscar...` |
+| `selectSearching` | `string` | `Buscando...` |
 | `selectNoResults` | `string` | `Sin resultados` |
 | `view` | `string` | `Ver` |
 | `edit` | `string` | `Editar` |
 | `delete` | `string` | `Eliminar` |
 | `create` | `string` | `Crear` |
+| `searchPlaceholder` | `string` | `Buscar...` |
+| `export` | `string` | `Exportar` |
+| `exportCsv` | `string` | `Exportar a CSV` |
+| `exportExcel` | `string` | `Exportar a Excel` |
 | `save` | `string` | `Guardar` |
 | `saveAndContinue` | `string` | `Guardar y continuar` |
 | `cancel` | `string` | `Cancelar` |
 | `back` | `string` | `Volver` |
+| `add` | `string` | `Agregar` |
+| `remove` | `string` | `Quitar` |
+| `noItems` | `string` | `Sin elementos agregados` |
 | `confirm` | `string` | `Confirmar` |
-| `deleteConfirm` | `(count) => string` | `¿Seguro que querés eliminar 3 elementos?` |
+| `deleteConfirm` | `(count, actionLabel) => string` | `¿Seguro que querés eliminar 3 elementos?` |
 | `required` | `(field) => string` | `Título es requerido` |
+| `invalidNumber` | `(field) => string` | `Cantidad debe ser un número` |
+| `integer` | `(field) => string` | `Cantidad debe ser un número entero` |
+| `min` | `(field, min) => string` | `Cantidad debe ser mayor o igual a 1` |
+| `max` | `(field, max) => string` | `Cantidad debe ser menor o igual a 100` |
+| `minLength` | `(field, min) => string` | `Notas debe tener al menos 3 caracteres` |
+| `maxLength` | `(field, max) => string` | `Notas debe tener como máximo 200 caracteres` |
+| `pattern` | `(field) => string` | `Código tiene un formato inválido` |
 | `serverError` | `string` | `Error inesperado del servidor.` |
 
-> [!INFO]
+> [!NOTE]
 > Defaults to Spanish because this was built in Argentina! 🇦🇷
 
 ### Bundled locales
@@ -606,7 +1033,7 @@ All UI strings default to **Spanish** (Argentina). To switch to another language
 
 Runeforge ships with a default icon set. To use Bootstrap Icons instead:
 
-```svelte
+```ts
 <script>
   import { setIconSet, bootstrapIcons } from 'runeforge';
 
