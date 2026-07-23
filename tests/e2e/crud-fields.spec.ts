@@ -103,4 +103,53 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 		await expect(page.locator('tbody tr')).toHaveCount(3);
 		await expect(page.locator('tbody')).toContainText('Widget C');
 	});
+
+	// ─── Select field: in-memory vs. async search ───────────────────────────────
+
+	test('create: owner select shows the prefetched options with no search function needed', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+		await page.getByRole('button', { name: 'Choose an owner' }).click();
+
+		const dropdown = page.locator('ul').filter({ hasText: 'Ada Lovelace' });
+		await expect(dropdown.getByRole('button', { name: 'Ada Lovelace' })).toBeVisible();
+		await expect(dropdown.getByRole('button', { name: 'Grace Hopper' })).toBeVisible();
+		// Never part of the prefetched slice, so it must not appear before searching.
+		await expect(dropdown.getByRole('button', { name: 'Nadia Wide' })).toHaveCount(0);
+	});
+
+	test('create: typing in the owner select fetches matches from the server, including owners outside the prefetched slice', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+		await page.getByRole('button', { name: 'Choose an owner' }).click();
+		await page.getByPlaceholder('Buscar...').fill('Nadia');
+
+		const option = page.getByRole('button', { name: 'Nadia Wide' });
+		await expect(option).toBeVisible();
+		await option.click();
+
+		// Picked value isn't in the prefetched `options` list, so the closed
+		// select must still resolve its label from the search result.
+		await expect(page.getByRole('button', { name: 'Nadia Wide' })).toBeVisible();
+	});
+
+	test('create: owner search only returns owners matching the query', async ({ page }) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+		await page.getByRole('button', { name: 'Choose an owner' }).click();
+		await page.getByPlaceholder('Buscar...').fill('Nadia');
+
+		await expect(page.getByRole('button', { name: 'Nadia Wide' })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Ada Lovelace' })).toHaveCount(0);
+	});
+
+	// ─── Custom action: href-based redirect ─────────────────────────────────────
+
+	test('list: href custom action navigates away instead of opening a modal', async ({ page }) => {
+		await page.getByRole('button', { name: 'Find in tasks' }).first().click();
+
+		await expect(page).toHaveURL(/\/test\/crud\?search=Widget/);
+		await expect(page.getByRole('heading', { name: 'Tasks' })).toBeVisible();
+	});
 });

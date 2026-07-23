@@ -19,6 +19,7 @@ export interface RuneforgeStrings {
 	// Select
 	selectPlaceholder: string;
 	selectSearch: string;
+	selectSearching: string;
 	selectNoResults: string;
 
 	// CRUD List row actions

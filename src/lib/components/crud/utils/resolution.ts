@@ -44,6 +44,7 @@ export function buildFieldDefinitions<T extends object = Record<string, unknown>
       dependentOptions: m.dependentOptions
         ? (record: Record<string, unknown>) => m.dependentOptions!(data, record)
         : undefined,
+      search: m.search,
       disabled: m.disabled,
       seed: m.seed,
       groupedAs: m.groupedAs,

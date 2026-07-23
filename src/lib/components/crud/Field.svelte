@@ -106,6 +106,7 @@
         name={field.attribute}
         bind:value={record[field.attribute] as string}
         options={selectOptions}
+        search={field.search}
         placeholder={field.placeholder}
         disabled={fieldDisabled}
         {error}

@@ -12,6 +12,7 @@ export const en: RuneforgeStrings = {
 	next: 'Next',
 	selectPlaceholder: 'Select an option',
 	selectSearch: 'Search...',
+	selectSearching: 'Searching...',
 	selectNoResults: 'No results',
 	view: 'View',
 	edit: 'Edit',

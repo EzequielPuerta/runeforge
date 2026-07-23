@@ -1,6 +1,6 @@
 import type { Component } from 'svelte';
 import type { FullAutoFill } from 'svelte/elements';
-import type { AttributeType } from '$lib/types/attribute.js';
+import type { AttributeType, SearchResolver } from '$lib/types/attribute.js';
 import type { CellComponent, CellFormatter } from '$lib/types/table.js';
 
 export type ColumnDefinition<T extends object = Record<string, unknown>> = {
@@ -26,6 +26,7 @@ export interface FieldDefinition<T extends object = Record<string, unknown>> {
 	default?: any;
 	options?: { value: string; label: string }[];
 	dependentOptions?: (record: Record<string, unknown>) => { value: string; label: string }[];
+	search?: SearchResolver;
 	disabled?: (record: Record<string, unknown>) => boolean;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	seed?: (instance: any) => unknown;
@@ -52,8 +53,13 @@ export interface CustomAction<T extends object = Record<string, unknown>> {
 	icon: any;
 	endpoint?: string;
 	condition?: (item: T) => boolean;
+	/** Renders as a modal-like panel when the action runs. Mutually exclusive
+	 * with `href` — provide exactly one of the two. */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	view: Component<any>;
+	view?: Component<any>;
+	/** Navigates to the given URL instead of opening `view`. Takes priority
+	 * over `view` if both are somehow set. */
+	href?: (item: T) => string;
 }
 
 export interface RowAction<T extends object = Record<string, unknown>> {

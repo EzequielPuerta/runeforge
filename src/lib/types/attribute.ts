@@ -33,6 +33,7 @@ export type OptionsResolver = SelectOption[] | ((data: any) => SelectOption[]);
 export type FormatterResolver = (data?: any) => CellFormatter<any, any>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type DependentOptionsResolver = (data: any, record: Record<string, unknown>) => SelectOption[];
+export type SearchResolver = (query: string) => Promise<SelectOption[]>;
 export type DisabledResolver = (record: Record<string, unknown>) => boolean;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type SeedResolver = (instance: any) => unknown;
@@ -42,6 +43,10 @@ export type AttributeMetadata = {
   type?: AttributeType;
   options?: OptionsResolver;
   dependentOptions?: DependentOptionsResolver;
+  /** Select fields only: fetch options matching what the user typed (e.g. a
+   * server-side search) instead of filtering the (possibly partial) `options`
+   * list in memory. Leave unset to keep the default in-memory filtering. */
+  search?: SearchResolver;
   disabled?: DisabledResolver;
   seed?: SeedResolver;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

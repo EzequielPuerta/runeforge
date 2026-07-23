@@ -1,11 +1,18 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { widgets, addWidget, updateWidget, deleteWidget } from './store.js';
+import {
+	widgets,
+	addWidget,
+	updateWidget,
+	deleteWidget,
+	PREFETCHED_OWNERS,
+	searchOwners
+} from './store.js';
 
 export const load: PageServerLoad = ({ url }) => {
 	const id = url.searchParams.get('id');
 	const widget = id ? widgets.find((w) => w._id === id) : undefined;
-	return { widgets, widget };
+	return { widgets, widget, owners: PREFETCHED_OWNERS };
 };
 
 function widgetFromFormData(data: FormData) {
@@ -14,7 +21,8 @@ function widgetFromFormData(data: FormData) {
 		code: String(data.get('code') ?? '').trim(),
 		unlimited: data.has('unlimited'),
 		quantity: Number(data.get('quantity') ?? 0),
-		notes: String(data.get('notes') ?? '').trim()
+		notes: String(data.get('notes') ?? '').trim(),
+		owner: String(data.get('owner') ?? '').trim()
 	};
 }
 
@@ -42,5 +50,11 @@ export const actions: Actions = {
 		const id = String(data.get('id') ?? '');
 		deleteWidget(id);
 		return { success: true };
+	},
+
+	searchOwners: async ({ request }) => {
+		const data = await request.formData();
+		const query = String(data.get('query') ?? '');
+		return { owners: searchOwners(query) };
 	}
 };

@@ -121,6 +121,15 @@
 
 	let activeAction = $state<{ action: CustomAction<T>; item: T } | null>(null);
 
+	async function runAction(action: CustomAction<T>, item: T) {
+		if (!(action.condition?.(item) ?? true)) return;
+		if (action.href) {
+			await goto(action.href(item));
+			return;
+		}
+		activeAction = { action, item };
+	}
+
 	async function navList() {
 		await goto('?');
 	}
@@ -322,9 +331,7 @@
 		onCreate={navCreate}
 		onEdit={navEdit}
 		onView={navRead}
-		onAction={(action, item) => {
-			if (action.condition?.(item) ?? true) activeAction = { action, item };
-		}}
+		onAction={runAction}
 	/>
 {/if}
 
