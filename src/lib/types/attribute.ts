@@ -9,7 +9,8 @@ export type AttributeType = 'text'
   | 'textarea'
   | 'file'
   | 'select'
-  | 'datetime';
+  | 'datetime'
+  | 'embedded';
 
 export const AttributeType = {
   text: 'text',
@@ -21,6 +22,7 @@ export const AttributeType = {
   file: 'file',
   select: 'select',
   datetime: 'datetime',
+  embedded: 'embedded',
 } as const satisfies Record<AttributeType, AttributeType>;
 
 export type InterfaceMetadata<T> = Partial<Record<keyof T, AttributeMetadata>>;
@@ -37,6 +39,9 @@ export type SearchResolver = (query: string) => Promise<SelectOption[]>;
 export type DisabledResolver = (record: Record<string, unknown>) => boolean;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type SeedResolver = (instance: any) => unknown;
+/** Embedded fields only: renders a short summary for one item in the list.
+ * Falls back to a dash-joined summary of the item's sub-field values. */
+export type EmbeddedItemLabelResolver = (item: Record<string, unknown>) => string;
 
 export type AttributeMetadata = {
   label?: string;
@@ -73,4 +78,9 @@ export type AttributeMetadata = {
   minLength?: number;
   maxLength?: number;
   pattern?: string;
+  /** Embedded fields only: schema for each item added through the "+" modal. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  fields?: InterfaceMetadata<any>;
+  /** Embedded fields only: short label for an item in the list. */
+  itemLabel?: EmbeddedItemLabelResolver;
 };

@@ -14,6 +14,19 @@ export function validateAll<T extends object = Record<string, unknown>>(
 	const errors: Record<string, string> = {};
 
 	for (const field of fields) {
+		if (field.type === 'embedded') {
+			let items: unknown[];
+			try {
+				items = JSON.parse(String(formData.get(field.attribute) ?? '[]'));
+			} catch {
+				items = [];
+			}
+			if (field.required && (!Array.isArray(items) || items.length === 0)) {
+				errors[field.attribute] = strings.required(fieldLabel(field));
+			}
+			continue;
+		}
+
 		const val = String(formData.get(field.attribute) ?? '').trim();
 
 		if (field.required && !val) {

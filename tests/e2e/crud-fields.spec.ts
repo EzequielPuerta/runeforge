@@ -144,6 +144,148 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 		await expect(page.getByRole('button', { name: 'Ada Lovelace' })).toHaveCount(0);
 	});
 
+	// ─── Embedded field: "+" modal add/remove ───────────────────────────────────
+
+	test('create: adding an item through the embedded field\'s "+" modal lists it', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+		await page.getByRole('button', { name: '+ Agregar' }).click();
+
+		const modal = page.locator('dialog.modal');
+		await expect(modal).toBeVisible();
+		await modal.getByRole('button', { name: 'Seleccioná una opción' }).click();
+		await modal.getByRole('button', { name: 'Bonus' }).click();
+		await modal.getByRole('spinbutton', { name: 'Amount' }).fill('5');
+		await modal.getByRole('button', { name: 'Agregar', exact: true }).click();
+
+		await expect(modal).toHaveCount(0);
+		await expect(page.getByText('Bonus: 5')).toBeVisible();
+	});
+
+	test('create: the embedded modal enforces required sub-fields before adding', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+		await page.getByRole('button', { name: '+ Agregar' }).click();
+
+		const modal = page.locator('dialog.modal');
+		await modal.getByRole('button', { name: 'Agregar', exact: true }).click();
+
+		await expect(modal).toContainText('Kind es requerido');
+		await expect(modal).toContainText('Amount es requerido');
+	});
+
+	test('create: removing an added embedded item takes it out of the list', async ({ page }) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+		await page.getByRole('button', { name: '+ Agregar' }).click();
+
+		const modal = page.locator('dialog.modal');
+		await modal.getByRole('button', { name: 'Seleccioná una opción' }).click();
+		await modal.getByRole('button', { name: 'Penalty' }).click();
+		await modal.getByRole('spinbutton', { name: 'Amount' }).fill('2');
+		await modal.getByRole('button', { name: 'Agregar', exact: true }).click();
+		await expect(page.getByText('Penalty: 2')).toBeVisible();
+
+		await page.getByRole('button', { name: 'Quitar' }).click();
+
+		await expect(page.getByText('Penalty: 2')).toHaveCount(0);
+		await expect(page.getByText('Sin elementos agregados')).toBeVisible();
+	});
+
+	test('create: an embedded item can be added and edited again before the parent itself is saved', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+		await page.getByRole('button', { name: '+ Agregar' }).click();
+
+		const modal = page.locator('dialog.modal');
+		await modal.getByRole('button', { name: 'Seleccioná una opción' }).click();
+		await modal.getByRole('button', { name: 'Bonus' }).click();
+		await modal.getByRole('spinbutton', { name: 'Amount' }).fill('5');
+		await modal.getByRole('button', { name: 'Agregar', exact: true }).click();
+		await expect(page.getByText('Bonus: 5')).toBeVisible();
+
+		// Still on the create form — the parent widget has not been submitted yet.
+		await expect(page.getByRole('button', { name: 'Guardar', exact: true })).toBeVisible();
+
+		await page.getByRole('button', { name: 'Bonus: 5' }).click();
+		await expect(modal).toBeVisible();
+		await expect(modal.getByRole('button', { name: 'Bonus' })).toBeVisible();
+		await expect(modal.getByRole('spinbutton', { name: 'Amount' })).toHaveValue('5');
+
+		await modal.getByRole('spinbutton', { name: 'Amount' }).fill('9');
+		await modal.getByRole('button', { name: 'Editar', exact: true }).click();
+
+		await expect(page.getByText('Bonus: 9')).toBeVisible();
+		await expect(page.getByText('Bonus: 5')).toHaveCount(0);
+		// The parent widget is still unsaved — the edit only touched local draft state,
+		// and completing the form now still creates it with the edited item included.
+		await page.getByRole('textbox', { name: 'Name' }).fill('Widget E');
+		await page.getByRole('textbox', { name: 'Code' }).fill('GHI789');
+		await page.getByRole('spinbutton', { name: 'Quantity' }).fill('1');
+		await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+
+		await expect(page.locator('tbody')).toContainText('Widget E');
+		await page
+			.locator('tbody tr', { hasText: 'Widget E' })
+			.getByRole('button', { name: 'Ver' })
+			.click();
+		await expect(page.getByText('Bonus: 9')).toBeVisible();
+	});
+
+	test('update: an existing embedded item can be edited and persists', async ({ page }) => {
+		await page
+			.locator('tbody tr', { hasText: 'Widget A' })
+			.getByRole('button', { name: 'Editar' })
+			.click();
+		await page.waitForURL(/\?id=.+&view=edit/);
+		await expect(page.getByText('Bonus: 5')).toBeVisible();
+
+		await page.getByRole('button', { name: 'Bonus: 5' }).click();
+		const modal = page.locator('dialog.modal');
+		await expect(modal.getByRole('button', { name: 'Bonus' })).toBeVisible();
+		await expect(modal.getByRole('spinbutton', { name: 'Amount' })).toHaveValue('5');
+
+		await modal.getByRole('spinbutton', { name: 'Amount' }).fill('7');
+		await modal.getByRole('button', { name: 'Editar', exact: true }).click();
+		await expect(page.getByText('Bonus: 7')).toBeVisible();
+
+		await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+		await expect(page.locator('tbody')).toContainText('Widget A');
+
+		await page
+			.locator('tbody tr', { hasText: 'Widget A' })
+			.getByRole('button', { name: 'Ver' })
+			.click();
+		await expect(page.getByText('Bonus: 7')).toBeVisible();
+	});
+
+	test('create: a widget with an embedded adjustment is created and shown on read', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+		await page.getByRole('textbox', { name: 'Name' }).fill('Widget D');
+		await page.getByRole('textbox', { name: 'Code' }).fill('DEF456');
+		await page.getByRole('spinbutton', { name: 'Quantity' }).fill('5');
+
+		await page.getByRole('button', { name: '+ Agregar' }).click();
+		const modal = page.locator('dialog.modal');
+		await modal.getByRole('button', { name: 'Seleccioná una opción' }).click();
+		await modal.getByRole('button', { name: 'Penalty' }).click();
+		await modal.getByRole('spinbutton', { name: 'Amount' }).fill('2');
+		await modal.getByRole('button', { name: 'Agregar', exact: true }).click();
+
+		await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+		await expect(page.locator('tbody')).toContainText('Widget D');
+
+		await page
+			.locator('tbody tr', { hasText: 'Widget D' })
+			.getByRole('button', { name: 'Ver' })
+			.click();
+		await expect(page.getByText('Penalty: 2')).toBeVisible();
+	});
+
 	// ─── Custom action: href-based redirect ─────────────────────────────────────
 
 	test('list: href custom action navigates away instead of opening a modal', async ({ page }) => {

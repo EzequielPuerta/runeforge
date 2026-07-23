@@ -78,6 +78,42 @@ describe('validateAll', () => {
 		expect(errors.code).toBeUndefined();
 	});
 
+	it('flags a required embedded field with no items', () => {
+		const fields: FieldDefinition[] = [
+			{ attribute: 'subcriterios', type: 'embedded', required: true }
+		];
+		const errors = validateAll(fields, formData({ subcriterios: '[]' }), en);
+		expect(errors.subcriterios).toBe('subcriterios is required');
+	});
+
+	it('treats a missing/invalid embedded value as empty for the required check', () => {
+		const fields: FieldDefinition[] = [
+			{ attribute: 'subcriterios', type: 'embedded', required: true }
+		];
+		expect(validateAll(fields, formData({}), en).subcriterios).toBe('subcriterios is required');
+		expect(validateAll(fields, formData({ subcriterios: 'not json' }), en).subcriterios).toBe(
+			'subcriterios is required'
+		);
+	});
+
+	it('accepts a required embedded field with at least one item', () => {
+		const fields: FieldDefinition[] = [
+			{ attribute: 'subcriterios', type: 'embedded', required: true }
+		];
+		const errors = validateAll(
+			fields,
+			formData({ subcriterios: JSON.stringify([{ formula: 'max', quantity: 3 }]) }),
+			en
+		);
+		expect(errors.subcriterios).toBeUndefined();
+	});
+
+	it('does not require an embedded field that is not marked required', () => {
+		const fields: FieldDefinition[] = [{ attribute: 'subcriterios', type: 'embedded' }];
+		const errors = validateAll(fields, formData({ subcriterios: '[]' }), en);
+		expect(errors.subcriterios).toBeUndefined();
+	});
+
 	it('validates multiple fields independently', () => {
 		const fields: FieldDefinition[] = [
 			{ attribute: 'name', required: true },

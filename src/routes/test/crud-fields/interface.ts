@@ -2,6 +2,11 @@ import { deserialize } from '$app/forms';
 import { AttributeType, formatBoolean, type InterfaceMetadata } from '$lib/index.js';
 import type { IOwner } from './store.js';
 
+export interface IAdjustment {
+	kind: string;
+	amount: number;
+}
+
 export interface IWidget {
 	_id: string;
 	name: string;
@@ -10,6 +15,7 @@ export interface IWidget {
 	quantity: number;
 	notes: string;
 	owner: string;
+	adjustments: IAdjustment[];
 }
 
 export const widgetMeta = {
@@ -70,5 +76,31 @@ export const widgetMeta = {
 			const owners = (result.data as { owners?: IOwner[] } | undefined)?.owners ?? [];
 			return owners.map((o) => ({ value: o.id, label: o.name }));
 		}
+	},
+	adjustments: {
+		label: 'Adjustments',
+		type: AttributeType.embedded,
+		// Arrays of objects have no sensible plain-text table cell, so this
+		// mirrors how real usages. Keep embedded fields out of the list and
+		// only show them in forms.
+		excludedFromList: true,
+		fields: {
+			kind: {
+				label: 'Kind',
+				type: AttributeType.select,
+				required: true,
+				options: [
+					{ value: 'bonus', label: 'Bonus' },
+					{ value: 'penalty', label: 'Penalty' }
+				]
+			},
+			amount: {
+				label: 'Amount',
+				type: AttributeType.number,
+				required: true,
+				min: 0
+			}
+		},
+		itemLabel: (item) => `${item.kind === 'bonus' ? 'Bonus' : 'Penalty'}: ${item.amount}`
 	}
 } satisfies InterfaceMetadata<IWidget>;

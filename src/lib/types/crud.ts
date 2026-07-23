@@ -37,6 +37,11 @@ export interface FieldDefinition<T extends object = Record<string, unknown>> {
 	minLength?: number;
 	maxLength?: number;
 	pattern?: string;
+	/** Embedded fields only: sub-field definitions for each item, built from
+	 * the metadata's `fields`. */
+	fields?: FieldDefinition<Record<string, unknown>>[];
+	/** Embedded fields only: short label for an item in the list. */
+	itemLabel?: (item: Record<string, unknown>) => string;
 }
 
 export interface ActionConfiguration<T extends object = Record<string, unknown>> {

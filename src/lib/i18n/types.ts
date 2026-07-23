@@ -44,6 +44,11 @@ export interface RuneforgeStrings {
 	cancel: string;
 	back: string;
 
+	// CRUD embedded fields (Field's "embedded" type: an add-item modal + list)
+	add: string;
+	remove: string;
+	noItems: string;
+
 	// CRUD delete confirmation
 	confirm: string;
 	deleteConfirm: (count: number, actionLabel: string) => string;

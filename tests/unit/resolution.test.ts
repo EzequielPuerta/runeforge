@@ -160,6 +160,41 @@ describe('buildFieldDefinitions', () => {
 		expect(fields[0].default).toBe(5);
 	});
 
+	it('builds nested sub-field definitions and passes itemLabel through for embedded fields', () => {
+		const itemLabel = (item: Record<string, unknown>) => `${item.formula} -> ${item.quantity}`;
+		const meta: Partial<Record<string, AttributeMetadata>> = {
+			subcriterios: {
+				label: 'Subcriterios',
+				type: 'embedded',
+				fields: {
+					formula: { label: 'Formula', type: 'select', required: true },
+					quantity: { label: 'Quantity', type: 'number', required: true, min: 1 }
+				},
+				itemLabel
+			}
+		};
+
+		const fields = buildFieldDefinitions(meta, undefined, 'excludedFromCreate', excluded);
+
+		expect(fields).toHaveLength(1);
+		expect(fields[0].itemLabel).toBe(itemLabel);
+		expect(fields[0].fields).toEqual([
+			expect.objectContaining({ attribute: 'formula', type: 'select', required: true }),
+			expect.objectContaining({ attribute: 'quantity', type: 'number', required: true, min: 1 })
+		]);
+	});
+
+	it('leaves fields/itemLabel undefined for non-embedded fields', () => {
+		const meta: Partial<Record<string, AttributeMetadata>> = {
+			name: { label: 'Name' }
+		};
+
+		const fields = buildFieldDefinitions(meta, undefined, 'excludedFromCreate', excluded);
+
+		expect(fields[0].fields).toBeUndefined();
+		expect(fields[0].itemLabel).toBeUndefined();
+	});
+
 	it('resolves a function default against the passed-in data', () => {
 		const meta: Partial<Record<string, AttributeMetadata>> = {
 			country: {

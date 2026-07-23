@@ -8,6 +8,7 @@
   import { defaultIconSet } from '$lib/icons/sets/default.js';
   import { validateAll } from '$lib/components/crud/utils/validation.js';
   import { groupFields } from '$lib/components/crud/utils/grouping.js';
+  import { seedField } from '$lib/components/crud/utils/embedded.js';
   import type { ActionConfiguration, FieldDefinition } from '$lib/types/crud.js';
   import { getStrings } from '$lib/i18n/context.js';
 
@@ -47,10 +48,8 @@
   function seedFromInstance(inst: Record<string, unknown>): Record<string, unknown> {
     const seeded: Record<string, unknown> = { ...inst };
     for (const f of fields) {
-      if (f.type !== 'boolean' && f.type !== 'file') {
-        const raw = f.seed ? f.seed(inst) : inst[f.attribute];
-        seeded[f.attribute] = String(raw ?? '');
-      }
+      const raw = f.seed ? f.seed(inst) : inst[f.attribute];
+      seeded[f.attribute] = seedField(f, raw);
     }
     return seeded;
   }

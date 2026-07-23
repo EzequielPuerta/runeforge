@@ -8,6 +8,7 @@
   import { defaultIconSet } from '$lib/icons/sets/default.js';
   import { validateAll } from '$lib/components/crud/utils/validation.js';
   import { groupFields } from '$lib/components/crud/utils/grouping.js';
+  import { emptyRecord } from '$lib/components/crud/utils/embedded.js';
   import type { ActionConfiguration, FieldDefinition } from '$lib/types/crud.js';
   import { getStrings } from '$lib/i18n/context.js';
 
@@ -41,18 +42,7 @@
   let internalError = $state('');
   let continueCreating = $state(false);
 
-  function emptyRecord(): Record<string, unknown> {
-    return Object.fromEntries(
-      fields.map((f) => [
-        f.attribute,
-        f.type === 'boolean' ? !!f.default
-        : f.type === 'file' ? (f.default ?? null)
-        : String(f.default ?? ''),
-      ])
-    );
-  }
-
-  let record = $state<Record<string, unknown>>(untrack(() => emptyRecord()));
+  let record = $state<Record<string, unknown>>(untrack(() => emptyRecord(fields)));
 
   const groups = $derived(groupFields(fields));
   const hasFileField = $derived(fields.some((f) => f.type === 'file'));
@@ -104,7 +94,7 @@
         if (result.type === 'success' || result.type === 'redirect') {
           await update({ reset: false });
           if (continueCreating) {
-            record = emptyRecord();
+            record = emptyRecord(fields);
             fieldErrors = {};
             internalError = '';
           } else {

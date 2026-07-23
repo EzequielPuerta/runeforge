@@ -16,13 +16,21 @@ export const load: PageServerLoad = ({ url }) => {
 };
 
 function widgetFromFormData(data: FormData) {
+	let adjustments: { kind: string; amount: number }[];
+	try {
+		adjustments = JSON.parse(String(data.get('adjustments') ?? '[]'));
+	} catch {
+		adjustments = [];
+	}
+
 	return {
 		name: String(data.get('name') ?? '').trim(),
 		code: String(data.get('code') ?? '').trim(),
 		unlimited: data.has('unlimited'),
 		quantity: Number(data.get('quantity') ?? 0),
 		notes: String(data.get('notes') ?? '').trim(),
-		owner: String(data.get('owner') ?? '').trim()
+		owner: String(data.get('owner') ?? '').trim(),
+		adjustments
 	};
 }
 

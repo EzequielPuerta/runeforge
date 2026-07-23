@@ -6,7 +6,8 @@ export type {
 	InterfaceMetadata,
 	SelectOption,
 	OptionsResolver,
-	FormatterResolver
+	FormatterResolver,
+	EmbeddedItemLabelResolver
 } from './types/attribute.js';
 export type {
 	CellProps,
@@ -78,6 +79,7 @@ export {
 // CRUD components
 export { default as GenericCRUD } from './components/crud/GenericCRUD.svelte';
 export { default as Field } from './components/crud/Field.svelte';
+export { default as EmbeddedField } from './components/crud/EmbeddedField.svelte';
 export { default as Header } from './components/common/Header.svelte';
 export { default as AvatarCell } from './components/crud/columns/Avatar.svelte';
 export { default as IconCell } from './components/crud/columns/Icon.svelte';
@@ -105,3 +107,4 @@ export {
 export { groupFields } from './components/crud/utils/grouping.js';
 export type { FieldGroup } from './components/crud/utils/grouping.js';
 export { validateAll } from './components/crud/utils/validation.js';
+export { emptyRecord, defaultItemLabel } from './components/crud/utils/embedded.js';

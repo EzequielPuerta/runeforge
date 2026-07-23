@@ -26,6 +26,9 @@ export const es: RuneforgeStrings = {
 	saveAndContinue: 'Guardar y continuar',
 	cancel: 'Cancelar',
 	back: 'Volver',
+	add: 'Agregar',
+	remove: 'Quitar',
+	noItems: 'Sin elementos agregados',
 	confirm: 'Confirmar',
 	deleteConfirm: (count, actionLabel) =>
 		`¿Seguro que querés ${String(actionLabel).toLowerCase()} ${count} elemento${count === 1 ? '' : 's'}?`,

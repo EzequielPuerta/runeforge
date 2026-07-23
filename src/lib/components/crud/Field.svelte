@@ -3,6 +3,7 @@
   import Avatar from '$lib/components/Avatar.svelte';
   import Label from '$lib/components/form/Label.svelte';
   import Select from '$lib/components/form/Select.svelte';
+  import EmbeddedField from '$lib/components/crud/EmbeddedField.svelte';
   import { fieldLabel, initials } from '$lib/components/crud/utils/misc.js';
   import type { FieldDefinition } from '$lib/types/crud.js';
   import { getStrings } from '$lib/i18n/context.js';
@@ -147,6 +148,8 @@
         disabled={fieldDisabled}
       ></textarea>
     {/if}
+  {:else if field.type === 'embedded'}
+    <EmbeddedField {field} bind:record {readonly} />
   {:else if readonly}
     <input
       type={field.type ?? 'text'}
