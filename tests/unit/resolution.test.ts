@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
 	resolveOptions,
+	resolveDefault,
 	resolveFormatter,
 	inferType,
 	buildFieldDefinitions
@@ -22,6 +23,30 @@ describe('resolveOptions', () => {
 		const m: AttributeMetadata = { options: () => opts };
 		const data = { list: ['x'] };
 		expect(resolveOptions(m, data)).toEqual(opts);
+	});
+});
+
+describe('resolveDefault', () => {
+	it('returns undefined when default is absent', () => {
+		const m: AttributeMetadata = {};
+		expect(resolveDefault(m, null)).toBeUndefined();
+	});
+	it('returns the value directly when default is a plain value', () => {
+		const m: AttributeMetadata = { default: 5 };
+		expect(resolveDefault(m, null)).toBe(5);
+	});
+	it('calls the function with data and returns its result', () => {
+		const m: AttributeMetadata = {
+			default: (data: { countries: { id: number; name: string }[] }) =>
+				data.countries.find((c) => c.name === 'Argentina')?.id
+		};
+		const data = {
+			countries: [
+				{ id: 1, name: 'Uruguay' },
+				{ id: 2, name: 'Argentina' }
+			]
+		};
+		expect(resolveDefault(m, data)).toBe(2);
 	});
 });
 
@@ -133,5 +158,20 @@ describe('buildFieldDefinitions', () => {
 
 		expect(fields[0].disabled).toBe(disabled);
 		expect(fields[0].default).toBe(5);
+	});
+
+	it('resolves a function default against the passed-in data', () => {
+		const meta: Partial<Record<string, AttributeMetadata>> = {
+			country: {
+				label: 'Country',
+				default: (data: { countries: { id: number; name: string }[] }) =>
+					data.countries.find((c) => c.name === 'Argentina')?.id
+			}
+		};
+		const data = { countries: [{ id: 7, name: 'Argentina' }] };
+
+		const fields = buildFieldDefinitions(meta, data, 'excludedFromCreate', excluded);
+
+		expect(fields[0].default).toBe(7);
 	});
 });

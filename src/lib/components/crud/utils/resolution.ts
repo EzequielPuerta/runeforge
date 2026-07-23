@@ -6,6 +6,10 @@ export function resolveOptions(m: AttributeMetadata, d: unknown): SelectOption[]
   return typeof m.options === 'function' ? m.options(d) : m.options;
 }
 
+export function resolveDefault(m: AttributeMetadata, d: unknown): unknown {
+  return typeof m.default === 'function' ? m.default(d) : m.default;
+}
+
 export function resolveFormatter(m: AttributeMetadata, d: unknown) {
   return m.formatter?.(d);
 }
@@ -39,7 +43,7 @@ export function buildFieldDefinitions<T extends object = Record<string, unknown>
       required: m.required,
       autocomplete: m.autocomplete,
       placeholder: m.placeholder,
-      default: m.default,
+      default: resolveDefault(m, data),
       options: resolveOptions(m, data),
       dependentOptions: m.dependentOptions
         ? (record: Record<string, unknown>) => m.dependentOptions!(data, record)

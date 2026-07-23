@@ -55,6 +55,9 @@ export type AttributeMetadata = {
   required?: boolean;
   autocomplete?: FullAutoFill;
   placeholder?: string;
+  /** Initial value on the create form. Pass a plain value, or a function of
+   * `data` (e.g. to default a select to an option derived from prefetched
+   * data) evaluated once when the create fields are resolved. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default?: any;
   excludedFromList?: boolean;
