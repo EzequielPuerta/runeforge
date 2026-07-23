@@ -1,6 +1,6 @@
 import type { Component } from 'svelte';
 import type { FullAutoFill } from 'svelte/elements';
-import type { AttributeType, SearchResolver } from '$lib/types/attribute.js';
+import type { AttributeType, SearchResolver, RequiredResolver } from '$lib/types/attribute.js';
 import type { CellComponent, CellFormatter } from '$lib/types/table.js';
 
 export type ColumnDefinition<T extends object = Record<string, unknown>> = {
@@ -19,7 +19,7 @@ export interface FieldDefinition<T extends object = Record<string, unknown>> {
 	attribute: keyof T & string;
 	title?: string;
 	type?: AttributeType;
-	required?: boolean;
+	required?: boolean | RequiredResolver;
 	autocomplete?: FullAutoFill;
 	placeholder?: string;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any

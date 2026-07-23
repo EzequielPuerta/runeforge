@@ -24,9 +24,11 @@
     disabled?: boolean;
   } = $props();
 
-  let open = $state(false);
+  const popId = $props.id();
+  const anchorName = `--select-anchor-${popId}`;
+
   let query = $state('');
-  let container: HTMLDivElement;
+  let popoverEl: HTMLElement | undefined = $state();
 
   // Options resolved by `searchFn` for the current query; null while no
   // server search has run yet (e.g. box just opened, query still empty).
@@ -71,37 +73,28 @@
       : (options.find((o) => o.value === value)?.label ?? pickedLabel ?? placeholder)
   );
 
-  function toggle() {
-    if (disabled) return;
-    open = !open;
-    if (!open) query = '';
-  }
-
   function pick(option: { value: string; label: string }) {
     value = option.value;
     pickedLabel = option.label;
-    open = false;
     query = '';
+    popoverEl?.hidePopover();
   }
 
   function clear() {
     value = '';
     pickedLabel = null;
-    open = false;
     query = '';
+    popoverEl?.hidePopover();
   }
 
-  function onWindowClick(e: MouseEvent) {
-    if (open && !container.contains(e.target as Node)) {
-      open = false;
-      query = '';
-    }
+  // Catches dismissal paths that don't go through pick()/clear() (outside
+  // click, Escape), so a stale search doesn't linger for next time it opens.
+  function onToggle(e: Event) {
+    if ((e as ToggleEvent).newState === 'closed') query = '';
   }
 </script>
 
-<svelte:window onclick={onWindowClick} />
-
-<div class="relative w-full" bind:this={container}>
+<div class="relative w-full">
   {#if name}
     <input type="hidden" {name} {value} />
   {/if}
@@ -112,52 +105,58 @@
     class:select-error={!!error}
     class:opacity-40={!value}
     {disabled}
-    onclick={toggle}
+    popovertarget={popId}
+    style="anchor-name:{anchorName}"
   >
     {selectedLabel}
   </button>
 
-  {#if open}
-    <div class="absolute z-50 mt-1 w-full rounded-box border border-base-content/10 bg-base-100 shadow-lg">
-      <div class="p-2">
-        <input
-          type="text"
-          class="input input-bordered input-sm w-full"
-          placeholder={strings.selectSearch}
-          bind:value={query}
-          autocomplete="off"
-        />
-      </div>
-      <ul class="max-h-48 overflow-y-auto p-1">
+  <div
+    popover="auto"
+    id={popId}
+    bind:this={popoverEl}
+    style="position-anchor:{anchorName}; width:anchor-size(width);"
+    class="dropdown mt-1 rounded-box border border-base-content/10 bg-base-100 shadow-lg"
+    ontoggle={onToggle}
+  >
+    <div class="p-2">
+      <input
+        type="text"
+        class="input input-bordered input-sm w-full"
+        placeholder={strings.selectSearch}
+        bind:value={query}
+        autocomplete="off"
+      />
+    </div>
+    <ul class="max-h-48 overflow-y-auto p-1">
+      <li>
+        <button
+          type="button"
+          class="w-full rounded-btn px-3 py-2 text-left text-sm text-base-content/40 hover:bg-base-200"
+          onclick={clear}
+        >
+          {placeholder}
+        </button>
+      </li>
+      {#if searching}
+        <li class="px-3 py-2 text-sm text-base-content/40">{strings.selectSearching}</li>
+      {/if}
+      {#each filtered as option (option.value)}
         <li>
           <button
             type="button"
-            class="w-full rounded-btn px-3 py-2 text-left text-sm text-base-content/40 hover:bg-base-200"
-            onclick={clear}
+            class="w-full rounded-btn px-3 py-2 text-left text-sm hover:bg-base-200"
+            class:bg-primary={value === option.value}
+            class:text-primary-content={value === option.value}
+            onclick={() => pick(option)}
           >
-            {placeholder}
+            {option.label}
           </button>
         </li>
-        {#if searching}
-          <li class="px-3 py-2 text-sm text-base-content/40">{strings.selectSearching}</li>
-        {/if}
-        {#each filtered as option (option.value)}
-          <li>
-            <button
-              type="button"
-              class="w-full rounded-btn px-3 py-2 text-left text-sm hover:bg-base-200"
-              class:bg-primary={value === option.value}
-              class:text-primary-content={value === option.value}
-              onclick={() => pick(option)}
-            >
-              {option.label}
-            </button>
-          </li>
-        {/each}
-        {#if !searching && filtered.length === 0}
-          <li class="px-3 py-2 text-sm text-base-content/40">{strings.selectNoResults}</li>
-        {/if}
-      </ul>
-    </div>
-  {/if}
+      {/each}
+      {#if !searching && filtered.length === 0}
+        <li class="px-3 py-2 text-sm text-base-content/40">{strings.selectNoResults}</li>
+      {/if}
+    </ul>
+  </div>
 </div>

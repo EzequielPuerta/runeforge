@@ -46,6 +46,7 @@
   const displayValue = $derived(saved == null ? '' : String(saved));
   const selectOptions = $derived(field.dependentOptions ? field.dependentOptions(record) : (field.options ?? []));
   const fieldDisabled = $derived(field.disabled ? field.disabled(record) : false);
+  const fieldRequired = $derived(typeof field.required === 'function' ? field.required(record) : !!field.required);
 
   $effect(() => {
     if (!field.dependentOptions) return;
@@ -67,7 +68,7 @@
     text={labelText}
     for={field.attribute}
     capitalize={true}
-    required={field.required && !readonly}
+    required={fieldRequired && !readonly}
   />
 
   {#if field.type === 'boolean'}

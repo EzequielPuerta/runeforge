@@ -12,8 +12,12 @@ export function validateAll<T extends object = Record<string, unknown>>(
 	strings: RuneforgeStrings
 ): Record<string, string> {
 	const errors: Record<string, string> = {};
+	const record = Object.fromEntries(formData.entries());
 
 	for (const field of fields) {
+		const required =
+			typeof field.required === 'function' ? field.required(record) : !!field.required;
+
 		if (field.type === 'embedded') {
 			let items: unknown[];
 			try {
@@ -21,7 +25,7 @@ export function validateAll<T extends object = Record<string, unknown>>(
 			} catch {
 				items = [];
 			}
-			if (field.required && (!Array.isArray(items) || items.length === 0)) {
+			if (required && (!Array.isArray(items) || items.length === 0)) {
 				errors[field.attribute] = strings.required(fieldLabel(field));
 			}
 			continue;
@@ -29,7 +33,7 @@ export function validateAll<T extends object = Record<string, unknown>>(
 
 		const val = String(formData.get(field.attribute) ?? '').trim();
 
-		if (field.required && !val) {
+		if (required && !val) {
 			errors[field.attribute] = strings.required(fieldLabel(field));
 			continue;
 		}

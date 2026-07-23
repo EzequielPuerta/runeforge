@@ -16,6 +16,22 @@ describe('validateAll', () => {
 		expect(errors.name).toBe('name is required');
 	});
 
+	it('resolves a function `required` against the other submitted fields', () => {
+		const fields: FieldDefinition[] = [
+			{ attribute: 'formula' },
+			{
+				attribute: 'quantity',
+				required: (record) => record.formula !== 'benchmark'
+			}
+		];
+
+		const benchmarkErrors = validateAll(fields, formData({ formula: 'benchmark' }), en);
+		expect(benchmarkErrors.quantity).toBeUndefined();
+
+		const maxErrors = validateAll(fields, formData({ formula: 'max' }), en);
+		expect(maxErrors.quantity).toBe('quantity is required');
+	});
+
 	it('does not validate further rules on an empty, non-required field', () => {
 		const fields: FieldDefinition[] = [{ attribute: 'age', type: 'number', min: 1 }];
 		const errors = validateAll(fields, formData({}), en);

@@ -348,7 +348,7 @@ Every entry in an `InterfaceMetadata<T>` object is an `AttributeMetadata` — a 
 | --- | --- | --- | --- |
 | `label` | `string` | all | Column header, form label, and the field name used in validation messages |
 | `type` | `AttributeType` | all | `text` \| `email` \| `password` \| `number` \| `boolean` \| `textarea` \| `file` \| `select` \| `datetime` \| `embedded` |
-| `required` | `boolean` | all | Marks the label and enforces a non-empty value on submit |
+| `required` | `boolean \| (record) => boolean` | all | Marks the label and enforces a non-empty value on submit. The function form re-evaluates against the other fields' current values — see [Validation](#validation) |
 | `autocomplete` | `FullAutoFill` | text-like | Native `autocomplete` attribute |
 | `placeholder` | `string` | text-like, select | Placeholder text |
 | `default` | `value \| (data) => value` | all | Initial value on the create form — see [Default values](#default-values) |
@@ -395,12 +395,33 @@ notes: {
 },
 ```
 
+`required` also accepts a function of the other fields' current values, for when whether a field is mandatory depends on the rest of the form rather than being fixed:
+
+```ts
+formula: {
+  label: 'Formula',
+  type: AttributeType.select,
+  options: [
+    { value: 'benchmark', label: 'Benchmark' },
+    { value: 'max', label: 'Max' },
+  ],
+},
+quantity: {
+  label: 'Quantity',
+  type: AttributeType.number,
+  // Not required for the "benchmark" formula, mandatory for every other one.
+  required: (record) => record.formula !== 'benchmark',
+},
+```
+
+The label's required marker and the submit-time check both re-evaluate the same way `disabled` does — see [Conditional fields](#conditional-fields).
+
 > [!TIP]
 > Client-side validation is a UX nicety, not a security boundary — always re-validate in your form actions.
 
 ### Conditional fields
 
-`disabled` receives the form's current draft record (including in-progress edits to sibling fields) and returns whether the input should be disabled. It re-evaluates as the user types.
+`disabled` receives the form's current draft record (including in-progress edits to sibling fields) and returns whether the input should be disabled. It re-evaluates as the user types. `required` (see [Validation](#validation)) follows the same pattern for making a field mandatory only in certain conditions.
 
 ```ts
 unlimited: {

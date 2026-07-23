@@ -37,6 +37,7 @@ export type FormatterResolver = (data?: any) => CellFormatter<any, any>;
 export type DependentOptionsResolver = (data: any, record: Record<string, unknown>) => SelectOption[];
 export type SearchResolver = (query: string) => Promise<SelectOption[]>;
 export type DisabledResolver = (record: Record<string, unknown>) => boolean;
+export type RequiredResolver = (record: Record<string, unknown>) => boolean;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type SeedResolver = (instance: any) => unknown;
 /** Embedded fields only: renders a short summary for one item in the list.
@@ -57,7 +58,9 @@ export type AttributeMetadata = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   component?: CellComponent<any, any>;
   formatter?: FormatterResolver;
-  required?: boolean;
+  /** Pass a function to require a field only in certain conditions, e.g. a
+   * quantity that only applies to some of a select's options. */
+  required?: boolean | RequiredResolver;
   autocomplete?: FullAutoFill;
   placeholder?: string;
   /** Initial value on the create form. Pass a plain value, or a function of
