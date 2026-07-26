@@ -12,6 +12,13 @@ export type ColumnDefinition<T extends object = Record<string, unknown>> = {
 		formatter?: CellFormatter<T, T[K]>;
 		sortable?: boolean;
 		filterable?: boolean;
+		/** Embedded columns only: sub-field definitions for each item, used to
+		 * render a default cell summary and to expand the column into one
+		 * sub-column per field on CSV/XLSX export. */
+		fields?: FieldDefinition<Record<string, unknown>>[];
+		/** Embedded columns only: short label for an item, reused from the form
+		 * field's `itemLabel` for the default cell summary. */
+		itemLabel?: (item: Record<string, unknown>) => string;
 	};
 }[keyof T & string];
 

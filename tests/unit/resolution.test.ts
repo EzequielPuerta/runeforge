@@ -148,6 +148,17 @@ describe('buildFieldDefinitions', () => {
 		expect(buildFieldDefinitions(meta, undefined, 'excludedFromRead', excluded)).toHaveLength(0);
 	});
 
+	it('also accepts excludedFromList, used when building embedded sub-columns for the list/export view', () => {
+		const meta: Partial<Record<string, AttributeMetadata>> = {
+			email: { label: 'Email' },
+			internal: { label: 'Internal', excludedFromList: true }
+		};
+
+		const fields = buildFieldDefinitions(meta, undefined, 'excludedFromList', excluded);
+
+		expect(fields.map((f) => f.attribute)).toEqual(['email']);
+	});
+
 	it('resolves disabled/dependentOptions/seed/default like the create/read/update blocks did', () => {
 		const disabled = (record: Record<string, unknown>) => !!record.locked;
 		const meta: Partial<Record<string, AttributeMetadata>> = {

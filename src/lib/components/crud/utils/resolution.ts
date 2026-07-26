@@ -31,7 +31,7 @@ export function inferType(key: string, value: unknown): AttributeType {
 export function buildFieldDefinitions<T extends object = Record<string, unknown>>(
   meta: Partial<Record<string, AttributeMetadata>>,
   data: unknown,
-  excludedFlag: 'excludedFromCreate' | 'excludedFromRead' | 'excludedFromUpdate',
+  excludedFlag: 'excludedFromCreate' | 'excludedFromRead' | 'excludedFromUpdate' | 'excludedFromList',
   excluded: Set<string>
 ): FieldDefinition<T>[] {
   return (Object.entries(meta) as [string, AttributeMetadata][])

@@ -26,6 +26,20 @@ export function emptyRecord<T extends object = Record<string, unknown>>(
 	return Object.fromEntries(fields.map((f) => [f.attribute, seedField(f, f.default)]));
 }
 
+// Shared by defaultItemLabel and the CSV/XLSX export column expansion: renders
+// one sub-field's raw stored value as display text, resolving a select's
+// option label instead of its stored value. Booleans are left to the caller
+// since the item-label summary and an export cell want different renderings
+// (omit-when-false vs. an explicit true/false column).
+export function formatEmbeddedFieldValue<T extends object = Record<string, unknown>>(
+	f: FieldDefinition<T>,
+	raw: unknown
+): string {
+	if (raw == null || raw === '') return '';
+	if (f.type === 'select') return f.options?.find((o) => o.value === String(raw))?.label ?? String(raw);
+	return String(raw);
+}
+
 // Default summary shown per item in an embedded list when the field has no
 // `itemLabel`: joins each sub-field's resolved display value so the list is
 // at least readable out of the box.
@@ -36,11 +50,8 @@ export function defaultItemLabel<T extends object = Record<string, unknown>>(
 	return fields
 		.map((f) => {
 			const raw = item[f.attribute];
-			if (raw == null || raw === '') return null;
-			if (f.type === 'select')
-				return f.options?.find((o) => o.value === String(raw))?.label ?? String(raw);
 			if (f.type === 'boolean') return raw ? fieldLabel(f) : null;
-			return String(raw);
+			return formatEmbeddedFieldValue(f, raw) || null;
 		})
 		.filter((v): v is string => !!v)
 		.join(' · ');

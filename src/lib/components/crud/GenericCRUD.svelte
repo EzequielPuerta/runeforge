@@ -11,6 +11,7 @@
 		inferType,
 		buildFieldDefinitions
 	} from '$lib/components/crud/utils/resolution.js';
+	import { defaultItemLabel } from '$lib/components/crud/utils/embedded.js';
 	import { isFilterable } from '$lib/components/table/utils.js';
 	import type { XlsxModule } from '$lib/components/table/export.js';
 	import type { AttributeMetadata } from '$lib/types/attribute.js';
@@ -150,15 +151,41 @@
 			(meta
 				? (Object.entries(meta) as [string, AttributeMetadata][])
 						.filter(([, m]) => !m.excludedFromList)
-						.map(([k, m]) => ({
-							attribute: k as keyof T & string,
-							title: m.label ?? k,
-							type: m.type,
-							formatter: resolveFormatter(m, data),
-							component: m.component,
-							sortable: m.sortable,
-							filterable: m.filterable
-						}))
+						.map(([k, m]) => {
+							const embeddedFields =
+								m.type === 'embedded' && m.fields
+									? buildFieldDefinitions(m.fields, data, 'excludedFromList', new Set())
+									: undefined;
+							// Arrays of objects have no sensible raw cell value, so an
+							// embedded column without an explicit formatter falls back to
+							// joining each item's label (itemLabel, or the same
+							// sub-field-joining summary the embedded form list uses).
+							const formatter =
+								resolveFormatter(m, data) ??
+								(embeddedFields
+									? (value: unknown) =>
+											Array.isArray(value)
+												? value
+														.map((item) =>
+															m.itemLabel
+																? m.itemLabel(item as Record<string, unknown>)
+																: defaultItemLabel(embeddedFields, item as Record<string, unknown>)
+														)
+														.join(', ')
+												: ''
+									: undefined);
+							return {
+								attribute: k as keyof T & string,
+								title: m.label ?? k,
+								type: m.type,
+								formatter,
+								component: m.component,
+								sortable: m.sortable,
+								filterable: m.filterable,
+								fields: embeddedFields,
+								itemLabel: m.itemLabel
+							};
+						})
 				: entityData.length > 0
 					? (Object.keys(entityData[0]) as (keyof T & string)[])
 							.filter((k) => !excluded.has(k))

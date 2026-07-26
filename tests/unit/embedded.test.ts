@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { emptyRecord, seedField, defaultItemLabel } from '$lib/components/crud/utils/embedded.js';
+import {
+	emptyRecord,
+	seedField,
+	defaultItemLabel,
+	formatEmbeddedFieldValue
+} from '$lib/components/crud/utils/embedded.js';
 import type { FieldDefinition } from '$lib/types/crud.js';
 
 describe('seedField', () => {
@@ -86,5 +91,37 @@ describe('defaultItemLabel', () => {
 		];
 		expect(defaultItemLabel(boolFields, { urgent: true })).toBe('Urgent');
 		expect(defaultItemLabel(boolFields, { urgent: false })).toBe('');
+	});
+});
+
+describe('formatEmbeddedFieldValue', () => {
+	it('returns an empty string for null/undefined/empty values', () => {
+		const f: FieldDefinition = { attribute: 'email' };
+		expect(formatEmbeddedFieldValue(f, null)).toBe('');
+		expect(formatEmbeddedFieldValue(f, undefined)).toBe('');
+		expect(formatEmbeddedFieldValue(f, '')).toBe('');
+	});
+
+	it('resolves a select value to its option label', () => {
+		const f: FieldDefinition = {
+			attribute: 'formula',
+			type: 'select',
+			options: [
+				{ value: 'max', label: 'Máximo' },
+				{ value: 'min', label: 'Mínimo' }
+			]
+		};
+		expect(formatEmbeddedFieldValue(f, 'max')).toBe('Máximo');
+	});
+
+	it('falls back to the raw value when a select value has no matching option', () => {
+		const f: FieldDefinition = { attribute: 'formula', type: 'select', options: [] };
+		expect(formatEmbeddedFieldValue(f, 'unknown')).toBe('unknown');
+	});
+
+	it('stringifies booleans and numbers as-is, unlike defaultItemLabel', () => {
+		expect(formatEmbeddedFieldValue({ attribute: 'active', type: 'boolean' }, true)).toBe('true');
+		expect(formatEmbeddedFieldValue({ attribute: 'active', type: 'boolean' }, false)).toBe('false');
+		expect(formatEmbeddedFieldValue({ attribute: 'quantity', type: 'number' }, 3)).toBe('3');
 	});
 });
