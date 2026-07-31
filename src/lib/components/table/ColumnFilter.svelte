@@ -92,7 +92,7 @@
 <div
   popover="auto"
   id={popId}
-  style="position-anchor:{anchor}"
+  style="position-anchor:{anchor}; position-try-fallbacks:flip-block;"
   class="dropdown dropdown-end rounded-box border border-base-content/10 bg-base-100 p-3 shadow-lg"
   class:w-56={!isDatetime}
 >

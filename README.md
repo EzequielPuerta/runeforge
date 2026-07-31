@@ -34,6 +34,7 @@ A SvelteKit toolkit that forges forms, tables, actions, and CRUD workflows from 
     - [Validation](#validation)
     - [Conditional fields](#conditional-fields)
     - [Field grouping](#field-grouping)
+    - [Field rows](#field-rows)
     - [Default values](#default-values)
     - [Select options](#select-options)
     - [Multiselect fields](#multiselect-fields)
@@ -159,6 +160,7 @@ Responsive overrides work too:
 | `--runeforge-crud-title-size` | `1.875rem` | `<h1>` inside the `Header` component |
 | `--runeforge-breadcrumb-font-size` | `0.875rem` | Breadcrumb label text size |
 | `--runeforge-breadcrumb-icon-size` | `1rem` | Breadcrumb icon width and height |
+| `--runeforge-tree-max-height` | `24rem` | Max height of a `tree` field before it scrolls internally |
 
 Modal sizing (see [Shared Components](#shared-components)) is set per-instance via props rather than a CSS variable.
 
@@ -362,6 +364,8 @@ Every entry in an `InterfaceMetadata<T>` object is an `AttributeMetadata` — a 
 | `disabled` | `(record) => boolean` | all | Conditionally disables the input — see [Conditional fields](#conditional-fields) |
 | `hidden` | `boolean \| (record) => boolean` | all | Conditionally removes the field from the form entirely — not rendered, not validated, not submitted — see [Conditional fields](#conditional-fields) |
 | `groupedAs` | `string` | all | Visually groups fields under a titled section — see [Field grouping](#field-grouping) |
+| `row` | `string` | all | Renders fields sharing the same value side by side (desktop) / stacked (mobile) — see [Field rows](#field-rows) |
+| `defaultExpanded` | `boolean` | `tree` | Whether parent nodes start expanded. Defaults to `true` |
 | `options` | `SelectOption[] \| (data) => SelectOption[]` | `select`, `multiselect`, `tree` | Static or computed option list — see [Select options](#select-options). `tree` options additionally accept `parentValue` — see [Tree fields](#tree-fields) |
 | `dependentOptions` | `(data, record) => SelectOption[]` | `select`, `multiselect`, `tree` | Options derived from other fields' current values |
 | `search` | `(query) => Promise<SelectOption[]>` | `select`, `multiselect` | Server-side option search as the user types |
@@ -485,6 +489,25 @@ sku: {
 },
 ```
 
+### Field rows
+
+Fields sharing the same `row` string render side by side on desktop and stacked on mobile, instead of each taking a full line. It's meant for small, related fields — a date range, a min/max pair — where a flat vertical stack wastes space.
+
+```ts
+createdFrom: {
+  label: 'Created from',
+  type: AttributeType.datetime,
+  row: 'createdRange',
+},
+createdTo: {
+  label: 'Created to',
+  type: AttributeType.datetime,
+  row: 'createdRange',
+},
+```
+
+A `row` only merges fields that are also in the same `groupedAs` fieldset (or both ungrouped) — it never pulls fields together across two different fieldsets. If one of the fields in a row is conditionally [hidden](#conditional-fields), the remaining field(s) simply expand to fill the row instead of leaving a gap.
+
 ### Default values
 
 `default` can be a plain value or a function of the page `data` object, evaluated once when the create form's fields are resolved — handy for defaulting a select to something derived from prefetched data.
@@ -598,6 +621,8 @@ categories: {
 ```
 
 The stored value is a `string[]` of selected node values, submitted the same way as `multiselect` — a single hidden field holding a JSON array, parsed back out server-side with `JSON.parse`. `dependentOptions` and `hidden` work the same as any other field type.
+
+By default every parent node renders expanded; set `defaultExpanded: false` to start with the whole tree collapsed instead (the user can still expand any branch — this only sets the initial state). The field itself is capped at `--runeforge-tree-max-height` (default `24rem`, see [CSS variables](#css-variables)) and scrolls internally once its content grows past that.
 
 ### Embedded fields (sub-documents)
 

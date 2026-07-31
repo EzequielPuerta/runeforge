@@ -62,6 +62,8 @@ export function buildFieldDefinitions<T extends object = Record<string, unknown>
       fields: m.fields
         ? buildFieldDefinitions(m.fields, data, excludedFlag, new Set())
         : undefined,
-      itemLabel: m.itemLabel
+      itemLabel: m.itemLabel,
+      defaultExpanded: m.defaultExpanded,
+      row: m.row
     }));
 }

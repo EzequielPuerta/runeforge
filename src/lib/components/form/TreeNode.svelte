@@ -10,6 +10,7 @@
 		disabled,
 		depth,
 		columns,
+		defaultExpanded,
 	}: {
 		node: SelectOption;
 		childrenByParent: Map<string | null, SelectOption[]>;
@@ -18,9 +19,10 @@
 		disabled: boolean;
 		depth: number;
 		columns: number;
+		defaultExpanded: boolean;
 	} = $props();
 
-	let expanded = $state(true);
+	let expanded = $state(defaultExpanded);
 
 	const children = $derived(childrenByParent.get(node.value) ?? []);
 	const hasChildren = $derived(children.length > 0);
@@ -58,7 +60,7 @@
 
 	{#if expanded && hasChildren}
 		{#each children as child (child.value)}
-			<TreeNode node={child} {childrenByParent} {selected} {onToggle} {disabled} depth={depth + 1} {columns} />
+			<TreeNode node={child} {childrenByParent} {selected} {onToggle} {disabled} depth={depth + 1} {columns} {defaultExpanded} />
 		{/each}
 	{/if}
 </div>

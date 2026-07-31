@@ -21,12 +21,18 @@
     record = $bindable({} as Record<string, unknown>),
     error = '',
     readonly = false,
+    class: className = '',
   }: {
     field: FieldDefinition<T>;
     record?: Record<string, unknown>;
     error?: string;
     readonly?: boolean;
+    class?: string;
   } = $props();
+
+  const datePopId = $props.id();
+  const dateAnchorName = `--date-anchor-${datePopId}`;
+  let datePopoverEl: HTMLElement | undefined = $state();
 
   const name = $derived(readonly ? undefined : field.attribute);
   const labelText = $derived(fieldLabel(field));
@@ -73,7 +79,7 @@
 </script>
 
 {#if !fieldHidden}
-<div class="flex flex-col gap-1">
+<div class="flex flex-col gap-1 {className}">
   {#if field.type === 'file'}
     <div class="flex justify-center">
       <Avatar src={preview} text={avatarInitials} alt={labelText} class="w-20 rounded-full" textClass="text-xl" />
@@ -141,15 +147,37 @@
       />
     {:else}
       <input type="hidden" {name} value={String(record[field.attribute] ?? '')} disabled={fieldDisabled} />
-      <calendar-date
-        class="cally rounded-box border border-base-300 bg-base-100 shadow-sm {fieldDisabled ? 'pointer-events-none opacity-50' : ''}"
-        value={String(record[field.attribute] ?? '')}
-        onchange={(e: Event) => { if (fieldDisabled) return; record[field.attribute] = (e.currentTarget as HTMLElement & { value: string }).value; }}
+      <button
+        type="button"
+        class="input input-bordered w-full text-left font-normal"
+        class:opacity-40={!record[field.attribute]}
+        disabled={fieldDisabled}
+        popovertarget={datePopId}
+        style="anchor-name:{dateAnchorName}"
       >
-        <svg aria-label={strings.previous} class="fill-current size-4" {...{"slot": "previous"}} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
-        <svg aria-label={strings.next} class="fill-current size-4" {...{"slot": "next"}} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
-        <calendar-month></calendar-month>
-      </calendar-date>
+        {record[field.attribute] ? displayValue : (field.placeholder ?? '')}
+      </button>
+      <div
+        popover="auto"
+        id={datePopId}
+        bind:this={datePopoverEl}
+        style="position-anchor:{dateAnchorName}; position-try-fallbacks:flip-block;"
+        class="dropdown mt-1 rounded-box border border-base-content/10 bg-base-100 p-2 shadow-lg"
+      >
+        <calendar-date
+          class="cally"
+          value={String(record[field.attribute] ?? '')}
+          onchange={(e: Event) => {
+            if (fieldDisabled) return;
+            record[field.attribute] = (e.currentTarget as HTMLElement & { value: string }).value;
+            datePopoverEl?.hidePopover();
+          }}
+        >
+          <svg aria-label={strings.previous} class="fill-current size-4" {...{"slot": "previous"}} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+          <svg aria-label={strings.next} class="fill-current size-4" {...{"slot": "next"}} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+          <calendar-month></calendar-month>
+        </calendar-date>
+      </div>
     {/if}
   {:else if field.type === 'textarea'}
     {#if readonly}
@@ -202,6 +230,7 @@
         bind:value={record[field.attribute] as string[]}
         options={selectOptions}
         disabled={fieldDisabled}
+        defaultExpanded={field.defaultExpanded ?? true}
       />
     {/if}
   {:else if readonly}

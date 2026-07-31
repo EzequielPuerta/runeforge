@@ -9,12 +9,14 @@
 		options = [],
 		disabled = false,
 		columns = 1,
+		defaultExpanded = true,
 	}: {
 		name?: string;
 		value?: string[];
 		options?: SelectOption[];
 		disabled?: boolean;
 		columns?: number;
+		defaultExpanded?: boolean;
 	} = $props();
 
 	const childrenByParent = $derived(buildChildrenByParent(options));
@@ -33,7 +35,8 @@
 </script>
 
 <div
-	class="rounded-box border border-base-300 p-2"
+	class="overflow-y-auto rounded-box border border-base-300 p-2"
+	style="max-height: var(--runeforge-tree-max-height, 24rem)"
 	class:opacity-50={disabled}
 	class:pointer-events-none={disabled}
 >
@@ -45,7 +48,7 @@
 	{/if}
 	<div class:leaf-columns={columns > 1} style={`--columns: ${columns}`}>
 		{#each roots as root (root.value)}
-			<TreeNode node={root} {childrenByParent} {selected} onToggle={toggle} {disabled} depth={0} {columns} />
+			<TreeNode node={root} {childrenByParent} {selected} onToggle={toggle} {disabled} depth={0} {columns} {defaultExpanded} />
 		{/each}
 	</div>
 </div>

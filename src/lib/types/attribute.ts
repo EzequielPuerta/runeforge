@@ -98,4 +98,10 @@ export type AttributeMetadata = {
   fields?: InterfaceMetadata<any>;
   /** Embedded fields only: short label for an item in the list. */
   itemLabel?: EmbeddedItemLabelResolver;
+  /** Tree fields only: whether parent nodes start expanded. Defaults to `true`. */
+  defaultExpanded?: boolean;
+  /** Fields sharing the same `row` string render side by side on desktop and
+   * stacked on mobile — see the Field rows section. Only merges fields that
+   * are also in the same `groupedAs` bucket (or both ungrouped). */
+  row?: string;
 };

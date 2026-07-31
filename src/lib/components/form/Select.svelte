@@ -115,7 +115,7 @@
     popover="auto"
     id={popId}
     bind:this={popoverEl}
-    style="position-anchor:{anchorName}; width:anchor-size(width);"
+    style="position-anchor:{anchorName}; width:anchor-size(width); position-try-fallbacks:flip-block;"
     class="dropdown mt-1 rounded-box border border-base-content/10 bg-base-100 shadow-lg"
     ontoggle={onToggle}
   >

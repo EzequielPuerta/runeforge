@@ -129,14 +129,30 @@
         <fieldset class="fieldset border border-base-300 rounded-box p-4">
           <legend class="fieldset-legend px-2">{group.title}</legend>
           <div class="flex flex-col gap-4">
-            {#each group.fields as field (field.attribute)}
-              <Field {field} bind:record error={fieldErrors[field.attribute] ?? ''} />
+            {#each group.rows as row (row.map((f) => f.attribute).join('|'))}
+              {#if row.length > 1}
+                <div class="flex flex-col gap-4 md:flex-row">
+                  {#each row as field (field.attribute)}
+                    <Field {field} bind:record error={fieldErrors[field.attribute] ?? ''} class="md:min-w-0 md:flex-1" />
+                  {/each}
+                </div>
+              {:else}
+                <Field field={row[0]} bind:record error={fieldErrors[row[0].attribute] ?? ''} />
+              {/if}
             {/each}
           </div>
         </fieldset>
       {:else}
-        {#each group.fields as field (field.attribute)}
-          <Field {field} bind:record error={fieldErrors[field.attribute] ?? ''} />
+        {#each group.rows as row (row.map((f) => f.attribute).join('|'))}
+          {#if row.length > 1}
+            <div class="flex flex-col gap-4 md:flex-row">
+              {#each row as field (field.attribute)}
+                <Field {field} bind:record error={fieldErrors[field.attribute] ?? ''} class="md:min-w-0 md:flex-1" />
+              {/each}
+            </div>
+          {:else}
+            <Field field={row[0]} bind:record error={fieldErrors[row[0].attribute] ?? ''} />
+          {/if}
         {/each}
       {/if}
     {/each}

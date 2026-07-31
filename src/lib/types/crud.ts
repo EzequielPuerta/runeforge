@@ -50,6 +50,10 @@ export interface FieldDefinition<T extends object = Record<string, unknown>> {
 	fields?: FieldDefinition<Record<string, unknown>>[];
 	/** Embedded fields only: short label for an item in the list. */
 	itemLabel?: (item: Record<string, unknown>) => string;
+	/** Tree fields only: whether parent nodes start expanded. Defaults to `true`. */
+	defaultExpanded?: boolean;
+	/** Fields sharing the same `row` string render side by side. */
+	row?: string;
 }
 
 export interface ActionConfiguration<T extends object = Record<string, unknown>> {
