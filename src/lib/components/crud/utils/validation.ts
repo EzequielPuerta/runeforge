@@ -15,10 +15,13 @@ export function validateAll<T extends object = Record<string, unknown>>(
 	const record = Object.fromEntries(formData.entries());
 
 	for (const field of fields) {
+		const hidden = typeof field.hidden === 'function' ? field.hidden(record) : !!field.hidden;
+		if (hidden) continue;
+
 		const required =
 			typeof field.required === 'function' ? field.required(record) : !!field.required;
 
-		if (field.type === 'embedded') {
+		if (field.type === 'embedded' || field.type === 'multiselect' || field.type === 'tree') {
 			let items: unknown[];
 			try {
 				items = JSON.parse(String(formData.get(field.attribute) ?? '[]'));

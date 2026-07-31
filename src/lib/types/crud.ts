@@ -1,6 +1,6 @@
 import type { Component } from 'svelte';
 import type { FullAutoFill } from 'svelte/elements';
-import type { AttributeType, SearchResolver, RequiredResolver } from '$lib/types/attribute.js';
+import type { AttributeType, SearchResolver, RequiredResolver, SelectOption } from '$lib/types/attribute.js';
 import type { CellComponent, CellFormatter } from '$lib/types/table.js';
 
 export type ColumnDefinition<T extends object = Record<string, unknown>> = {
@@ -31,10 +31,11 @@ export interface FieldDefinition<T extends object = Record<string, unknown>> {
 	placeholder?: string;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	default?: any;
-	options?: { value: string; label: string }[];
-	dependentOptions?: (record: Record<string, unknown>) => { value: string; label: string }[];
+	options?: SelectOption[];
+	dependentOptions?: (record: Record<string, unknown>) => SelectOption[];
 	search?: SearchResolver;
 	disabled?: (record: Record<string, unknown>) => boolean;
+	hidden?: boolean | ((record: Record<string, unknown>) => boolean);
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	seed?: (instance: any) => unknown;
 	groupedAs?: string;

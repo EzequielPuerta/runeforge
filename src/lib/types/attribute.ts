@@ -9,6 +9,8 @@ export type AttributeType = 'text'
   | 'textarea'
   | 'file'
   | 'select'
+  | 'multiselect'
+  | 'tree'
   | 'datetime'
   | 'embedded';
 
@@ -21,13 +23,17 @@ export const AttributeType = {
   textarea: 'textarea',
   file: 'file',
   select: 'select',
+  multiselect: 'multiselect',
+  tree: 'tree',
   datetime: 'datetime',
   embedded: 'embedded',
 } as const satisfies Record<AttributeType, AttributeType>;
 
 export type InterfaceMetadata<T> = Partial<Record<keyof T, AttributeMetadata>>;
 
-export type SelectOption = { value: string; label: string };
+/** `parentValue` is only used by `tree` fields, to link a node to its parent's
+ * `value` (or omit/`null` for a root node) — `select`/`multiselect` ignore it. */
+export type SelectOption = { value: string; label: string; parentValue?: string | null };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type OptionsResolver = SelectOption[] | ((data: any) => SelectOption[]);
@@ -37,6 +43,7 @@ export type FormatterResolver = (data?: any) => CellFormatter<any, any>;
 export type DependentOptionsResolver = (data: any, record: Record<string, unknown>) => SelectOption[];
 export type SearchResolver = (query: string) => Promise<SelectOption[]>;
 export type DisabledResolver = (record: Record<string, unknown>) => boolean;
+export type HiddenResolver = (record: Record<string, unknown>) => boolean;
 export type RequiredResolver = (record: Record<string, unknown>) => boolean;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type SeedResolver = (instance: any) => unknown;
@@ -54,6 +61,11 @@ export type AttributeMetadata = {
    * list in memory. Leave unset to keep the default in-memory filtering. */
   search?: SearchResolver;
   disabled?: DisabledResolver;
+  /** Pass a function to remove a field from the form entirely (not rendered,
+   * not validated, not submitted) based on the current draft record — unlike
+   * `disabled`, which keeps the input visible but greyed out. Re-evaluated
+   * live as sibling fields change, same signature as `disabled`. */
+  hidden?: boolean | HiddenResolver;
   seed?: SeedResolver;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   component?: CellComponent<any, any>;

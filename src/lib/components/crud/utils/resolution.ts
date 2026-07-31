@@ -50,6 +50,7 @@ export function buildFieldDefinitions<T extends object = Record<string, unknown>
         : undefined,
       search: m.search,
       disabled: m.disabled,
+      hidden: m.hidden,
       seed: m.seed,
       groupedAs: m.groupedAs,
       min: m.min,

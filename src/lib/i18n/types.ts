@@ -22,6 +22,9 @@ export interface RuneforgeStrings {
 	selectSearching: string;
 	selectNoResults: string;
 
+	// MultiSelect (closed-state button label)
+	selectedCount: (count: number) => string;
+
 	// CRUD List row actions
 	view: string;
 	edit: string;

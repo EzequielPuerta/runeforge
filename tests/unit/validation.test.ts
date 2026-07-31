@@ -130,6 +130,59 @@ describe('validateAll', () => {
 		expect(errors.subcriterios).toBeUndefined();
 	});
 
+	it('skips a required field entirely when hidden is true', () => {
+		const fields: FieldDefinition[] = [{ attribute: 'name', required: true, hidden: true }];
+		const errors = validateAll(fields, formData({}), en);
+		expect(errors.name).toBeUndefined();
+	});
+
+	it('resolves a function `hidden` against the other submitted fields', () => {
+		const fields: FieldDefinition[] = [
+			{ attribute: 'type' },
+			{
+				attribute: 'explicitEmails',
+				required: true,
+				hidden: (record) => record.type !== 'EXPLICIT'
+			}
+		];
+
+		const dynamicErrors = validateAll(fields, formData({ type: 'DYNAMIC' }), en);
+		expect(dynamicErrors.explicitEmails).toBeUndefined();
+
+		const explicitErrors = validateAll(fields, formData({ type: 'EXPLICIT' }), en);
+		expect(explicitErrors.explicitEmails).toBe('explicitEmails is required');
+	});
+
+	it('flags a required multiselect/tree field with no items', () => {
+		const fields: FieldDefinition[] = [
+			{ attribute: 'categories', type: 'tree', required: true },
+			{ attribute: 'tags', type: 'multiselect', required: true }
+		];
+		const errors = validateAll(fields, formData({ categories: '[]', tags: '[]' }), en);
+		expect(errors.categories).toBe('categories is required');
+		expect(errors.tags).toBe('tags is required');
+	});
+
+	it('accepts a required multiselect/tree field with at least one item', () => {
+		const fields: FieldDefinition[] = [
+			{ attribute: 'categories', type: 'tree', required: true },
+			{ attribute: 'tags', type: 'multiselect', required: true }
+		];
+		const errors = validateAll(
+			fields,
+			formData({ categories: JSON.stringify(['1']), tags: JSON.stringify(['a']) }),
+			en
+		);
+		expect(errors.categories).toBeUndefined();
+		expect(errors.tags).toBeUndefined();
+	});
+
+	it('treats a missing/invalid multiselect value as empty for the required check', () => {
+		const fields: FieldDefinition[] = [{ attribute: 'tags', type: 'multiselect', required: true }];
+		expect(validateAll(fields, formData({}), en).tags).toBe('tags is required');
+		expect(validateAll(fields, formData({ tags: 'not json' }), en).tags).toBe('tags is required');
+	});
+
 	it('validates multiple fields independently', () => {
 		const fields: FieldDefinition[] = [
 			{ attribute: 'name', required: true },

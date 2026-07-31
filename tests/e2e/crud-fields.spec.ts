@@ -124,7 +124,7 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 	}) => {
 		await page.getByRole('button', { name: /Crear/ }).click();
 		await page.getByRole('button', { name: 'Choose an owner' }).click();
-		await page.getByPlaceholder('Buscar...').fill('Nadia');
+		await page.locator('[popover]:popover-open').getByPlaceholder('Buscar...').fill('Nadia');
 
 		const option = page.getByRole('button', { name: 'Nadia Wide' });
 		await expect(option).toBeVisible();
@@ -138,7 +138,7 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 	test('create: owner search only returns owners matching the query', async ({ page }) => {
 		await page.getByRole('button', { name: /Crear/ }).click();
 		await page.getByRole('button', { name: 'Choose an owner' }).click();
-		await page.getByPlaceholder('Buscar...').fill('Nadia');
+		await page.locator('[popover]:popover-open').getByPlaceholder('Buscar...').fill('Nadia');
 
 		await expect(page.getByRole('button', { name: 'Nadia Wide' })).toBeVisible();
 		await expect(page.getByRole('button', { name: 'Ada Lovelace' })).toHaveCount(0);
@@ -284,6 +284,70 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 			.getByRole('button', { name: 'Ver' })
 			.click();
 		await expect(page.getByText('Penalty: 2')).toBeVisible();
+	});
+
+	// ─── Conditional hidden field ────────────────────────────────────────────────
+
+	test('create: internal note only appears once visibility is set to advanced', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+
+		await expect(page.getByRole('textbox', { name: 'Internal note' })).toHaveCount(0);
+
+		await page.getByRole('button', { name: 'Basic' }).click();
+		await page.getByRole('button', { name: 'Advanced', exact: true }).click();
+
+		await expect(page.getByRole('textbox', { name: 'Internal note' })).toBeVisible();
+
+		await page.getByRole('button', { name: 'Advanced', exact: true }).click();
+		await page.getByRole('button', { name: 'Basic', exact: true }).click();
+
+		await expect(page.getByRole('textbox', { name: 'Internal note' })).toHaveCount(0);
+	});
+
+	// ─── Multiselect field ───────────────────────────────────────────────────────
+
+	test('create: multiselect toggles options without closing, and shows a selected count', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+
+		await page.getByRole('button', { name: 'Seleccioná una opción' }).first().click();
+		const dropdown = page.locator('ul').filter({ hasText: 'Fragile' });
+		await dropdown.getByRole('button', { name: 'Fragile' }).click();
+		await dropdown.getByRole('button', { name: 'Oversized' }).click();
+
+		// Popover stays open after each pick (unlike single select).
+		await expect(dropdown.getByRole('button', { name: 'Perishable' })).toBeVisible();
+
+		await page.keyboard.press('Escape');
+		await expect(page.getByRole('button', { name: '2 seleccionados' })).toBeVisible();
+	});
+
+	// ─── Tree field ──────────────────────────────────────────────────────────────
+
+	test('create: checking a parent node in the tree cascades to its descendants', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+
+		const hardwareRow = page.getByRole('checkbox', { name: 'Hardware', exact: true });
+		const toolsRow = page.getByRole('checkbox', { name: 'Tools', exact: true });
+		const powerToolsRow = page.getByRole('checkbox', { name: 'Power tools', exact: true });
+		const fastenersRow = page.getByRole('checkbox', { name: 'Fasteners', exact: true });
+
+		await expect(toolsRow).not.toBeChecked();
+		await hardwareRow.check();
+
+		await expect(hardwareRow).toBeChecked();
+		await expect(toolsRow).toBeChecked();
+		await expect(powerToolsRow).toBeChecked();
+		await expect(fastenersRow).toBeChecked();
+
+		await hardwareRow.uncheck();
+		await expect(toolsRow).not.toBeChecked();
+		await expect(powerToolsRow).not.toBeChecked();
 	});
 
 	// ─── Custom action: href-based redirect ─────────────────────────────────────

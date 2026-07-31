@@ -206,6 +206,25 @@ describe('buildFieldDefinitions', () => {
 		expect(fields[0].itemLabel).toBeUndefined();
 	});
 
+	it('resolves hidden as either a plain boolean or a function, like disabled', () => {
+		const hidden = (record: Record<string, unknown>) => record.type !== 'DYNAMIC';
+		const meta: Partial<Record<string, AttributeMetadata>> = {
+			categories: { label: 'Categories', hidden },
+			explicitEmails: { label: 'Emails', hidden: true }
+		};
+
+		const fields = buildFieldDefinitions(meta, undefined, 'excludedFromCreate', excluded);
+
+		expect(fields[0].hidden).toBe(hidden);
+		expect(fields[1].hidden).toBe(true);
+	});
+
+	it('leaves hidden undefined when not set', () => {
+		const meta: Partial<Record<string, AttributeMetadata>> = { name: { label: 'Name' } };
+		const fields = buildFieldDefinitions(meta, undefined, 'excludedFromCreate', excluded);
+		expect(fields[0].hidden).toBeUndefined();
+	});
+
 	it('resolves a function default against the passed-in data', () => {
 		const meta: Partial<Record<string, AttributeMetadata>> = {
 			country: {

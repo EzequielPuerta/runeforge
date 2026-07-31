@@ -9,7 +9,11 @@ const INITIAL: IWidget[] = [
 		quantity: 10,
 		notes: 'Initial stock',
 		owner: '',
-		adjustments: [{ kind: 'bonus', amount: 5 }]
+		adjustments: [{ kind: 'bonus', amount: 5 }],
+		visibility: 'basic',
+		internalNote: '',
+		tags: ['fragile'],
+		categories: ['tools']
 	},
 	{
 		_id: '2',
@@ -19,7 +23,11 @@ const INITIAL: IWidget[] = [
 		quantity: 1,
 		notes: 'No cap on stock',
 		owner: '',
-		adjustments: []
+		adjustments: [],
+		visibility: 'basic',
+		internalNote: '',
+		tags: [],
+		categories: []
 	}
 ];
 

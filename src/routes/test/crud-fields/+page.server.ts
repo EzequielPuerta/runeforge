@@ -22,6 +22,18 @@ function widgetFromFormData(data: FormData) {
 	} catch {
 		adjustments = [];
 	}
+	let tags: string[];
+	try {
+		tags = JSON.parse(String(data.get('tags') ?? '[]'));
+	} catch {
+		tags = [];
+	}
+	let categories: string[];
+	try {
+		categories = JSON.parse(String(data.get('categories') ?? '[]'));
+	} catch {
+		categories = [];
+	}
 
 	return {
 		name: String(data.get('name') ?? '').trim(),
@@ -30,7 +42,11 @@ function widgetFromFormData(data: FormData) {
 		quantity: Number(data.get('quantity') ?? 0),
 		notes: String(data.get('notes') ?? '').trim(),
 		owner: String(data.get('owner') ?? '').trim(),
-		adjustments
+		adjustments,
+		visibility: String(data.get('visibility') ?? 'basic').trim(),
+		internalNote: String(data.get('internalNote') ?? '').trim(),
+		tags,
+		categories
 	};
 }
 

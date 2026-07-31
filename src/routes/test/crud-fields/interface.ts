@@ -16,6 +16,10 @@ export interface IWidget {
 	notes: string;
 	owner: string;
 	adjustments: IAdjustment[];
+	visibility: string;
+	internalNote: string;
+	tags: string[];
+	categories: string[];
 }
 
 export const widgetMeta = {
@@ -102,5 +106,41 @@ export const widgetMeta = {
 			}
 		},
 		itemLabel: (item) => `${item.kind === 'bonus' ? 'Bonus' : 'Penalty'}: ${item.amount}`
+	},
+	visibility: {
+		label: 'Visibility',
+		type: AttributeType.select,
+		default: 'basic',
+		options: [
+			{ value: 'basic', label: 'Basic' },
+			{ value: 'advanced', label: 'Advanced' }
+		]
+	},
+	internalNote: {
+		label: 'Internal note',
+		type: AttributeType.text,
+		hidden: (record) => record.visibility !== 'advanced'
+	},
+	tags: {
+		label: 'Tags',
+		type: AttributeType.multiselect,
+		options: [
+			{ value: 'fragile', label: 'Fragile' },
+			{ value: 'perishable', label: 'Perishable' },
+			{ value: 'oversized', label: 'Oversized' }
+		],
+		excludedFromList: true
+	},
+	categories: {
+		label: 'Categories',
+		type: AttributeType.tree,
+		options: [
+			{ value: 'hardware', label: 'Hardware', parentValue: null },
+			{ value: 'tools', label: 'Tools', parentValue: 'hardware' },
+			{ value: 'power-tools', label: 'Power tools', parentValue: 'tools' },
+			{ value: 'fasteners', label: 'Fasteners', parentValue: 'hardware' },
+			{ value: 'software', label: 'Software', parentValue: null }
+		],
+		excludedFromList: true
 	}
 } satisfies InterfaceMetadata<IWidget>;

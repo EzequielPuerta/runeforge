@@ -3,6 +3,8 @@
   import Avatar from '$lib/components/Avatar.svelte';
   import Label from '$lib/components/form/Label.svelte';
   import Select from '$lib/components/form/Select.svelte';
+  import MultiSelect from '$lib/components/form/MultiSelect.svelte';
+  import Tree from '$lib/components/form/Tree.svelte';
   import EmbeddedField from '$lib/components/crud/EmbeddedField.svelte';
   import { fieldLabel, initials } from '$lib/components/crud/utils/misc.js';
   import type { FieldDefinition } from '$lib/types/crud.js';
@@ -47,16 +49,30 @@
   const selectOptions = $derived(field.dependentOptions ? field.dependentOptions(record) : (field.options ?? []));
   const fieldDisabled = $derived(field.disabled ? field.disabled(record) : false);
   const fieldRequired = $derived(typeof field.required === 'function' ? field.required(record) : !!field.required);
+  const fieldHidden = $derived(typeof field.hidden === 'function' ? field.hidden(record) : !!field.hidden);
+  const isMultiValued = $derived(field.type === 'multiselect' || field.type === 'tree');
 
   $effect(() => {
-    if (!field.dependentOptions) return;
+    if (!field.dependentOptions || isMultiValued) return;
     const current = record[field.attribute];
     if (current && !selectOptions.some((o) => o.value === String(current))) {
       record[field.attribute] = '';
     }
   });
+
+  $effect(() => {
+    if (!field.dependentOptions || !isMultiValued) return;
+    const current = record[field.attribute];
+    if (!Array.isArray(current)) return;
+    const validValues = new Set(selectOptions.map((o) => o.value));
+    const pruned = current.filter((v) => validValues.has(String(v)));
+    if (pruned.length !== current.length) {
+      record[field.attribute] = pruned;
+    }
+  });
 </script>
 
+{#if !fieldHidden}
 <div class="flex flex-col gap-1">
   {#if field.type === 'file'}
     <div class="flex justify-center">
@@ -151,6 +167,43 @@
     {/if}
   {:else if field.type === 'embedded'}
     <EmbeddedField {field} bind:record {readonly} />
+  {:else if field.type === 'multiselect'}
+    {#if readonly}
+      <input
+        type="text"
+        id={field.attribute}
+        class="input input-bordered w-full"
+        value={(Array.isArray(saved) ? saved : []).map((v) => selectOptions.find((o) => o.value === String(v))?.label ?? String(v)).join(', ')}
+        disabled
+      />
+    {:else}
+      <MultiSelect
+        name={field.attribute}
+        bind:value={record[field.attribute] as string[]}
+        options={selectOptions}
+        search={field.search}
+        placeholder={field.placeholder}
+        disabled={fieldDisabled}
+        {error}
+      />
+    {/if}
+  {:else if field.type === 'tree'}
+    {#if readonly}
+      <input
+        type="text"
+        id={field.attribute}
+        class="input input-bordered w-full"
+        value={(Array.isArray(saved) ? saved : []).map((v) => selectOptions.find((o) => o.value === String(v))?.label ?? String(v)).join(', ')}
+        disabled
+      />
+    {:else}
+      <Tree
+        name={field.attribute}
+        bind:value={record[field.attribute] as string[]}
+        options={selectOptions}
+        disabled={fieldDisabled}
+      />
+    {/if}
   {:else if readonly}
     <input
       type={field.type ?? 'text'}
@@ -178,3 +231,4 @@
     <span class="text-error text-xs">{error}</span>
   {/if}
 </div>
+{/if}

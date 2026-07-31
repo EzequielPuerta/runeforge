@@ -36,6 +36,8 @@ A SvelteKit toolkit that forges forms, tables, actions, and CRUD workflows from 
     - [Field grouping](#field-grouping)
     - [Default values](#default-values)
     - [Select options](#select-options)
+    - [Multiselect fields](#multiselect-fields)
+    - [Tree fields](#tree-fields)
     - [Embedded fields (sub-documents)](#embedded-fields-sub-documents)
   - [Components](#components)
     - [GenericCRUD](#genericcrud)
@@ -91,10 +93,11 @@ Runeforge provides a set of composable, metadata-driven components for building 
 
 - **GenericCRUD** — a single orchestrator component that wires together list, create, read, and update views from field and column definitions.
 - **PaginatedTable** — a full-featured table with sorting, filtering, pagination, and row selection, usable either fully client-side or driven by a server-paginated backend.
-- **Field system** — declarative field definitions that drive both form rendering and display, supporting text, email, password, number, boolean, textarea, file, select, datetime, and embedded (sub-document list) types.
+- **Field system** — declarative field definitions that drive both form rendering and display, supporting text, email, password, number, boolean, textarea, file, select, multiselect, tree, datetime, and embedded (sub-document list) types.
 - **Validation** — built-in `required`, `min`/`max`, `integer`, `minLength`/`maxLength`, and `pattern` rules, checked client-side before submit with consistent, translatable error messages.
-- **Conditional fields & field grouping** — disable a field based on the current values of others in the same form, and visually group related fields under a titled `fieldset`.
-- **Smart select fields** — options can be static, computed from page data, dependent on another field's value, or resolved live from the server as the user types.
+- **Conditional fields & field grouping** — disable, or entirely hide, a field based on the current values of others in the same form, and visually group related fields under a titled `fieldset`.
+- **Smart select fields** — options can be static, computed from page data, dependent on another field's value, or resolved live from the server as the user types. `multiselect` supports the same resolvers for a checkbox-style multiple-choice list.
+- **Tree fields** — a hierarchical, cascading-selection picker (e.g. categories with parent/child relationships) driven by a flat option list with a `parentValue` link.
 - **Embedded fields** — model one-to-many sub-documents (e.g. line items, adjustments) as an in-form add/edit list backed by a single JSON field.
 - **Custom row & bulk actions** — add entity-specific actions (in a panel or via redirect) alongside the built-in view/edit/delete, and bulk actions that operate on the current selection.
 - **CSV/XLSX export** — one-click export of the current table view, with optional Excel support via the `xlsx` package.
@@ -347,20 +350,21 @@ Every entry in an `InterfaceMetadata<T>` object is an `AttributeMetadata` — a 
 | Option | Type | Applies to | Description |
 | --- | --- | --- | --- |
 | `label` | `string` | all | Column header, form label, and the field name used in validation messages |
-| `type` | `AttributeType` | all | `text` \| `email` \| `password` \| `number` \| `boolean` \| `textarea` \| `file` \| `select` \| `datetime` \| `embedded` |
+| `type` | `AttributeType` | all | `text` \| `email` \| `password` \| `number` \| `boolean` \| `textarea` \| `file` \| `select` \| `multiselect` \| `tree` \| `datetime` \| `embedded` |
 | `required` | `boolean \| (record) => boolean` | all | Marks the label and enforces a non-empty value on submit. The function form re-evaluates against the other fields' current values — see [Validation](#validation) |
 | `autocomplete` | `FullAutoFill` | text-like | Native `autocomplete` attribute |
-| `placeholder` | `string` | text-like, select | Placeholder text |
+| `placeholder` | `string` | text-like, select, multiselect | Placeholder text |
 | `default` | `value \| (data) => value` | all | Initial value on the create form — see [Default values](#default-values) |
 | `min` / `max` | `number` | `number` | Numeric range validation |
 | `integer` | `boolean` | `number` | Rejects non-whole numbers |
 | `minLength` / `maxLength` | `number` | text-like | Character-count validation |
 | `pattern` | `string` | text-like | Regex the value must match (`new RegExp(pattern)`) |
 | `disabled` | `(record) => boolean` | all | Conditionally disables the input — see [Conditional fields](#conditional-fields) |
+| `hidden` | `boolean \| (record) => boolean` | all | Conditionally removes the field from the form entirely — not rendered, not validated, not submitted — see [Conditional fields](#conditional-fields) |
 | `groupedAs` | `string` | all | Visually groups fields under a titled section — see [Field grouping](#field-grouping) |
-| `options` | `SelectOption[] \| (data) => SelectOption[]` | `select` | Static or computed option list — see [Select options](#select-options) |
-| `dependentOptions` | `(data, record) => SelectOption[]` | `select` | Options derived from other fields' current values |
-| `search` | `(query) => Promise<SelectOption[]>` | `select` | Server-side option search as the user types |
+| `options` | `SelectOption[] \| (data) => SelectOption[]` | `select`, `multiselect`, `tree` | Static or computed option list — see [Select options](#select-options). `tree` options additionally accept `parentValue` — see [Tree fields](#tree-fields) |
+| `dependentOptions` | `(data, record) => SelectOption[]` | `select`, `multiselect`, `tree` | Options derived from other fields' current values |
+| `search` | `(query) => Promise<SelectOption[]>` | `select`, `multiselect` | Server-side option search as the user types |
 | `seed` | `(instance) => unknown` | all | Overrides how the update form seeds this field from the loaded record |
 | `fields` | `InterfaceMetadata<any>` | `embedded` | Sub-field schema for each item — see [Embedded fields](#embedded-fields-sub-documents) |
 | `itemLabel` | `(item) => string` | `embedded` | Summary label for an item in the embedded list |
@@ -436,6 +440,33 @@ quantity: {
   disabled: (record) => !!record.unlimited,
 },
 ```
+
+`hidden` follows the exact same `boolean | (record) => boolean` shape, but goes a step further than `disabled`: a hidden field isn't just greyed out, it's removed from the form entirely — not rendered, not required-checked, not submitted. Use it when a field only makes sense for certain values of another field, rather than merely being non-editable:
+
+```ts
+paymentMethod: {
+  label: 'Payment method',
+  type: AttributeType.select,
+  options: [
+    { value: 'card', label: 'Credit card' },
+    { value: 'cash', label: 'Cash on delivery' },
+  ],
+},
+cardNumber: {
+  label: 'Card number',
+  type: AttributeType.text,
+  hidden: (record) => record.paymentMethod !== 'card',
+  required: (record) => record.paymentMethod === 'card',
+},
+cardExpiry: {
+  label: 'Expiry date',
+  type: AttributeType.text,
+  hidden: (record) => record.paymentMethod !== 'card',
+  required: (record) => record.paymentMethod === 'card',
+},
+```
+
+Switching `paymentMethod` between `card` and `cash` swaps which fields are present, live, in the same create/edit view — no separate step or modal needed to collect the payment-specific details.
 
 ### Field grouping
 
@@ -523,6 +554,50 @@ export const actions: Actions = {
   },
 };
 ```
+
+### Multiselect fields
+
+`AttributeType.multiselect` is a checkbox-style multiple-choice dropdown — the same `options`/`dependentOptions`/`default`/`search` resolvers as `select` (see [Select options](#select-options)), but the stored value is a `string[]` instead of a single `string`. Picking an option toggles it without closing the dropdown, and the closed-state button summarizes the count (`"2 selected"`).
+
+```ts
+tags: {
+  label: 'Tags',
+  type: AttributeType.multiselect,
+  options: [
+    { value: 'fragile', label: 'Fragile' },
+    { value: 'perishable', label: 'Perishable' },
+    { value: 'oversized', label: 'Oversized' },
+  ],
+  default: [],
+},
+```
+
+Like `embedded`, the value is submitted as a single hidden field holding a JSON array — parse it back out the same way:
+
+```ts
+const tags = JSON.parse(String(data.get('tags') ?? '[]'));
+```
+
+If the field also sets `dependentOptions`, selections that fall outside the recomputed list are pruned automatically (rather than clearing the whole field, as a single `select` does) — e.g. narrowing a `provinces` multiselect to only the options valid for the currently selected `country`.
+
+### Tree fields
+
+`AttributeType.tree` is a hierarchical picker — checkboxes in a collapsible tree, where checking a parent node cascades the selection to all of its descendants. It's driven by the same flat `SelectOption[]` as `select`/`multiselect`, plus an optional `parentValue` linking each option to its parent's `value` (omit or set `null` for a root node):
+
+```ts
+categories: {
+  label: 'Categories',
+  type: AttributeType.tree,
+  options: (data: { categories?: ICategory[] }) =>
+    (data.categories ?? []).map((c) => ({
+      value: String(c.id),
+      label: c.name,
+      parentValue: c.parentCategory != null ? String(c.parentCategory) : null,
+    })),
+},
+```
+
+The stored value is a `string[]` of selected node values, submitted the same way as `multiselect` — a single hidden field holding a JSON array, parsed back out server-side with `JSON.parse`. `dependentOptions` and `hidden` work the same as any other field type.
 
 ### Embedded fields (sub-documents)
 

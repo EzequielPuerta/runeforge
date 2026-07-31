@@ -52,6 +52,8 @@ export { default as Button } from './components/form/Button.svelte';
 export { default as Label } from './components/form/Label.svelte';
 export { default as Required } from './components/form/Required.svelte';
 export { default as Select } from './components/form/Select.svelte';
+export { default as MultiSelect } from './components/form/MultiSelect.svelte';
+export { default as Tree } from './components/form/Tree.svelte';
 export { default as PasswordInput } from './components/form/PasswordInput.svelte';
 
 // Shared components
@@ -108,3 +110,4 @@ export { groupFields } from './components/crud/utils/grouping.js';
 export type { FieldGroup } from './components/crud/utils/grouping.js';
 export { validateAll } from './components/crud/utils/validation.js';
 export { emptyRecord, defaultItemLabel } from './components/crud/utils/embedded.js';
+export { buildChildrenByParent, collectDescendantIds } from './components/crud/utils/tree.js';

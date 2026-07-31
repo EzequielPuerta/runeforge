@@ -13,6 +13,12 @@ export function seedField<T extends object = Record<string, unknown>>(
 	if (f.type === 'boolean') return !!raw;
 	if (f.type === 'file') return raw ?? null;
 	if (f.type === 'embedded') return Array.isArray(raw) ? raw : [];
+	if (f.type === 'multiselect' || f.type === 'tree')
+		// Selected values are matched against SelectOption.value (always a
+		// string), so a stored array of raw ids (e.g. numbers from JSON) must
+		// be stringified the same way a scalar select's value is below —
+		// otherwise `Set.has`/`Array.includes` silently never match.
+		return Array.isArray(raw) ? raw.map((v) => String(v)) : [];
 	return String(raw ?? '');
 }
 

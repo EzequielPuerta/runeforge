@@ -27,6 +27,18 @@ describe('seedField', () => {
 		expect(seedField({ attribute: 'quantity', type: 'number' }, 5)).toBe('5');
 		expect(seedField({ attribute: 'name', type: 'text' }, undefined)).toBe('');
 	});
+
+	it('defaults multiselect/tree values to an empty array, stringifying each element like a scalar select', () => {
+		// Values are matched against SelectOption.value (always a string) inside
+		// MultiSelect/Tree — a stored array of raw numeric ids (as JSON round-trips
+		// them) must come out stringified, or `Set.has`/`Array.includes` never match.
+		expect(seedField({ attribute: 'tags', type: 'multiselect' }, undefined)).toEqual([]);
+		expect(seedField({ attribute: 'tags', type: 'multiselect' }, [1, 2])).toEqual(['1', '2']);
+		expect(seedField({ attribute: 'categories', type: 'tree' }, [3])).toEqual(['3']);
+		expect(seedField({ attribute: 'categories', type: 'tree' }, ['already-a-string'])).toEqual([
+			'already-a-string'
+		]);
+	});
 });
 
 describe('emptyRecord', () => {
