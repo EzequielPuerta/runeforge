@@ -508,6 +508,8 @@ createdTo: {
 
 A `row` only merges fields that are also in the same `groupedAs` fieldset (or both ungrouped) — it never pulls fields together across two different fieldsets. If one of the fields in a row is conditionally [hidden](#conditional-fields), the remaining field(s) simply expand to fill the row instead of leaving a gap.
 
+`groupedAs` and `row` both work the same way inside an [embedded field](#embedded-fields-sub-documents)'s `fields` sub-schema — the "+ Add"/edit modal groups and lays out its own fields identically to a top-level form.
+
 ### Default values
 
 `default` can be a plain value or a function of the page `data` object, evaluated once when the create form's fields are resolved — handy for defaulting a select to something derived from prefetched data.

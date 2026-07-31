@@ -5,6 +5,7 @@
 	import { emptyRecord, seedField, defaultItemLabel } from '$lib/components/crud/utils/embedded.js';
 	import { fieldLabel } from '$lib/components/crud/utils/misc.js';
 	import { validateAll } from '$lib/components/crud/utils/validation.js';
+	import { groupFields } from '$lib/components/crud/utils/grouping.js';
 	import type { FieldDefinition } from '$lib/types/crud.js';
 	import { getStrings } from '$lib/i18n/context.js';
 
@@ -21,6 +22,7 @@
 	} = $props();
 
 	const subFields = $derived(field.fields ?? []);
+	const subGroups = $derived(groupFields(subFields));
 	const items = $derived((record[field.attribute] as Record<string, unknown>[] | undefined) ?? []);
 
 	let modalOpen = $state(false);
@@ -130,8 +132,37 @@
 {#if modalOpen}
 	<Modal title={fieldLabel(field)} onClose={closeModal}>
 		<div class="flex flex-col gap-4">
-			{#each subFields as f (f.attribute)}
-				<Field field={f} bind:record={draft} error={draftErrors[f.attribute] ?? ''} />
+			{#each subGroups as group, i (group.title ?? `_ungrouped_${i}`)}
+				{#if group.title}
+					<fieldset class="fieldset border border-base-300 rounded-box p-4">
+						<legend class="fieldset-legend px-2">{group.title}</legend>
+						<div class="flex flex-col gap-4">
+							{#each group.rows as row (row.map((f) => f.attribute).join('|'))}
+								{#if row.length > 1}
+									<div class="flex flex-col gap-4 md:flex-row">
+										{#each row as f (f.attribute)}
+											<Field field={f} bind:record={draft} error={draftErrors[f.attribute] ?? ''} class="md:min-w-0 md:flex-1" />
+										{/each}
+									</div>
+								{:else}
+									<Field field={row[0]} bind:record={draft} error={draftErrors[row[0].attribute] ?? ''} />
+								{/if}
+							{/each}
+						</div>
+					</fieldset>
+				{:else}
+					{#each group.rows as row (row.map((f) => f.attribute).join('|'))}
+						{#if row.length > 1}
+							<div class="flex flex-col gap-4 md:flex-row">
+								{#each row as f (f.attribute)}
+									<Field field={f} bind:record={draft} error={draftErrors[f.attribute] ?? ''} class="md:min-w-0 md:flex-1" />
+								{/each}
+							</div>
+						{:else}
+							<Field field={row[0]} bind:record={draft} error={draftErrors[row[0].attribute] ?? ''} />
+						{/if}
+					{/each}
+				{/if}
 			{/each}
 			<div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
 				<Button variant="ghost" onclick={closeModal}>{strings.cancel}</Button>

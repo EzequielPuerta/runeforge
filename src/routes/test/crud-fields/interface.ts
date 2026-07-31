@@ -93,6 +93,7 @@ export const widgetMeta = {
 				label: 'Kind',
 				type: AttributeType.select,
 				required: true,
+				row: 'kindAmount',
 				options: [
 					{ value: 'bonus', label: 'Bonus' },
 					{ value: 'penalty', label: 'Penalty' }
@@ -102,6 +103,7 @@ export const widgetMeta = {
 				label: 'Amount',
 				type: AttributeType.number,
 				required: true,
+				row: 'kindAmount',
 				min: 0
 			}
 		},

@@ -176,6 +176,22 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 		await expect(modal).toContainText('Amount es requerido');
 	});
 
+	test('create: fields sharing a `row` render side by side inside the embedded modal too', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+		await page.getByRole('button', { name: '+ Agregar' }).click();
+
+		const modal = page.locator('dialog.modal');
+		// Same row container wraps both fields, exactly like a top-level
+		// Create/Update form — `md:flex-row` is what puts them side by side.
+		const row = modal.locator('.md\\:flex-row', {
+			has: page.getByRole('button', { name: 'Seleccioná una opción' })
+		});
+		await expect(row).toContainText('Kind');
+		await expect(row.getByRole('spinbutton', { name: 'Amount' })).toBeVisible();
+	});
+
 	test('create: removing an added embedded item takes it out of the list', async ({ page }) => {
 		await page.getByRole('button', { name: /Crear/ }).click();
 		await page.getByRole('button', { name: '+ Agregar' }).click();
