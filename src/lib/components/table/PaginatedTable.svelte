@@ -64,21 +64,39 @@
 	let currentPage = $state(pagination?.page ?? 1);
 	let lastKnownPage = pagination?.page ?? 1;
 
+	const serverFilterSampleSize = 5;
+
+	// Server mode: there's no way to know every value a column can take without
+	// querying the whole (server-owned) dataset, so this is deliberately just a
+	// cosmetic hint — up to `serverFilterSampleSize` distinct values found on
+	// the current page, not an exhaustive list. Boolean is the one exception:
+	// its two states are always known, so both show up regardless of what the
+	// current page happens to contain.
 	const distinctValues = $derived(
 		pagination
-			? Object.fromEntries(
-					columns
-						.filter((c) => isFilterable(c) && c.type === 'boolean')
-						.map((c) => [
-							c.attribute,
-							[
-								// eslint-disable-next-line @typescript-eslint/no-explicit-any
-								{ key: 'true', label: c.formatter?.(true as any, {} as T), row: {} as T },
-								// eslint-disable-next-line @typescript-eslint/no-explicit-any
-								{ key: 'false', label: c.formatter?.(false as any, {} as T), row: {} as T }
-							]
-						])
-				)
+			? {
+					...Object.fromEntries(
+						Object.entries(
+							distinctEntries(
+								data,
+								columns.filter((c) => isFilterable(c) && c.type !== 'boolean')
+							)
+						).map(([attribute, entries]) => [attribute, entries.slice(0, serverFilterSampleSize)])
+					),
+					...Object.fromEntries(
+						columns
+							.filter((c) => isFilterable(c) && c.type === 'boolean')
+							.map((c) => [
+								c.attribute,
+								[
+									// eslint-disable-next-line @typescript-eslint/no-explicit-any
+									{ key: 'true', label: c.formatter?.(true as any, {} as T), row: {} as T },
+									// eslint-disable-next-line @typescript-eslint/no-explicit-any
+									{ key: 'false', label: c.formatter?.(false as any, {} as T), row: {} as T }
+								]
+							])
+					)
+				}
 			: distinctEntries(data, columns)
 	);
 
