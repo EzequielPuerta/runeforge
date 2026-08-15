@@ -225,6 +225,17 @@ describe('buildFieldDefinitions', () => {
 		expect(fields[0].hidden).toBeUndefined();
 	});
 
+	it('resolves formatter against the passed-in data, like the list columns do', () => {
+		const inner = (v: unknown) => String(v);
+		const meta: Partial<Record<string, AttributeMetadata>> = {
+			agency: { label: 'Agency', formatter: () => inner }
+		};
+
+		const fields = buildFieldDefinitions(meta, 'anything', 'excludedFromRead', excluded);
+
+		expect(fields[0].formatter).toBe(inner);
+	});
+
 	it('resolves a function default against the passed-in data', () => {
 		const meta: Partial<Record<string, AttributeMetadata>> = {
 			country: {
