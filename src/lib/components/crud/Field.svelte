@@ -33,6 +33,7 @@
 	const datePopId = $props.id();
 	const dateAnchorName = `--date-anchor-${datePopId}`;
 	let datePopoverEl: HTMLElement | undefined = $state();
+	let calendarDateEl: (HTMLElement & { value: string }) | undefined = $state();
 
 	const name = $derived(readonly ? undefined : field.attribute);
 	const labelText = $derived(fieldLabel(field));
@@ -71,6 +72,22 @@
 		typeof field.hidden === 'function' ? field.hidden(record) : !!field.hidden
 	);
 	const isMultiValued = $derived(field.type === 'multiselect' || field.type === 'tree');
+
+	// cally's `change` event doesn't bubble, so the usual `onchange={...}` prop
+	// never fires — Svelte 5 delegates events like `change` to a listener on
+	// a shared ancestor, which only ever sees events that bubble up to it.
+	// Attaching directly on the element (same fix ColumnFilter's date-range
+	// picker already uses) sidesteps delegation entirely.
+	$effect(() => {
+		if (!calendarDateEl) return;
+		function handler() {
+			if (fieldDisabled) return;
+			record[field.attribute] = calendarDateEl!.value;
+			datePopoverEl?.hidePopover();
+		}
+		calendarDateEl.addEventListener('change', handler);
+		return () => calendarDateEl?.removeEventListener('change', handler);
+	});
 
 	$effect(() => {
 		if (!field.dependentOptions || isMultiValued) return;
@@ -193,12 +210,8 @@
 				>
 					<calendar-date
 						class="cally"
+						bind:this={calendarDateEl}
 						value={String(record[field.attribute] ?? '')}
-						onchange={(e: Event) => {
-							if (fieldDisabled) return;
-							record[field.attribute] = (e.currentTarget as HTMLElement & { value: string }).value;
-							datePopoverEl?.hidePopover();
-						}}
 					>
 						<svg
 							aria-label={strings.previous}
