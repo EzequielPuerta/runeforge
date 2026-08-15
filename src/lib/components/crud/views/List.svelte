@@ -207,6 +207,7 @@
 		...actions.map((action) => ({
 			label: action.label,
 			icon: action.icon,
+			toggle: action.toggle,
 			condition: action.condition,
 			run: (item: T) => onAction?.(action, item)
 		})),
@@ -230,22 +231,37 @@
 </script>
 
 {#snippet actionsCell(item: T)}
-	<div class="flex justify-end gap-1">
+	<div class="flex justify-end items-center gap-1">
 		{#each rowActions as action (action.label)}
 			{#if action.condition?.(item) ?? true}
-				{@const Icon = action.icon}
-				<Button
-					variant="ghost"
-					class={['btn-xs', action.class]}
-					title={action.label}
-					aria-label={action.label}
-					onclick={(e) => {
-						e.stopPropagation();
-						action.run(item);
-					}}
-				>
-					<Icon class="size-4" />
-				</Button>
+				{#if action.toggle}
+					<input
+						type="checkbox"
+						class={['toggle toggle-sm', action.class]}
+						title={action.label}
+						aria-label={action.label}
+						checked={action.toggle(item)}
+						onclick={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							action.run(item);
+						}}
+					/>
+				{:else}
+					{@const Icon = action.icon}
+					<Button
+						variant="ghost"
+						class={['btn-xs', action.class]}
+						title={action.label}
+						aria-label={action.label}
+						onclick={(e) => {
+							e.stopPropagation();
+							action.run(item);
+						}}
+					>
+						<Icon class="size-4" />
+					</Button>
+				{/if}
 			{/if}
 		{/each}
 	</div>

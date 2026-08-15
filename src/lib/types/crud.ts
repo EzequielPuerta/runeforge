@@ -73,8 +73,20 @@ export interface ActionConfiguration<T extends object = Record<string, unknown>>
 
 export interface CustomAction<T extends object = Record<string, unknown>> {
 	label: string;
+	/** Required unless `toggle` is set, which renders the action as a switch
+	 * instead of an icon button. */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	icon: any;
+	icon?: any;
+	/** Renders the row action as a real daisyUI toggle switch reflecting the
+	 * item's current on/off state, instead of an icon button. Takes
+	 * precedence over `icon` when both are set.
+	 *
+	 * The switch is controlled, not editable directly: clicking it never
+	 * flips its own checked state, it still just calls `run` (opening `view`
+	 * or navigating via `href`) like any other action. It only visually
+	 * flips once the underlying item's data actually changes — e.g. after
+	 * the action's modal confirms and the list reloads. */
+	toggle?: (item: T) => boolean;
 	endpoint?: string;
 	condition?: (item: T) => boolean;
 	/** Renders as a modal-like panel when the action runs. Mutually exclusive
@@ -89,7 +101,9 @@ export interface CustomAction<T extends object = Record<string, unknown>> {
 export interface RowAction<T extends object = Record<string, unknown>> {
 	label: string;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	icon: any;
+	icon?: any;
+	/** See `CustomAction.toggle` — same controlled-switch rendering. */
+	toggle?: (item: T) => boolean;
 	class?: string;
 	condition?: (item: T) => boolean;
 	run: (item: T) => void;
