@@ -208,6 +208,7 @@
 			label: action.label,
 			icon: action.icon,
 			toggle: action.toggle,
+			class: action.class,
 			condition: action.condition,
 			run: (item: T) => onAction?.(action, item)
 		})),
@@ -234,10 +235,12 @@
 	<div class="flex justify-end items-center gap-1">
 		{#each rowActions as action (action.label)}
 			{#if action.condition?.(item) ?? true}
+				{@const resolvedClass =
+					typeof action.class === 'function' ? action.class(item) : action.class}
 				{#if action.toggle}
 					<input
 						type="checkbox"
-						class={['toggle toggle-sm', action.class]}
+						class={['toggle toggle-sm', resolvedClass]}
 						title={action.label}
 						aria-label={action.label}
 						checked={action.toggle(item)}
@@ -251,7 +254,7 @@
 					{@const Icon = action.icon}
 					<Button
 						variant="ghost"
-						class={['btn-xs', action.class]}
+						class={['btn-xs', resolvedClass]}
 						title={action.label}
 						aria-label={action.label}
 						onclick={(e) => {

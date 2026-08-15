@@ -87,6 +87,11 @@ export interface CustomAction<T extends object = Record<string, unknown>> {
 	 * flips once the underlying item's data actually changes — e.g. after
 	 * the action's modal confirms and the list reloads. */
 	toggle?: (item: T) => boolean;
+	/** Extra class(es) on the row action's button/switch — e.g. to color a
+	 * `toggle` by the item's own state (`toggle-success`/`toggle-error`).
+	 * Pass a function to resolve it per item; a plain string applies to
+	 * every row alike. */
+	class?: string | ((item: T) => string);
 	endpoint?: string;
 	condition?: (item: T) => boolean;
 	/** Renders as a modal-like panel when the action runs. Mutually exclusive
@@ -104,7 +109,8 @@ export interface RowAction<T extends object = Record<string, unknown>> {
 	icon?: any;
 	/** See `CustomAction.toggle` — same controlled-switch rendering. */
 	toggle?: (item: T) => boolean;
-	class?: string;
+	/** See `CustomAction.class`. */
+	class?: string | ((item: T) => string);
 	condition?: (item: T) => boolean;
 	run: (item: T) => void;
 }
