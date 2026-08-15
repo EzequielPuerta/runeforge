@@ -3,7 +3,7 @@
 	import Edit from '$lib/icons/defaults/Edit.svelte';
 	import View from '$lib/icons/defaults/View.svelte';
 	import { taskMeta as meta } from './interface.js';
-	import type { PageData } from './$types';
+	import type { PageData } from './$types.js';
 
 	let {
 		data,

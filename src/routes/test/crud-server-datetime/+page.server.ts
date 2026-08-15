@@ -1,4 +1,4 @@
-import type { PageServerLoad } from './$types';
+import type { PageServerLoad } from './$types.js';
 import { events } from './store.js';
 
 const PAGE_SIZE = 10;

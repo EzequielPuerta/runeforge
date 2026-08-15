@@ -1,7 +1,7 @@
 <script lang="ts">
   import GenericCRUD from '$lib/components/crud/GenericCRUD.svelte';
   import { personMeta as meta } from './interface.js';
-  import type { PageData } from './$types';
+  import type { PageData } from './$types.js';
 
   let {
     data,

@@ -3,7 +3,7 @@
 	import View from '$lib/icons/defaults/View.svelte';
 	import { widgetMeta as meta } from './interface.js';
 	import type { IWidget } from './interface.js';
-	import type { PageData } from './$types';
+	import type { PageData } from './$types.js';
 
 	let {
 		data,

@@ -1,95 +1,98 @@
 <script lang="ts">
-  import Button from '$lib/components/form/Button.svelte';
-  import { getStrings } from '$lib/i18n/context.js';
+	import Button from '$lib/components/form/Button.svelte';
+	import { getStrings } from '$lib/i18n/context.js';
 
-  const strings = getStrings();
+	const strings = getStrings();
 
-  let {
-    page = $bindable(1),
-    totalPages,
-    pageStart,
-    pageSize,
-    total,
-  }: {
-    page?: number;
-    totalPages: number;
-    pageStart: number;
-    pageSize: number;
-    total: number;
-  } = $props();
+	let {
+		page = $bindable(1),
+		totalPages,
+		pageStart,
+		pageSize,
+		total
+	}: {
+		page?: number;
+		totalPages: number;
+		pageStart: number;
+		pageSize: number;
+		total: number;
+	} = $props();
 
-  function prev() {
-    if (page > 1) page--;
-  }
-  function next() {
-    if (page < totalPages) page++;
-  }
+	function prev() {
+		if (page > 1) page--;
+	}
+	function next() {
+		if (page < totalPages) page++;
+	}
 
-  function buildPages(current: number, total: number): number[] {
-    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+	function buildPages(current: number, total: number): number[] {
+		if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
 
-    const visible = new Set<number>();
-    visible.add(1);
-    visible.add(total);
-    for (let i = Math.max(1, current - 2); i <= Math.min(total, current + 2); i++) {
-      visible.add(i);
-    }
+		// Local, immediately-discarded dedup set for this one calculation, not
+		// reactive state — a plain Set is correct here.
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity
+		const visible = new Set<number>();
+		visible.add(1);
+		visible.add(total);
+		for (let i = Math.max(1, current - 2); i <= Math.min(total, current + 2); i++) {
+			visible.add(i);
+		}
 
-    const sorted = Array.from(visible).sort((a, b) => a - b);
-    const result: number[] = [];
-    for (let i = 0; i < sorted.length; i++) {
-      if (i > 0 && sorted[i] - sorted[i - 1] > 1) result.push(0);
-      result.push(sorted[i]);
-    }
-    return result;
-  }
+		const sorted = Array.from(visible).sort((a, b) => a - b);
+		const result: number[] = [];
+		for (let i = 0; i < sorted.length; i++) {
+			if (i > 0 && sorted[i] - sorted[i - 1] > 1) result.push(0);
+			result.push(sorted[i]);
+		}
+		return result;
+	}
 
-  const pages = $derived(buildPages(page, totalPages));
+	const pages = $derived(buildPages(page, totalPages));
 
-  function handlePageInput(e: KeyboardEvent) {
-    if (e.key !== 'Enter') return;
-    const val = parseInt((e.currentTarget as HTMLInputElement).value);
-    if (!isNaN(val) && val >= 1 && val <= totalPages) {
-      page = val;
-    } else {
-      (e.currentTarget as HTMLInputElement).value = String(page);
-    }
-  }
+	function handlePageInput(e: KeyboardEvent) {
+		if (e.key !== 'Enter') return;
+		const val = parseInt((e.currentTarget as HTMLInputElement).value);
+		if (!isNaN(val) && val >= 1 && val <= totalPages) {
+			page = val;
+		} else {
+			(e.currentTarget as HTMLInputElement).value = String(page);
+		}
+	}
 
-  function resetInput(e: FocusEvent) {
-    (e.currentTarget as HTMLInputElement).value = String(page);
-  }
+	function resetInput(e: FocusEvent) {
+		(e.currentTarget as HTMLInputElement).value = String(page);
+	}
 </script>
 
 {#if totalPages > 1}
-  <div class="flex items-center justify-between">
-    <span class="text-sm text-base-content/60">
-      {strings.showing(pageStart + 1, Math.min(pageStart + pageSize, total), total)}
-    </span>
+	<div class="flex items-center justify-between">
+		<span class="text-sm text-base-content/60">
+			{strings.showing(pageStart + 1, Math.min(pageStart + pageSize, total), total)}
+		</span>
 
-    <div class="join">
-      <Button class="join-item btn-sm" disabled={page === 1} onclick={prev}>«</Button>
+		<div class="join">
+			<Button class="join-item btn-sm" disabled={page === 1} onclick={prev}>«</Button>
 
-      {#each pages as p, i (i)}
-        {#if p === 0}
-          <Button class="join-item btn-sm" disabled>…</Button>
-        {:else if p === page}
-          <input
-            type="number"
-            class="join-item btn btn-sm w-12 text-center appearance-none"
-            style="background-color: var(--color-base-100);"
-            min="1"
-            max={totalPages}
-            value={page}
-            onkeydown={handlePageInput}
-            onblur={resetInput}
-          />
-        {:else}
-          <Button class="join-item btn-sm" onclick={() => (page = p)}>{p}</Button>
-        {/if}
-      {/each}
+			{#each pages as p, i (i)}
+				{#if p === 0}
+					<Button class="join-item btn-sm" disabled>…</Button>
+				{:else if p === page}
+					<input
+						type="number"
+						class="join-item btn btn-sm w-12 text-center appearance-none"
+						style="background-color: var(--color-base-100);"
+						min="1"
+						max={totalPages}
+						value={page}
+						onkeydown={handlePageInput}
+						onblur={resetInput}
+					/>
+				{:else}
+					<Button class="join-item btn-sm" onclick={() => (page = p)}>{p}</Button>
+				{/if}
+			{/each}
 
-      <Button class="join-item btn-sm" disabled={page === totalPages} onclick={next}>»</Button>
-    </div>
-  </div>
+			<Button class="join-item btn-sm" disabled={page === totalPages} onclick={next}>»</Button>
+		</div>
+	</div>
 {/if}

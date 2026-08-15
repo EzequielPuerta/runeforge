@@ -1,4 +1,4 @@
-import type { Actions, PageServerLoad } from './$types';
+import type { Actions, PageServerLoad } from './$types.js';
 import { compare } from '$lib/components/table/utils.js';
 import { people, deletePerson } from './store.js';
 
@@ -42,5 +42,5 @@ export const actions: Actions = {
 		const id = Number(data.get('id') ?? '');
 		deletePerson(id);
 		return { success: true };
-	},
+	}
 };

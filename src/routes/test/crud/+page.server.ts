@@ -1,5 +1,5 @@
 import { fail } from '@sveltejs/kit';
-import type { Actions, PageServerLoad } from './$types';
+import type { Actions, PageServerLoad } from './$types.js';
 import { tasks, addTask, updateTask, deleteTask, setTaskCompleted } from './store.js';
 
 export const load: PageServerLoad = ({ url }) => {
