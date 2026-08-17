@@ -52,7 +52,8 @@
 		onCreate,
 		onEdit,
 		onView,
-		onAction
+		onAction,
+		onBulkAction
 	}: {
 		data?: T[];
 		labelOne?: string;
@@ -85,6 +86,7 @@
 		onEdit?: (item: T) => void;
 		onView?: (item: T) => void;
 		onAction?: (action: CustomAction<T>, item: T) => void;
+		onBulkAction?: (action: CustomBulkAction<T>, items: T[]) => void;
 	} = $props();
 
 	const icons = $derived(getIconSet() ?? defaultIconSet);
@@ -97,7 +99,7 @@
 	const updateLabel = $derived(update.label ?? strings.edit);
 	const readLabel = $derived(read.label ?? strings.view);
 	const showRowActions = $derived(allowRead || allowUpdate || allowDelete || actions.length > 0);
-	const allowSelection = $derived(allowDelete || customBulkActions.length > 0);
+	const allowSelection = $derived(allowDelete || customBulkActions.some((action) => !action.view));
 
 	let selected = new SvelteSet<number>();
 	let pendingDeletion = $state<T[] | null>(null);
@@ -179,6 +181,7 @@
 	}
 
 	async function runBulkAction(action: CustomBulkAction<T>, items: T[]) {
+		if (!action.endpoint) return;
 		await runEndpointAction(action.endpoint, items);
 	}
 
@@ -192,6 +195,10 @@
 
 	function handleBulkAction(action: CustomBulkAction<T>) {
 		const items = selectedItems;
+		if (action.view) {
+			onBulkAction?.(action, items);
+			return;
+		}
 		selected.clear();
 		requestBulkAction(action, items);
 	}
@@ -324,11 +331,13 @@
 					<Button
 						variant={bulkAction.variant ?? 'ghost'}
 						class="btn-outline"
-						disabled={selected.size === 0}
+						disabled={!bulkAction.view && selected.size === 0}
 						onclick={() => handleBulkAction(bulkAction)}
 					>
 						<BulkIcon class="size-4" />
-						{bulkAction.label} ({selected.size})
+						{bulkAction.label}{#if !bulkAction.view}
+							({selected.size})
+						{/if}
 					</Button>
 				{/if}
 			{/each}

@@ -121,6 +121,7 @@
 	);
 
 	let activeAction = $state<{ action: CustomAction<T>; item: T } | null>(null);
+	let activeBulkAction = $state<{ action: CustomBulkAction<T>; items: T[] } | null>(null);
 
 	async function runAction(action: CustomAction<T>, item: T) {
 		if (!(action.condition?.(item) ?? true)) return;
@@ -129,6 +130,10 @@
 			return;
 		}
 		activeAction = { action, item };
+	}
+
+	function runBulkAction(action: CustomBulkAction<T>, items: T[]) {
+		activeBulkAction = { action, items };
 	}
 
 	async function navList() {
@@ -293,7 +298,9 @@
 	);
 
 	const serverError = $derived(
-		creating || reading || editing || activeAction !== null ? (form?.error ?? '') : ''
+		creating || reading || editing || activeAction !== null || activeBulkAction !== null
+			? (form?.error ?? '')
+			: ''
 	);
 </script>
 
@@ -359,6 +366,7 @@
 		onEdit={navEdit}
 		onView={navRead}
 		onAction={runAction}
+		onBulkAction={runBulkAction}
 	/>
 {/if}
 
@@ -371,5 +379,17 @@
 		{serverError}
 		onCancel={() => (activeAction = null)}
 		onSuccess={() => (activeAction = null)}
+	/>
+{/if}
+
+{#if activeBulkAction !== null}
+	{@const BulkActionView = activeBulkAction.action.view}
+	<BulkActionView
+		items={activeBulkAction.items}
+		label={activeBulkAction.action.label}
+		endpoint={activeBulkAction.action.endpoint}
+		{serverError}
+		onCancel={() => (activeBulkAction = null)}
+		onSuccess={() => (activeBulkAction = null)}
 	/>
 {/if}

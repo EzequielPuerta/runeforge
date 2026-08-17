@@ -119,10 +119,21 @@ export interface CustomBulkAction<T extends object = Record<string, unknown>> {
 	label: string;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	icon: any;
-	endpoint: string;
+	/** Required unless `view` is set. */
+	endpoint?: string;
 	variant?: string;
 	confirm?: boolean;
 	condition?: (items: T[]) => boolean;
+	/** Renders as a modal-like panel when the action runs, instead of POSTing
+	 * to `endpoint` once per selected item. Mutually exclusive with
+	 * `endpoint` — provide exactly one of the two, mirroring `CustomAction.view`.
+	 *
+	 * Unlike the endpoint-loop behavior, a `view` action never requires a
+	 * pre-existing selection: the button is enabled even with nothing
+	 * selected, and `confirm` is ignored (the view owns its own flow). The
+	 * component receives the current selection as `items` (possibly empty). */
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	view?: Component<any>;
 }
 
 export interface SearchConfiguration {
