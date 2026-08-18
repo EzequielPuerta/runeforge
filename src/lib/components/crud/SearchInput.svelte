@@ -49,5 +49,5 @@
 	bind:value
 	oninput={onInput}
 	placeholder={config.placeholder ?? strings.searchPlaceholder}
-	class="input input-bordered"
+	class="input input-bordered w-64 shrink-0"
 />

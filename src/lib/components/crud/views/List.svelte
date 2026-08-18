@@ -109,9 +109,6 @@
 	const allowSelection = $derived(
 		allowDelete || customBulkActions.some((action) => !isViewBasedBulkAction(action))
 	);
-	const hasCollapsibleActions = $derived(
-		enableExport || customBulkActions.length > 0 || allowDelete
-	);
 
 	let selected = new SvelteSet<number>();
 	let pendingDeletion = $state<T[] | null>(null);
@@ -412,102 +409,103 @@
 		breadcrumbs={[{ label: labelMany, icon: entityIcon, link: { href: '#' }, prominent: true }]}
 	>
 		{#snippet buttons()}
-			<div bind:this={toolbarEl} class="flex flex-wrap items-center gap-2 overflow-hidden">
+			<div bind:this={toolbarEl} class="flex min-w-0 flex-wrap items-center gap-2 overflow-hidden">
 				{#if toolbarCollapsed}
 					{#if search}
 						<SearchInput config={search} />
 					{/if}
 
-					{#if hasCollapsibleActions}
+					{@const CreateIcon = icons.create}
+					<Button
+						variant="ghost"
+						class="btn-square"
+						popovertarget="actions-menu-{actionsMenuId}"
+						style="anchor-name:--actions-anchor-{actionsMenuId}"
+						aria-label={strings.actions}
+						title={strings.actions}
+					>
+						<span class="text-lg leading-none" aria-hidden="true">⋯</span>
+					</Button>
+					<div
+						popover="auto"
+						id="actions-menu-{actionsMenuId}"
+						style="position-anchor:--actions-anchor-{actionsMenuId}"
+						class="dropdown dropdown-end w-56 rounded-box border border-base-content/10 bg-base-100 p-1 shadow-lg"
+						bind:this={actionsPopoverEl}
+					>
 						<Button
 							variant="ghost"
-							class="btn-square"
-							popovertarget="actions-menu-{actionsMenuId}"
-							style="anchor-name:--actions-anchor-{actionsMenuId}"
-							aria-label={strings.actions}
-							title={strings.actions}
+							class="btn-sm w-full justify-start"
+							onclick={() => {
+								actionsPopoverEl?.hidePopover();
+								handleCreate();
+							}}
 						>
-							<span class="text-lg leading-none" aria-hidden="true">⋯</span>
+							<CreateIcon class="size-4" />
+							{creation.label || `${strings.create} ${labelOne}`}
 						</Button>
-						<div
-							popover="auto"
-							id="actions-menu-{actionsMenuId}"
-							style="position-anchor:--actions-anchor-{actionsMenuId}"
-							class="dropdown dropdown-end w-56 rounded-box border border-base-content/10 bg-base-100 p-1 shadow-lg"
-							bind:this={actionsPopoverEl}
-						>
-							{#if enableExport}
+
+						{#if allowDelete}
+							<Button
+								variant="ghost"
+								class="btn-sm w-full justify-start text-error"
+								disabled={selected.size === 0}
+								onclick={() => {
+									actionsPopoverEl?.hidePopover();
+									handleDelete();
+								}}
+							>
+								{deleteLabel} ({selected.size})
+							</Button>
+						{/if}
+
+						{#if enableExport}
+							<Button
+								variant="ghost"
+								class="btn-sm w-full justify-start"
+								onclick={() => {
+									actionsPopoverEl?.hidePopover();
+									handleExport('csv');
+								}}
+							>
+								{strings.exportCsv}
+							</Button>
+							{#if xlsx}
 								<Button
 									variant="ghost"
 									class="btn-sm w-full justify-start"
 									onclick={() => {
 										actionsPopoverEl?.hidePopover();
-										handleExport('csv');
+										handleExport('xlsx');
 									}}
 								>
-									{strings.exportCsv}
+									{strings.exportExcel}
 								</Button>
-								{#if xlsx}
-									<Button
-										variant="ghost"
-										class="btn-sm w-full justify-start"
-										onclick={() => {
-											actionsPopoverEl?.hidePopover();
-											handleExport('xlsx');
-										}}
-									>
-										{strings.exportExcel}
-									</Button>
-								{/if}
 							{/if}
+						{/if}
 
-							{#each customBulkActions as bulkAction, i (i)}
-								{#if bulkAction.condition?.(selectedItems) ?? true}
-									{@const BulkIcon = bulkAction.icon}
-									{@const isView = isViewBasedBulkAction(bulkAction)}
-									<Button
-										variant="ghost"
-										class="btn-sm w-full justify-start"
-										disabled={!isView && selected.size === 0}
-										title={bulkAction.tooltip}
-										onclick={() => {
-											actionsPopoverEl?.hidePopover();
-											handleBulkAction(bulkAction);
-										}}
-									>
-										<BulkIcon class="size-4" />
-										{bulkAction.label ?? bulkAction.tooltip}{#if !isView}
-											({selected.size})
-										{/if}
-									</Button>
-								{/if}
-							{/each}
-
-							{#if allowDelete}
+						{#each customBulkActions as bulkAction, i (i)}
+							{#if bulkAction.condition?.(selectedItems) ?? true}
+								{@const BulkIcon = bulkAction.icon}
+								{@const isView = isViewBasedBulkAction(bulkAction)}
 								<Button
 									variant="ghost"
-									class="btn-sm w-full justify-start text-error"
-									disabled={selected.size === 0}
+									class="btn-sm w-full justify-start"
+									disabled={!isView && selected.size === 0}
+									title={bulkAction.tooltip}
 									onclick={() => {
 										actionsPopoverEl?.hidePopover();
-										handleDelete();
+										handleBulkAction(bulkAction);
 									}}
 								>
-									{deleteLabel} ({selected.size})
+									<BulkIcon class="size-4" />
+									{bulkAction.label ?? bulkAction.tooltip}{#if !isView}
+										({selected.size})
+									{/if}
 								</Button>
 							{/if}
-						</div>
-					{/if}
-
-					{@const CreateIcon = icons.create}
-					<Button variant="primary" onclick={handleCreate}>
-						<CreateIcon class="size-5" />
-						{#if creation.label}
-							<span>{creation.label}</span>
-						{:else}
-							<span>{strings.create}<span class="hidden sm:inline">&nbsp;{labelOne}</span></span>
-						{/if}
-					</Button>
+						{/each}
+					</div>
 				{:else}
 					{@render toolbarButtons(false)}
 				{/if}
@@ -515,8 +513,8 @@
 
 			<div
 				bind:this={toolbarMeasureEl}
-				class="pointer-events-none invisible absolute flex items-center gap-2 whitespace-nowrap"
-				style="left:-9999px; top:-9999px;"
+				class="pointer-events-none invisible fixed flex items-center gap-2 whitespace-nowrap"
+				style="left:-9999px; top:-9999px; width:max-content;"
 				aria-hidden="true"
 			>
 				{@render toolbarButtons(true)}
