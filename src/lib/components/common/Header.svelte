@@ -21,7 +21,7 @@
   </div>
 
   {#if buttons}
-    <div class="flex shrink-0 items-center gap-2 sm:pt-1">
+    <div class="flex min-w-0 items-center gap-2 sm:pt-1">
       {@render buttons()}
     </div>
   {/if}

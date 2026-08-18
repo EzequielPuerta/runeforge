@@ -115,26 +115,55 @@ export interface RowAction<T extends object = Record<string, unknown>> {
 	run: (item: T) => void;
 }
 
-export interface CustomBulkAction<T extends object = Record<string, unknown>> {
-	label: string;
+export interface BaseCustomBulkAction<T extends object = Record<string, unknown>> {
+	/** Visible text on the button. Omit for an icon-only button — pass
+	 * `tooltip` in that case so the action still has an accessible name and a
+	 * hover hint, since `label` is what a collapsed "Acciones" menu item and
+	 * the button's default `title`/`aria-label` fall back to otherwise. */
+	label?: string;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	icon: any;
-	/** Required unless `view` is set. */
-	endpoint?: string;
+	/** Hover title shown on the button. Defaults to `label`. Set this
+	 * explicitly when `label` is omitted (icon-only button) so there's still
+	 * a hint on hover and an accessible name. */
+	tooltip?: string;
 	variant?: string;
-	confirm?: boolean;
 	condition?: (items: T[]) => boolean;
-	/** Renders as a modal-like panel when the action runs, instead of POSTing
-	 * to `endpoint` once per selected item. Mutually exclusive with
-	 * `endpoint` — provide exactly one of the two, mirroring `CustomAction.view`.
-	 *
-	 * Unlike the endpoint-loop behavior, a `view` action never requires a
-	 * pre-existing selection: the button is enabled even with nothing
-	 * selected, and `confirm` is ignored (the view owns its own flow). The
-	 * component receives the current selection as `items` (possibly empty). */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	view?: Component<any>;
 }
+
+export interface ViewBasedCustomBulkAction<
+	T extends object = Record<string, unknown>
+> extends BaseCustomBulkAction<T> {
+	kind: 'view';
+	/** Renders as a modal-like panel when the action runs, instead of POSTing
+	 * to an endpoint once per selected item, mirroring `CustomAction.view`.
+	 *
+	 * A `view` action never requires a pre-existing selection: the button is
+	 * enabled even with nothing selected. The component receives the current
+	 * selection as `items` (possibly empty). */
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	view: Component<any>;
+}
+
+export interface EndpointBasedCustomBulkAction<
+	T extends object = Record<string, unknown>
+> extends BaseCustomBulkAction<T> {
+	kind: 'endpoint';
+	/** POSTed once per selected item (`id` set in the FormData body), then
+	 * `invalidateAll()`s. */
+	endpoint: string;
+	confirm?: boolean;
+}
+
+/** A toolbar action operating on the current selection — either a `view`
+ * (opens a modal-like panel, e.g. an import wizard) or an `endpoint`
+ * (POSTed once per selected item). The required `kind` discriminant picks
+ * which one: `'view'` brings `view` and forbids `endpoint`/`confirm`;
+ * `'endpoint'` brings `endpoint`/`confirm` and forbids `view` — see
+ * `ViewBasedCustomBulkAction` / `EndpointBasedCustomBulkAction`. */
+export type CustomBulkAction<T extends object = Record<string, unknown>> =
+	| ViewBasedCustomBulkAction<T>
+	| EndpointBasedCustomBulkAction<T>;
 
 export interface SearchConfiguration {
 	param?: string;

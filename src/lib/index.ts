@@ -26,6 +26,9 @@ export type {
 	FieldDefinition,
 	ActionConfiguration,
 	CustomAction,
+	BaseCustomBulkAction,
+	ViewBasedCustomBulkAction,
+	EndpointBasedCustomBulkAction,
 	CustomBulkAction,
 	RowAction,
 	SearchConfiguration

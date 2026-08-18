@@ -15,7 +15,8 @@
 		CustomAction,
 		CustomBulkAction,
 		RowAction,
-		SearchConfiguration
+		SearchConfiguration,
+		ViewBasedCustomBulkAction
 	} from '$lib/types/crud.js';
 	import type {
 		FilterSnapshot,
@@ -26,6 +27,12 @@
 	import { getStrings } from '$lib/i18n/context.js';
 
 	const strings = getStrings();
+
+	function isViewBasedBulkAction(
+		action: CustomBulkAction<T>
+	): action is ViewBasedCustomBulkAction<T> {
+		return action.kind === 'view';
+	}
 
 	let {
 		data = [] as T[],
@@ -86,7 +93,7 @@
 		onEdit?: (item: T) => void;
 		onView?: (item: T) => void;
 		onAction?: (action: CustomAction<T>, item: T) => void;
-		onBulkAction?: (action: CustomBulkAction<T>, items: T[]) => void;
+		onBulkAction?: (action: ViewBasedCustomBulkAction<T>, items: T[]) => void;
 	} = $props();
 
 	const icons = $derived(getIconSet() ?? defaultIconSet);
@@ -99,7 +106,12 @@
 	const updateLabel = $derived(update.label ?? strings.edit);
 	const readLabel = $derived(read.label ?? strings.view);
 	const showRowActions = $derived(allowRead || allowUpdate || allowDelete || actions.length > 0);
-	const allowSelection = $derived(allowDelete || customBulkActions.some((action) => !action.view));
+	const allowSelection = $derived(
+		allowDelete || customBulkActions.some((action) => !isViewBasedBulkAction(action))
+	);
+	const hasCollapsibleActions = $derived(
+		enableExport || customBulkActions.length > 0 || allowDelete
+	);
 
 	let selected = new SvelteSet<number>();
 	let pendingDeletion = $state<T[] | null>(null);
@@ -109,7 +121,33 @@
 	let visibleRows = $state<T[]>([]);
 	let exportQuery = $state<TableQuery | undefined>(undefined);
 	let exportPopoverEl: HTMLElement | undefined = $state();
+	let actionsPopoverEl: HTMLElement | undefined = $state();
 	const exportId = $props.id();
+	const actionsMenuId = `${exportId}-actions`;
+
+	// Collapses export/bulk-actions/delete into a single "Acciones" dropdown
+	// once the toolbar no longer fits its available width (small monitor, a
+	// browser window not maximized, many customBulkActions, ...) — measured
+	// against an identical but off-flow, always-uncollapsed clone rather than
+	// the visible row itself, since the visible row's own width changes
+	// depending on whether it's currently collapsed.
+	let toolbarEl: HTMLElement | undefined = $state();
+	let toolbarMeasureEl: HTMLElement | undefined = $state();
+	let toolbarCollapsed = $state(false);
+
+	$effect(() => {
+		if (!toolbarEl || !toolbarMeasureEl) return;
+		const el = toolbarEl;
+		const measureEl = toolbarMeasureEl;
+		const check = () => {
+			toolbarCollapsed = measureEl.scrollWidth > el.clientWidth + 1;
+		};
+		const observer = new ResizeObserver(check);
+		observer.observe(el);
+		observer.observe(measureEl);
+		check();
+		return () => observer.disconnect();
+	});
 
 	async function resolveExportRows(): Promise<T[]> {
 		if (!pagination) return visibleRows;
@@ -181,12 +219,12 @@
 	}
 
 	async function runBulkAction(action: CustomBulkAction<T>, items: T[]) {
-		if (!action.endpoint) return;
+		if (isViewBasedBulkAction(action)) return;
 		await runEndpointAction(action.endpoint, items);
 	}
 
 	function requestBulkAction(action: CustomBulkAction<T>, items: T[]) {
-		if (action.confirm) {
+		if (!isViewBasedBulkAction(action) && action.confirm) {
 			pendingBulkAction = { action, items };
 		} else {
 			runBulkAction(action, items);
@@ -195,7 +233,7 @@
 
 	function handleBulkAction(action: CustomBulkAction<T>) {
 		const items = selectedItems;
-		if (action.view) {
+		if (isViewBasedBulkAction(action)) {
 			onBulkAction?.(action, items);
 			return;
 		}
@@ -237,6 +275,97 @@
 			: [])
 	]);
 </script>
+
+{#snippet toolbarButtons(measuring: boolean)}
+	{#if search}
+		<SearchInput config={search} />
+	{/if}
+
+	{#if enableExport}
+		{@const ExportIcon = icons.download}
+		<Button
+			variant="ghost"
+			class="btn-square"
+			popovertarget={measuring ? undefined : `export-menu-${exportId}`}
+			style={measuring ? undefined : `anchor-name:--export-anchor-${exportId}`}
+			aria-label={strings.export}
+			title={strings.export}
+		>
+			<ExportIcon class="size-4" />
+		</Button>
+		{#if !measuring}
+			<div
+				popover="auto"
+				id="export-menu-{exportId}"
+				style="position-anchor:--export-anchor-{exportId}"
+				class="dropdown dropdown-end w-40 rounded-box border border-base-content/10 bg-base-100 p-1 shadow-lg"
+				bind:this={exportPopoverEl}
+			>
+				<Button
+					variant="ghost"
+					class="btn-sm w-full justify-start"
+					onclick={() => handleExport('csv')}
+				>
+					{strings.exportCsv}
+				</Button>
+				{#if xlsx}
+					<Button
+						variant="ghost"
+						class="btn-sm w-full justify-start"
+						onclick={() => handleExport('xlsx')}
+					>
+						{strings.exportExcel}
+					</Button>
+				{/if}
+			</div>
+		{/if}
+	{/if}
+
+	{#each customBulkActions as bulkAction, i (i)}
+		{#if bulkAction.condition?.(selectedItems) ?? true}
+			{@const BulkIcon = bulkAction.icon}
+			{@const isView = isViewBasedBulkAction(bulkAction)}
+			<Button
+				variant={bulkAction.variant ?? 'ghost'}
+				class="btn-outline"
+				disabled={!isView && selected.size === 0}
+				title={bulkAction.tooltip ?? bulkAction.label}
+				aria-label={bulkAction.tooltip ?? bulkAction.label}
+				onclick={measuring ? undefined : () => handleBulkAction(bulkAction)}
+			>
+				<BulkIcon class="size-4" />
+				{#if bulkAction.label}
+					{bulkAction.label}{#if !isView}
+						({selected.size})
+					{/if}
+				{/if}
+			</Button>
+		{/if}
+	{/each}
+
+	{#if allowDelete}
+		{@const DeleteIcon = icons.delete}
+		<Button
+			variant="error"
+			class="btn-outline"
+			disabled={selected.size === 0}
+			onclick={measuring ? undefined : handleDelete}
+		>
+			<DeleteIcon class="size-4" />
+			{deleteLabel} ({selected.size})
+		</Button>
+	{/if}
+
+	{@const CreateIcon = icons.create}
+	<Button variant="primary" onclick={measuring ? undefined : handleCreate}>
+		<CreateIcon class="size-5" />
+		{#if creation.label}
+			<span>{creation.label}</span>
+		{:else}
+			<span>{strings.create}<span class="hidden sm:inline">&nbsp;{labelOne}</span></span>
+		{/if}
+	</Button>
+{/snippet}
 
 {#snippet actionsCell(item: T)}
 	<div class="flex justify-end items-center gap-1">
@@ -283,87 +412,115 @@
 		breadcrumbs={[{ label: labelMany, icon: entityIcon, link: { href: '#' }, prominent: true }]}
 	>
 		{#snippet buttons()}
-			{#if search}
-				<SearchInput config={search} />
-			{/if}
+			<div bind:this={toolbarEl} class="flex flex-wrap items-center gap-2 overflow-hidden">
+				{#if toolbarCollapsed}
+					{#if search}
+						<SearchInput config={search} />
+					{/if}
 
-			{#if enableExport}
-				{@const ExportIcon = icons.download}
-				<Button
-					variant="ghost"
-					class="btn-square"
-					popovertarget="export-menu-{exportId}"
-					style="anchor-name:--export-anchor-{exportId}"
-					aria-label={strings.export}
-					title={strings.export}
-				>
-					<ExportIcon class="size-4" />
-				</Button>
-				<div
-					popover="auto"
-					id="export-menu-{exportId}"
-					style="position-anchor:--export-anchor-{exportId}"
-					class="dropdown dropdown-end w-40 rounded-box border border-base-content/10 bg-base-100 p-1 shadow-lg"
-					bind:this={exportPopoverEl}
-				>
-					<Button
-						variant="ghost"
-						class="btn-sm w-full justify-start"
-						onclick={() => handleExport('csv')}
-					>
-						{strings.exportCsv}
-					</Button>
-					{#if xlsx}
+					{#if hasCollapsibleActions}
 						<Button
 							variant="ghost"
-							class="btn-sm w-full justify-start"
-							onclick={() => handleExport('xlsx')}
+							class="btn-square"
+							popovertarget="actions-menu-{actionsMenuId}"
+							style="anchor-name:--actions-anchor-{actionsMenuId}"
+							aria-label={strings.actions}
+							title={strings.actions}
 						>
-							{strings.exportExcel}
+							<span class="text-lg leading-none" aria-hidden="true">⋯</span>
 						</Button>
-					{/if}
-				</div>
-			{/if}
+						<div
+							popover="auto"
+							id="actions-menu-{actionsMenuId}"
+							style="position-anchor:--actions-anchor-{actionsMenuId}"
+							class="dropdown dropdown-end w-56 rounded-box border border-base-content/10 bg-base-100 p-1 shadow-lg"
+							bind:this={actionsPopoverEl}
+						>
+							{#if enableExport}
+								<Button
+									variant="ghost"
+									class="btn-sm w-full justify-start"
+									onclick={() => {
+										actionsPopoverEl?.hidePopover();
+										handleExport('csv');
+									}}
+								>
+									{strings.exportCsv}
+								</Button>
+								{#if xlsx}
+									<Button
+										variant="ghost"
+										class="btn-sm w-full justify-start"
+										onclick={() => {
+											actionsPopoverEl?.hidePopover();
+											handleExport('xlsx');
+										}}
+									>
+										{strings.exportExcel}
+									</Button>
+								{/if}
+							{/if}
 
-			{#each customBulkActions as bulkAction (bulkAction.label)}
-				{#if bulkAction.condition?.(selectedItems) ?? true}
-					{@const BulkIcon = bulkAction.icon}
-					<Button
-						variant={bulkAction.variant ?? 'ghost'}
-						class="btn-outline"
-						disabled={!bulkAction.view && selected.size === 0}
-						onclick={() => handleBulkAction(bulkAction)}
-					>
-						<BulkIcon class="size-4" />
-						{bulkAction.label}{#if !bulkAction.view}
-							({selected.size})
+							{#each customBulkActions as bulkAction, i (i)}
+								{#if bulkAction.condition?.(selectedItems) ?? true}
+									{@const BulkIcon = bulkAction.icon}
+									{@const isView = isViewBasedBulkAction(bulkAction)}
+									<Button
+										variant="ghost"
+										class="btn-sm w-full justify-start"
+										disabled={!isView && selected.size === 0}
+										title={bulkAction.tooltip}
+										onclick={() => {
+											actionsPopoverEl?.hidePopover();
+											handleBulkAction(bulkAction);
+										}}
+									>
+										<BulkIcon class="size-4" />
+										{bulkAction.label ?? bulkAction.tooltip}{#if !isView}
+											({selected.size})
+										{/if}
+									</Button>
+								{/if}
+							{/each}
+
+							{#if allowDelete}
+								<Button
+									variant="ghost"
+									class="btn-sm w-full justify-start text-error"
+									disabled={selected.size === 0}
+									onclick={() => {
+										actionsPopoverEl?.hidePopover();
+										handleDelete();
+									}}
+								>
+									{deleteLabel} ({selected.size})
+								</Button>
+							{/if}
+						</div>
+					{/if}
+
+					{@const CreateIcon = icons.create}
+					<Button variant="primary" onclick={handleCreate}>
+						<CreateIcon class="size-5" />
+						{#if creation.label}
+							<span>{creation.label}</span>
+						{:else}
+							<span>{strings.create}<span class="hidden sm:inline">&nbsp;{labelOne}</span></span>
 						{/if}
 					</Button>
-				{/if}
-			{/each}
-
-			{#if allowDelete}
-				{@const DeleteIcon = icons.delete}
-				<Button
-					variant="error"
-					class="btn-outline"
-					disabled={selected.size === 0}
-					onclick={handleDelete}
-				>
-					<DeleteIcon class="size-4" />
-					{deleteLabel} ({selected.size})
-				</Button>
-			{/if}
-
-			{@const CreateIcon = icons.create}
-			<Button variant="primary" onclick={handleCreate}>
-				<CreateIcon class="size-5" />
-				{#if creation.label}
-					<span>{creation.label}</span>
 				{:else}
-					<span>{strings.create}<span class="hidden sm:inline">&nbsp;{labelOne}</span></span>
+					{@render toolbarButtons(false)}
 				{/if}
-			</Button>
+			</div>
+
+			<div
+				bind:this={toolbarMeasureEl}
+				class="pointer-events-none invisible absolute flex items-center gap-2 whitespace-nowrap"
+				style="left:-9999px; top:-9999px;"
+				aria-hidden="true"
+			>
+				{@render toolbarButtons(true)}
+			</div>
 		{/snippet}
 	</Header>
 
@@ -400,8 +557,10 @@
 {/if}
 
 {#if pendingBulkAction !== null}
-	<Modal title={pendingBulkAction.action.label} onClose={() => (pendingBulkAction = null)}>
-		<p>{strings.deleteConfirm(pendingBulkAction.items.length, pendingBulkAction.action.label)}</p>
+	{@const pendingActionLabel =
+		pendingBulkAction.action.label ?? pendingBulkAction.action.tooltip ?? strings.actions}
+	<Modal title={pendingActionLabel} onClose={() => (pendingBulkAction = null)}>
+		<p>{strings.deleteConfirm(pendingBulkAction.items.length, pendingActionLabel)}</p>
 		<div class="flex justify-end gap-2 mt-4">
 			<Button variant="ghost" onclick={() => (pendingBulkAction = null)}>
 				{strings.cancel}

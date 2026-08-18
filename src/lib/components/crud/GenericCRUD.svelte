@@ -21,7 +21,8 @@
 		CustomAction,
 		CustomBulkAction,
 		FieldDefinition,
-		SearchConfiguration
+		SearchConfiguration,
+		ViewBasedCustomBulkAction
 	} from '$lib/types/crud.js';
 	import type {
 		FilterSnapshot,
@@ -121,7 +122,9 @@
 	);
 
 	let activeAction = $state<{ action: CustomAction<T>; item: T } | null>(null);
-	let activeBulkAction = $state<{ action: CustomBulkAction<T>; items: T[] } | null>(null);
+	let activeBulkAction = $state<{ action: ViewBasedCustomBulkAction<T>; items: T[] } | null>(
+		null
+	);
 
 	async function runAction(action: CustomAction<T>, item: T) {
 		if (!(action.condition?.(item) ?? true)) return;
@@ -132,7 +135,7 @@
 		activeAction = { action, item };
 	}
 
-	function runBulkAction(action: CustomBulkAction<T>, items: T[]) {
+	function runBulkAction(action: ViewBasedCustomBulkAction<T>, items: T[]) {
 		activeBulkAction = { action, items };
 	}
 
@@ -387,7 +390,6 @@
 	<BulkActionView
 		items={activeBulkAction.items}
 		label={activeBulkAction.action.label}
-		endpoint={activeBulkAction.action.endpoint}
 		{serverError}
 		onCancel={() => (activeBulkAction = null)}
 		onSuccess={() => (activeBulkAction = null)}

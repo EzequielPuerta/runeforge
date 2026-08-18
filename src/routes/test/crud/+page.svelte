@@ -26,8 +26,8 @@
 		search={{ placeholder: 'Search tasks...' }}
 		enableExport
 		customBulkActions={[
-			{ label: 'Complete', icon: View, endpoint: '?/complete' },
-			{ label: 'Mark pending', icon: Edit, endpoint: '?/incomplete' }
+			{ kind: 'endpoint', label: 'Complete', icon: View, endpoint: '?/complete' },
+			{ kind: 'endpoint', label: 'Mark pending', icon: Edit, endpoint: '?/incomplete' }
 		]}
 	/>
 </div>
