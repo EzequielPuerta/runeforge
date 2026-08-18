@@ -3,7 +3,7 @@ import {
 	formatBoolean,
 	formatDatetime,
 	formatTruncateTextUpTo,
-	formatInstance,
+	formatInstance
 } from '$lib/components/crud/utils/formatters.js';
 
 describe('formatBoolean', () => {
@@ -36,6 +36,15 @@ describe('formatDatetime', () => {
 		const fmt = formatDatetime('dd/mm/YYYY')();
 		expect(fmt(new Date('not-a-date'))).toBe('');
 	});
+	it('returns empty string for null/undefined/empty instead of epoch 0', () => {
+		const fmt = formatDatetime('dd/mm/YYYY')();
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		expect(fmt(null as any)).toBe('');
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		expect(fmt(undefined as any)).toBe('');
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		expect(fmt('' as any)).toBe('');
+	});
 	it('includes time tokens', () => {
 		const fmt = formatDatetime('HH:MM:ss')();
 		const d = new Date(2024, 0, 1, 14, 5, 9);
@@ -61,7 +70,7 @@ describe('formatInstance', () => {
 	type Item = { _id: string; name: string };
 	const instances: Item[] = [
 		{ _id: '1', name: 'Alpha' },
-		{ _id: '2', name: 'Beta & Co.' },
+		{ _id: '2', name: 'Beta & Co.' }
 	];
 	const fmt = formatInstance<Item>('name', instances, '/items');
 
