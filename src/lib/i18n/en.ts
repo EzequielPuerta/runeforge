@@ -15,6 +15,8 @@ export const en: RuneforgeStrings = {
 	selectSearching: 'Searching...',
 	selectNoResults: 'No results',
 	selectedCount: (count) => `${count} selected`,
+	selectAll: 'Select all',
+	selectClear: 'Clear selection',
 	view: 'View',
 	edit: 'Edit',
 	delete: 'Delete',

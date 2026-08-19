@@ -24,6 +24,8 @@ export interface RuneforgeStrings {
 
 	// MultiSelect (closed-state button label)
 	selectedCount: (count: number) => string;
+	selectAll: string;
+	selectClear: string;
 
 	// CRUD List row actions
 	view: string;

@@ -1,9 +1,13 @@
 <script lang="ts">
   import { SvelteMap } from 'svelte/reactivity';
   import { getStrings } from '$lib/i18n/context.js';
+  import { getIconSet } from '$lib/icons/context.js';
+  import { defaultIconSet } from '$lib/icons/sets/default.js';
+  import Button from '$lib/components/form/Button.svelte';
   import type { SearchResolver, SelectOption } from '$lib/types/attribute.js';
 
   const strings = getStrings();
+  const icons = $derived(getIconSet() ?? defaultIconSet);
 
   let {
     name,
@@ -14,6 +18,12 @@
     placeholder = strings.selectPlaceholder,
     error = '',
     disabled = false,
+    // When passed, the dropdown's top row selects every option instead of
+    // clearing the selection (labelled `strings.selectAll` instead of
+    // `placeholder`) — clearing moves to the trigger's own × button instead.
+    // Left unset, existing callers keep today's behavior unchanged: top row
+    // clears, no × button.
+    onSelectAll,
   }: {
     name?: string;
     value?: string[];
@@ -23,6 +33,7 @@
     placeholder?: string;
     error?: string;
     disabled?: boolean;
+    onSelectAll?: () => void;
   } = $props();
 
   const popId = $props.id();
@@ -87,6 +98,17 @@
   function onToggle(e: Event) {
     if ((e as ToggleEvent).newState === 'closed') query = '';
   }
+
+  const hasSelection = $derived(value.length > 0);
+
+  function clearFromTrigger(e: MouseEvent) {
+    // Stop the click from also reaching the popover-trigger button
+    // underneath (they're overlapping siblings, not nested) so clearing
+    // doesn't toggle the dropdown open at the same time.
+    e.preventDefault();
+    e.stopPropagation();
+    clear();
+  }
 </script>
 
 <div class="relative w-full">
@@ -94,18 +116,34 @@
     <input type="hidden" {name} value={JSON.stringify(value)} />
   {/if}
 
-  <button
-    type="button"
-    class="select select-bordered w-full text-left font-normal"
-    class:select-error={!!error}
-    class:opacity-40={value.length === 0}
-    {disabled}
-    popovertarget={popId}
-    style="anchor-name:{anchorName}"
-    title={selectedLabels.join(', ')}
-  >
-    {buttonLabel}
-  </button>
+  <div class="relative">
+    <button
+      type="button"
+      class="select select-bordered w-full text-left font-normal"
+      class:select-error={!!error}
+      class:opacity-40={value.length === 0}
+      class:pr-8={hasSelection}
+      {disabled}
+      popovertarget={popId}
+      style="anchor-name:{anchorName}"
+      title={selectedLabels.join(', ')}
+    >
+      {buttonLabel}
+    </button>
+
+    {#if hasSelection && !disabled}
+      {@const Icon = icons.clear}
+      <Button
+        variant="ghost"
+        class="btn-xs btn-square btn-circle absolute top-1/2 right-6 -translate-y-1/2"
+        aria-label={strings.selectClear}
+        title={strings.selectClear}
+        onclick={clearFromTrigger}
+      >
+        <Icon class="size-3" />
+      </Button>
+    {/if}
+  </div>
 
   <div
     popover="auto"
@@ -129,9 +167,9 @@
         <button
           type="button"
           class="w-full rounded-btn px-3 py-2 text-left text-sm text-base-content/40 hover:bg-base-200"
-          onclick={clear}
+          onclick={onSelectAll ?? clear}
         >
-          {placeholder}
+          {onSelectAll ? strings.selectAll : placeholder}
         </button>
       </li>
       {#if searching}
