@@ -102,6 +102,7 @@
 	const allowRead = $derived(read.enabled ?? true);
 	const allowUpdate = $derived(update.enabled ?? true);
 	const allowDelete = $derived(deletion.enabled ?? true);
+	const allowCreate = $derived(creation.enabled ?? true);
 	const deleteLabel = $derived(deletion.label ?? strings.delete);
 	const updateLabel = $derived(update.label ?? strings.edit);
 	const readLabel = $derived(read.label ?? strings.view);
@@ -353,15 +354,17 @@
 		</Button>
 	{/if}
 
-	{@const CreateIcon = icons.create}
-	<Button variant="primary" onclick={measuring ? undefined : handleCreate}>
-		<CreateIcon class="size-5" />
-		{#if creation.label}
-			<span>{creation.label}</span>
-		{:else}
-			<span>{strings.create}<span class="hidden sm:inline">&nbsp;{labelOne}</span></span>
-		{/if}
-	</Button>
+	{#if allowCreate}
+		{@const CreateIcon = icons.create}
+		<Button variant="primary" onclick={measuring ? undefined : handleCreate}>
+			<CreateIcon class="size-5" />
+			{#if creation.label}
+				<span>{creation.label}</span>
+			{:else}
+				<span>{strings.create}<span class="hidden sm:inline">&nbsp;{labelOne}</span></span>
+			{/if}
+		</Button>
+	{/if}
 {/snippet}
 
 {#snippet actionsCell(item: T)}
@@ -415,7 +418,6 @@
 						<SearchInput config={search} />
 					{/if}
 
-					{@const CreateIcon = icons.create}
 					<Button
 						variant="ghost"
 						class="btn-square"
@@ -433,17 +435,20 @@
 						class="dropdown dropdown-end w-56 rounded-box border border-base-content/10 bg-base-100 p-1 shadow-lg"
 						bind:this={actionsPopoverEl}
 					>
-						<Button
-							variant="ghost"
-							class="btn-sm w-full justify-start"
-							onclick={() => {
-								actionsPopoverEl?.hidePopover();
-								handleCreate();
-							}}
-						>
-							<CreateIcon class="size-4" />
-							{creation.label || `${strings.create} ${labelOne}`}
-						</Button>
+						{#if allowCreate}
+							{@const CreateIcon = icons.create}
+							<Button
+								variant="ghost"
+								class="btn-sm w-full justify-start"
+								onclick={() => {
+									actionsPopoverEl?.hidePopover();
+									handleCreate();
+								}}
+							>
+								<CreateIcon class="size-4" />
+								{creation.label || `${strings.create} ${labelOne}`}
+							</Button>
+						{/if}
 
 						{#if allowDelete}
 							<Button
