@@ -5,6 +5,8 @@
   let {
     title = '',
     onClose,
+    closeOnClickOutside = true,
+    onClickOutside,
     children,
     class: additionalClass,
     width,
@@ -14,6 +16,10 @@
   }: {
     title?: string;
     onClose?: () => void;
+    /** Whether clicking the backdrop (outside the modal box) closes the modal. */
+    closeOnClickOutside?: boolean;
+    /** Callback invoked when clicking outside the modal. Defaults to `onClose`. */
+    onClickOutside?: () => void;
     children: Snippet;
     /** Extra classes merged onto the modal box, e.g. Tailwind size utilities
      * like `max-w-4xl` or `w-11/12`. */
@@ -25,6 +31,8 @@
     height?: string;
     maxHeight?: string;
   } = $props();
+
+  const handleClickOutside = $derived(onClickOutside ?? onClose);
 
   const boxStyle = $derived(
     [
@@ -59,9 +67,9 @@
     {@render children()}
   </div>
 
-  {#if onClose}
+  {#if closeOnClickOutside && handleClickOutside}
     <div class="modal-backdrop">
-      <button onclick={onClose} aria-label="Cerrar"></button>
+      <button onclick={handleClickOutside} aria-label="Cerrar"></button>
     </div>
   {/if}
 </dialog>
