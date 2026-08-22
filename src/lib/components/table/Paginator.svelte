@@ -48,6 +48,7 @@
 	}
 
 	const pages = $derived(buildPages(page, totalPages));
+	const inputWidth = $derived(`${String(totalPages).length + 2}ch`);
 
 	function handlePageInput(e: KeyboardEvent) {
 		if (e.key !== 'Enter') return;
@@ -79,8 +80,8 @@
 				{:else if p === page}
 					<input
 						type="number"
-						class="join-item btn btn-sm w-12 text-center appearance-none"
-						style="background-color: var(--color-base-100);"
+						class="join-item btn btn-sm no-spinner text-center"
+						style="background-color: var(--color-base-100); width: {inputWidth};"
 						min="1"
 						max={totalPages}
 						value={page}
@@ -96,3 +97,17 @@
 		</div>
 	</div>
 {/if}
+
+<style>
+	.no-spinner {
+		appearance: none;
+		-moz-appearance: textfield;
+	}
+
+	.no-spinner::-webkit-outer-spin-button,
+	.no-spinner::-webkit-inner-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
+	}
+</style>
+
