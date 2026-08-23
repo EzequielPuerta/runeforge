@@ -6,6 +6,7 @@ export interface ITask {
 	title: string;
 	description: string;
 	completed: boolean;
+	link?: string;
 }
 
 export const taskMeta = {
@@ -20,6 +21,15 @@ export const taskMeta = {
 		type: AttributeType.textarea,
 		formatter: formatTruncateTextUpTo(60),
 		placeholder: 'Task description'
+	},
+	link: {
+		label: 'Link',
+		type: AttributeType.text,
+		formatter: () => (value: unknown) =>
+			value ? `<a href="${String(value)}" class="link link-primary">Open</a>` : '',
+		excludedFromList: true,
+		excludedFromCreate: true,
+		excludedFromUpdate: true
 	},
 	completed: {
 		label: 'Completed',

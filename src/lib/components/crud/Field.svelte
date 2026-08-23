@@ -295,13 +295,23 @@
 				/>
 			{/if}
 		{:else if readonly}
-			<input
-				type={field.type ?? 'text'}
-				id={field.attribute}
-				class="input input-bordered w-full"
-				value={formattedValue}
-				disabled
-			/>
+			{#if field.formatter}
+				<div
+					id={field.attribute}
+					class="input input-bordered w-full bg-base-200 border-base-200 text-base-content/40 shadow-none cursor-not-allowed"
+				>
+					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+					{@html formattedValue}
+				</div>
+			{:else}
+				<input
+					type={field.type ?? 'text'}
+					id={field.attribute}
+					class="input input-bordered w-full"
+					value={formattedValue}
+					disabled
+				/>
+			{/if}
 		{:else}
 			<input
 				type={field.type ?? 'text'}

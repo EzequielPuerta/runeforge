@@ -74,6 +74,17 @@ test.describe('GenericCRUD', () => {
 		);
 	});
 
+	test('read: a formatter returning HTML renders as markup, not escaped text', async ({
+		page
+	}) => {
+		await page.locator('tbody tr:first-child').getByRole('button', { name: 'Ver' }).click();
+		await page.waitForURL(/\?id=/);
+
+		const link = page.getByRole('link', { name: 'Open' });
+		await expect(link).toBeVisible();
+		await expect(link).toHaveAttribute('href', 'https://example.com/groceries');
+	});
+
 	test('read: "volver" returns to the list', async ({ page }) => {
 		await page.locator('tbody tr:first-child').getByRole('button', { name: 'Ver' }).click();
 		await page.waitForURL(/\?id=/);

@@ -1,7 +1,13 @@
 import type { ITask } from './interface.js';
 
 const INITIAL: ITask[] = [
-	{ _id: '1', title: 'Buy groceries', description: 'Milk, eggs, bread', completed: false },
+	{
+		_id: '1',
+		title: 'Buy groceries',
+		description: 'Milk, eggs, bread',
+		completed: false,
+		link: 'https://example.com/groceries'
+	},
 	{
 		_id: '2',
 		title: 'Write tests',
