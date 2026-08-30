@@ -140,7 +140,7 @@
 	}
 
 	async function navList() {
-		await goto('?');
+		await goto(lastListState.search || '?');
 	}
 	async function navCreate() {
 		await goto('?view=create');
@@ -154,15 +154,22 @@
 		);
 	}
 
+	let lastListState = $state<{ data: T[]; search: string }>({ data: [], search: '' });
+	$effect(() => {
+		if (!creating && !reading && !editing) {
+			lastListState = { data: entityData, search: page.url.search };
+		}
+	});
+
 	// "Save and continue" on the Update form: jumps to editing the record that
-	// follows the current one in the currently loaded list, falling back to
+	// follows the current one in the last loaded list, falling back to
 	// re-editing the same instance when it's the last one (or isn't found).
 	function nextInstance(current: T): T {
 		const currentId = (current as Record<string, unknown>)[idKey];
-		const idx = entityData.findIndex(
+		const idx = lastListState.data.findIndex(
 			(item) => (item as Record<string, unknown>)[idKey] === currentId
 		);
-		return (idx !== -1 ? entityData[idx + 1] : undefined) ?? current;
+		return (idx !== -1 ? lastListState.data[idx + 1] : undefined) ?? current;
 	}
 	async function navContinueEdit() {
 		if (!singleInstance) return;
