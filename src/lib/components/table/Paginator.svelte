@@ -48,7 +48,7 @@
 	}
 
 	const pages = $derived(buildPages(page, totalPages));
-	const inputWidth = $derived(`${String(totalPages).length + 2}ch`);
+	const inputWidth = $derived(`${String(totalPages).length + 4}ch`);
 
 	function handlePageInput(e: KeyboardEvent) {
 		if (e.key !== 'Enter') return;
