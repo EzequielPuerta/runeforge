@@ -82,12 +82,45 @@
 		if (!calendarDateEl) return;
 		function handler() {
 			if (fieldDisabled) return;
-			record[field.attribute] = calendarDateEl!.value;
+			setDateTime(calendarDateEl!.value, timePart);
 			datePopoverEl?.hidePopover();
 		}
 		calendarDateEl.addEventListener('change', handler);
 		return () => calendarDateEl?.removeEventListener('change', handler);
 	});
+
+	function pad(n: number): string {
+		return String(n).padStart(2, '0');
+	}
+
+	// `record[field.attribute]` may be empty, a bare "YYYY-MM-DD" (freshly
+	// picked, before any time is set) or a full ISO datetime (loaded from an
+	// existing instance) — parsed once here so the date button, the time
+	// input and cally's own `value` all derive from the same local-time
+	// breakdown instead of each re-parsing the raw string their own way.
+	const parsedDateTime = $derived.by(() => {
+		const raw = record[field.attribute];
+		if (raw == null || raw === '') return null;
+		const d = new Date(String(raw));
+		return isNaN(d.getTime()) ? null : d;
+	});
+	const datePart = $derived(
+		parsedDateTime
+			? `${parsedDateTime.getFullYear()}-${pad(parsedDateTime.getMonth() + 1)}-${pad(parsedDateTime.getDate())}`
+			: ''
+	);
+	const timePart = $derived(
+		parsedDateTime ? `${pad(parsedDateTime.getHours())}:${pad(parsedDateTime.getMinutes())}` : ''
+	);
+	const formattedDatePart = $derived(
+		parsedDateTime
+			? `${pad(parsedDateTime.getDate())}/${pad(parsedDateTime.getMonth() + 1)}/${parsedDateTime.getFullYear()}`
+			: ''
+	);
+
+	function setDateTime(nextDatePart: string, nextTimePart: string) {
+		record[field.attribute] = nextDatePart ? `${nextDatePart}T${nextTimePart || '00:00'}` : '';
+	}
 
 	$effect(() => {
 		if (!field.dependentOptions || isMultiValued) return;
@@ -191,16 +224,25 @@
 					value={String(record[field.attribute] ?? '')}
 					disabled={fieldDisabled}
 				/>
-				<button
-					type="button"
-					class="input input-bordered w-full text-left font-normal"
-					class:opacity-40={!record[field.attribute]}
-					disabled={fieldDisabled}
-					popovertarget={datePopId}
-					style="anchor-name:{dateAnchorName}"
-				>
-					{record[field.attribute] ? displayValue : (field.placeholder ?? '')}
-				</button>
+				<div class="flex gap-2">
+					<button
+						type="button"
+						class="input input-bordered w-full text-left font-normal"
+						class:opacity-40={!record[field.attribute]}
+						disabled={fieldDisabled}
+						popovertarget={datePopId}
+						style="anchor-name:{dateAnchorName}"
+					>
+						{record[field.attribute] ? formattedDatePart : (field.placeholder ?? '')}
+					</button>
+					<input
+						type="time"
+						class="input input-bordered w-32 shrink-0"
+						value={timePart}
+						disabled={fieldDisabled || !record[field.attribute]}
+						onchange={(e) => setDateTime(datePart, (e.currentTarget as HTMLInputElement).value)}
+					/>
+				</div>
 				<div
 					popover="auto"
 					id={datePopId}
@@ -211,7 +253,7 @@
 					<calendar-date
 						class="cally"
 						bind:this={calendarDateEl}
-						value={String(record[field.attribute] ?? '')}
+						value={datePart}
 					>
 						<svg
 							aria-label={strings.previous}
@@ -235,6 +277,7 @@
 			{#if readonly}
 				<textarea
 					id={field.attribute}
+					rows={field.rows}
 					class="textarea textarea-bordered bg-base-100 w-full"
 					value={formattedValue}
 					disabled
@@ -243,6 +286,7 @@
 				<textarea
 					id={field.attribute}
 					{name}
+					rows={field.rows}
 					placeholder={field.placeholder ?? ''}
 					bind:value={record[field.attribute]}
 					class="textarea textarea-bordered bg-base-100 w-full"

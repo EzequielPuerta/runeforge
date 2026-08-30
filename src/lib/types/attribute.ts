@@ -93,6 +93,8 @@ export type AttributeMetadata = {
   minLength?: number;
   maxLength?: number;
   pattern?: string;
+  /** Textarea fields only: the HTML `rows` attribute, controlling height. */
+  rows?: number;
   /** Embedded fields only: schema for each item added through the "+" modal. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fields?: InterfaceMetadata<any>;

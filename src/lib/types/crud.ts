@@ -52,6 +52,8 @@ export interface FieldDefinition<T extends object = Record<string, unknown>> {
 	minLength?: number;
 	maxLength?: number;
 	pattern?: string;
+	/** Textarea fields only: the HTML `rows` attribute, controlling height. */
+	rows?: number;
 	/** Embedded fields only: sub-field definitions for each item, built from
 	 * the metadata's `fields`. */
 	fields?: FieldDefinition<Record<string, unknown>>[];
@@ -63,12 +65,34 @@ export interface FieldDefinition<T extends object = Record<string, unknown>> {
 	row?: string;
 }
 
+/** A create-form button whose visibility, label and styling can all be
+ * overridden — `enabled` falls back to the button's own default (see
+ * `continue`/`duplication` on `ActionConfiguration`), `label` falls back to
+ * the matching i18n string, and `class` adds extra classes (e.g. Tailwind
+ * utilities) alongside the button's default variant. */
+export interface CreateFormButtonConfiguration {
+	enabled?: boolean;
+	label?: string;
+	class?: string;
+}
+
 export interface ActionConfiguration<T extends object = Record<string, unknown>> {
 	enabled?: boolean;
 	label?: string;
 	endpoint?: string;
 	confirm?: boolean;
 	callback?: (items: T[]) => void | Promise<void>;
+	/** Create form only: the "Save and continue" button, which submits to the
+	 * same `endpoint` and then blanks the form so the user can create another
+	 * record from scratch. Enabled by default — pass `{ enabled: false }` to
+	 * hide it. */
+	continue?: CreateFormButtonConfiguration;
+	/** Create form only: shows a "Duplicate" button alongside Save/Cancel that
+	 * submits to the same `endpoint`, but — unlike "Save and continue", which
+	 * blanks the form — leaves the just-submitted values in place so the user
+	 * can tweak a few fields and save again as a new record. Disabled by
+	 * default — pass `{ enabled: true }` to show it. */
+	duplication?: CreateFormButtonConfiguration;
 }
 
 export interface CustomAction<T extends object = Record<string, unknown>> {

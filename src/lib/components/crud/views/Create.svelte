@@ -41,11 +41,20 @@
   let fieldErrors = $state<Record<string, string>>({});
   let internalError = $state('');
   let continueCreating = $state(false);
+  let duplicating = $state(false);
 
   let record = $state<Record<string, unknown>>(untrack(() => emptyRecord(fields)));
 
   const groups = $derived(groupFields(fields));
   const hasFileField = $derived(fields.some((f) => f.type === 'file'));
+
+  const continueEnabled = $derived(creation.continue?.enabled ?? true);
+  const continueLabel = $derived(creation.continue?.label ?? strings.saveAndContinue);
+  const continueClass = $derived(creation.continue?.class ?? '');
+
+  const duplicationEnabled = $derived(creation.duplication?.enabled ?? false);
+  const duplicationLabel = $derived(creation.duplication?.label ?? strings.duplicate);
+  const duplicationClass = $derived(creation.duplication?.class ?? '');
 
   const errorEntries = $derived([
     ...((serverError || internalError) ? [['_global', internalError || serverError] as [string, string]] : []),
@@ -97,6 +106,9 @@
             record = emptyRecord(fields);
             fieldErrors = {};
             internalError = '';
+          } else if (duplicating) {
+            fieldErrors = {};
+            internalError = '';
           } else {
             onSuccess?.();
           }
@@ -145,10 +157,40 @@
       <Button variant="ghost" onclick={() => onCancel?.()}>
         {strings.cancel}
       </Button>
-      <Button type="submit" variant="secondary" onclick={() => (continueCreating = true)}>
-        {strings.saveAndContinue}
-      </Button>
-      <Button type="submit" variant="primary" onclick={() => (continueCreating = false)}>
+      {#if duplicationEnabled}
+        <Button
+          type="submit"
+          variant="warning"
+          class={duplicationClass}
+          onclick={() => {
+            continueCreating = false;
+            duplicating = true;
+          }}
+        >
+          {duplicationLabel}
+        </Button>
+      {/if}
+      {#if continueEnabled}
+        <Button
+          type="submit"
+          variant="secondary"
+          class={continueClass}
+          onclick={() => {
+            continueCreating = true;
+            duplicating = false;
+          }}
+        >
+          {continueLabel}
+        </Button>
+      {/if}
+      <Button
+        type="submit"
+        variant="primary"
+        onclick={() => {
+          continueCreating = false;
+          duplicating = false;
+        }}
+      >
         {strings.save}
       </Button>
     </div>

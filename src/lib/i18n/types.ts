@@ -46,6 +46,7 @@ export interface RuneforgeStrings {
 	// CRUD forms
 	save: string;
 	saveAndContinue: string;
+	duplicate: string;
 	cancel: string;
 	back: string;
 

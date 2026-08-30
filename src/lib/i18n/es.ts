@@ -27,6 +27,7 @@ export const es: RuneforgeStrings = {
 	exportExcel: 'Exportar a Excel',
 	save: 'Guardar',
 	saveAndContinue: 'Guardar y continuar',
+	duplicate: 'Duplicar',
 	cancel: 'Cancelar',
 	back: 'Volver',
 	add: 'Agregar',

@@ -70,6 +70,7 @@ export function buildFieldDefinitions<T extends object = Record<string, unknown>
 			minLength: m.minLength,
 			maxLength: m.maxLength,
 			pattern: m.pattern,
+			rows: m.rows,
 			fields: m.fields ? buildFieldDefinitions(m.fields, data, excludedFlag, new Set()) : undefined,
 			itemLabel: m.itemLabel,
 			defaultExpanded: m.defaultExpanded,
