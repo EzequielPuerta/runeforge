@@ -199,6 +199,7 @@
 				/>
 			{:else}
 				<Select
+					id={field.attribute}
 					name={field.attribute}
 					bind:value={record[field.attribute] as string}
 					options={selectOptions}
@@ -250,11 +251,7 @@
 					style="position-anchor:{dateAnchorName}; position-try-fallbacks:flip-block;"
 					class="dropdown mt-1 rounded-box border border-base-content/10 bg-base-100 p-2 shadow-lg"
 				>
-					<calendar-date
-						class="cally"
-						bind:this={calendarDateEl}
-						value={datePart}
-					>
+					<calendar-date class="cally" bind:this={calendarDateEl} value={datePart}>
 						<svg
 							aria-label={strings.previous}
 							class="fill-current size-4"
@@ -309,6 +306,7 @@
 				/>
 			{:else}
 				<MultiSelect
+					id={field.attribute}
 					name={field.attribute}
 					bind:value={record[field.attribute] as string[]}
 					options={selectOptions}

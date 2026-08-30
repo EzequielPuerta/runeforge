@@ -110,7 +110,7 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 		page
 	}) => {
 		await page.getByRole('button', { name: /Crear/ }).click();
-		await page.getByRole('button', { name: 'Choose an owner' }).click();
+		await page.getByPlaceholder('Choose an owner').click();
 
 		const dropdown = page.locator('ul').filter({ hasText: 'Ada Lovelace' });
 		await expect(dropdown.getByRole('button', { name: 'Ada Lovelace' })).toBeVisible();
@@ -123,8 +123,9 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 		page
 	}) => {
 		await page.getByRole('button', { name: /Crear/ }).click();
-		await page.getByRole('button', { name: 'Choose an owner' }).click();
-		await page.locator('[popover]:popover-open').getByPlaceholder('Buscar...').fill('Nadia');
+		const ownerInput = page.getByPlaceholder('Choose an owner');
+		await ownerInput.click();
+		await ownerInput.fill('Nadia');
 
 		const option = page.getByRole('button', { name: 'Nadia Wide' });
 		await expect(option).toBeVisible();
@@ -132,13 +133,14 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 
 		// Picked value isn't in the prefetched `options` list, so the closed
 		// select must still resolve its label from the search result.
-		await expect(page.getByRole('button', { name: 'Nadia Wide' })).toBeVisible();
+		await expect(ownerInput).toHaveValue('Nadia Wide');
 	});
 
 	test('create: owner search only returns owners matching the query', async ({ page }) => {
 		await page.getByRole('button', { name: /Crear/ }).click();
-		await page.getByRole('button', { name: 'Choose an owner' }).click();
-		await page.locator('[popover]:popover-open').getByPlaceholder('Buscar...').fill('Nadia');
+		const ownerInput = page.getByPlaceholder('Choose an owner');
+		await ownerInput.click();
+		await ownerInput.fill('Nadia');
 
 		await expect(page.getByRole('button', { name: 'Nadia Wide' })).toBeVisible();
 		await expect(page.getByRole('button', { name: 'Ada Lovelace' })).toHaveCount(0);
@@ -154,7 +156,7 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 
 		const modal = page.locator('dialog.modal');
 		await expect(modal).toBeVisible();
-		await modal.getByRole('button', { name: 'Seleccioná una opción' }).click();
+		await modal.getByPlaceholder('Seleccioná una opción').click();
 		await modal.getByRole('button', { name: 'Bonus' }).click();
 		await modal.getByRole('spinbutton', { name: 'Amount' }).fill('5');
 		await modal.getByRole('button', { name: 'Agregar', exact: true }).click();
@@ -186,7 +188,7 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 		// Same row container wraps both fields, exactly like a top-level
 		// Create/Update form — `md:flex-row` is what puts them side by side.
 		const row = modal.locator('.md\\:flex-row', {
-			has: page.getByRole('button', { name: 'Seleccioná una opción' })
+			has: page.getByPlaceholder('Seleccioná una opción')
 		});
 		await expect(row).toContainText('Kind');
 		await expect(row.getByRole('spinbutton', { name: 'Amount' })).toBeVisible();
@@ -197,7 +199,7 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 		await page.getByRole('button', { name: '+ Agregar' }).click();
 
 		const modal = page.locator('dialog.modal');
-		await modal.getByRole('button', { name: 'Seleccioná una opción' }).click();
+		await modal.getByPlaceholder('Seleccioná una opción').click();
 		await modal.getByRole('button', { name: 'Penalty' }).click();
 		await modal.getByRole('spinbutton', { name: 'Amount' }).fill('2');
 		await modal.getByRole('button', { name: 'Agregar', exact: true }).click();
@@ -216,7 +218,7 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 		await page.getByRole('button', { name: '+ Agregar' }).click();
 
 		const modal = page.locator('dialog.modal');
-		await modal.getByRole('button', { name: 'Seleccioná una opción' }).click();
+		await modal.getByPlaceholder('Seleccioná una opción').click();
 		await modal.getByRole('button', { name: 'Bonus' }).click();
 		await modal.getByRole('spinbutton', { name: 'Amount' }).fill('5');
 		await modal.getByRole('button', { name: 'Agregar', exact: true }).click();
@@ -227,7 +229,7 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 
 		await page.getByRole('button', { name: 'Bonus: 5' }).click();
 		await expect(modal).toBeVisible();
-		await expect(modal.getByRole('button', { name: 'Bonus' })).toBeVisible();
+		await expect(modal.getByPlaceholder('Seleccioná una opción')).toHaveValue('Bonus');
 		await expect(modal.getByRole('spinbutton', { name: 'Amount' })).toHaveValue('5');
 
 		await modal.getByRole('spinbutton', { name: 'Amount' }).fill('9');
@@ -260,7 +262,7 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 
 		await page.getByRole('button', { name: 'Bonus: 5' }).click();
 		const modal = page.locator('dialog.modal');
-		await expect(modal.getByRole('button', { name: 'Bonus' })).toBeVisible();
+		await expect(modal.getByPlaceholder('Seleccioná una opción')).toHaveValue('Bonus');
 		await expect(modal.getByRole('spinbutton', { name: 'Amount' })).toHaveValue('5');
 
 		await modal.getByRole('spinbutton', { name: 'Amount' }).fill('7');
@@ -287,7 +289,7 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 
 		await page.getByRole('button', { name: '+ Agregar' }).click();
 		const modal = page.locator('dialog.modal');
-		await modal.getByRole('button', { name: 'Seleccioná una opción' }).click();
+		await modal.getByPlaceholder('Seleccioná una opción').click();
 		await modal.getByRole('button', { name: 'Penalty' }).click();
 		await modal.getByRole('spinbutton', { name: 'Amount' }).fill('2');
 		await modal.getByRole('button', { name: 'Agregar', exact: true }).click();
@@ -311,12 +313,13 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 
 		await expect(page.getByRole('textbox', { name: 'Internal note' })).toHaveCount(0);
 
-		await page.getByRole('button', { name: 'Basic' }).click();
+		const visibilityInput = page.getByRole('textbox', { name: 'Visibility' });
+		await visibilityInput.click();
 		await page.getByRole('button', { name: 'Advanced', exact: true }).click();
 
 		await expect(page.getByRole('textbox', { name: 'Internal note' })).toBeVisible();
 
-		await page.getByRole('button', { name: 'Advanced', exact: true }).click();
+		await visibilityInput.click();
 		await page.getByRole('button', { name: 'Basic', exact: true }).click();
 
 		await expect(page.getByRole('textbox', { name: 'Internal note' })).toHaveCount(0);
@@ -329,7 +332,8 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 	}) => {
 		await page.getByRole('button', { name: /Crear/ }).click();
 
-		await page.getByRole('button', { name: 'Seleccioná una opción' }).first().click();
+		const multiInput = page.getByRole('textbox', { name: 'Tags' });
+		await multiInput.click();
 		const dropdown = page.locator('ul').filter({ hasText: 'Fragile' });
 		await dropdown.getByRole('button', { name: 'Fragile' }).click();
 		await dropdown.getByRole('button', { name: 'Oversized' }).click();
@@ -338,7 +342,7 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 		await expect(dropdown.getByRole('button', { name: 'Perishable' })).toBeVisible();
 
 		await page.keyboard.press('Escape');
-		await expect(page.getByRole('button', { name: '2 seleccionados' })).toBeVisible();
+		await expect(multiInput).toHaveValue('2 seleccionados');
 	});
 
 	// ─── Tree field ──────────────────────────────────────────────────────────────
