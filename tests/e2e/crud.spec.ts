@@ -74,9 +74,7 @@ test.describe('GenericCRUD', () => {
 		);
 	});
 
-	test('read: a formatter returning HTML renders as markup, not escaped text', async ({
-		page
-	}) => {
+	test('read: a formatter returning HTML renders as markup, not escaped text', async ({ page }) => {
 		await page.locator('tbody tr:first-child').getByRole('button', { name: 'Ver' }).click();
 		await page.waitForURL(/\?id=/);
 
@@ -171,13 +169,17 @@ test.describe('GenericCRUD', () => {
 	// ─── Generic search ─────────────────────────────────────────────────────────
 
 	test('search: filters the list by title or description', async ({ page }) => {
-		await page.getByPlaceholder('Search tasks...').fill('groceries');
+		// The toolbar also renders an `aria-hidden` off-screen clone of itself
+		// (used to measure whether it should collapse), so scope by role —
+		// which excludes aria-hidden nodes — rather than by placeholder text,
+		// which would match both.
+		await page.getByRole('searchbox', { name: 'Search tasks...' }).fill('groceries');
 		await expect(page.locator('tbody tr')).toHaveCount(1);
 		await expect(page.locator('tbody')).toContainText('Buy groceries');
 	});
 
 	test('search: clearing the input restores the full list', async ({ page }) => {
-		const input = page.getByPlaceholder('Search tasks...');
+		const input = page.getByRole('searchbox', { name: 'Search tasks...' });
 		await input.fill('groceries');
 		await expect(page.locator('tbody tr')).toHaveCount(1);
 

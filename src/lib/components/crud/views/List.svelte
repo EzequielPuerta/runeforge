@@ -328,13 +328,13 @@
 				class="btn-outline"
 				disabled={!isView && selected.size === 0}
 				title={bulkAction.tooltip ?? bulkAction.label}
-				aria-label={bulkAction.tooltip ?? bulkAction.label}
+				aria-label={bulkAction.label ? undefined : bulkAction.tooltip}
 				onclick={measuring ? undefined : () => handleBulkAction(bulkAction)}
 			>
 				<BulkIcon class="size-4" />
 				{#if bulkAction.label}
 					{bulkAction.label}{#if !isView}
-						({selected.size})
+						&nbsp;({selected.size})
 					{/if}
 				{/if}
 			</Button>
@@ -505,7 +505,7 @@
 								>
 									<BulkIcon class="size-4" />
 									{bulkAction.label ?? bulkAction.tooltip}{#if !isView}
-										({selected.size})
+										&nbsp;({selected.size})
 									{/if}
 								</Button>
 							{/if}
