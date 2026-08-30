@@ -30,6 +30,7 @@ export const es: RuneforgeStrings = {
 	duplicate: 'Duplicar',
 	cancel: 'Cancelar',
 	back: 'Volver',
+	saveSuccess: 'Guardado correctamente.',
 	add: 'Agregar',
 	remove: 'Quitar',
 	noItems: 'Sin elementos agregados',

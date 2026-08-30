@@ -30,6 +30,7 @@ export const en: RuneforgeStrings = {
 	duplicate: 'Duplicate',
 	cancel: 'Cancel',
 	back: 'Back',
+	saveSuccess: 'Saved successfully.',
 	add: 'Add',
 	remove: 'Remove',
 	noItems: 'No items added',

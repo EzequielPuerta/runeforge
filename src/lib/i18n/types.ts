@@ -49,6 +49,10 @@ export interface RuneforgeStrings {
 	duplicate: string;
 	cancel: string;
 	back: string;
+	/** Create form only: shown after "Save and continue"/"Duplicate" save
+	 * successfully but keep the user on the form (unlike a plain Save, which
+	 * navigates away and needs no extra confirmation). */
+	saveSuccess: string;
 
 	// CRUD embedded fields (Field's "embedded" type: an add-item modal + list)
 	add: string;

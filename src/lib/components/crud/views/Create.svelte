@@ -40,8 +40,16 @@
 
   let fieldErrors = $state<Record<string, string>>({});
   let internalError = $state('');
+  let successMessage = $state('');
+  let successTimeout: ReturnType<typeof setTimeout> | undefined;
   let continueCreating = $state(false);
   let duplicating = $state(false);
+
+  function flashSuccess() {
+    successMessage = strings.saveSuccess;
+    clearTimeout(successTimeout);
+    successTimeout = setTimeout(() => (successMessage = ''), 4000);
+  }
 
   let record = $state<Record<string, unknown>>(untrack(() => emptyRecord(fields)));
 
@@ -72,6 +80,15 @@
     ]}
   />
 
+  {#if successMessage}
+    <div role="alert" class="alert alert-success">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+      <span class="text-sm">{successMessage}</span>
+    </div>
+  {/if}
+
   {#if errorEntries.length > 0}
     <div role="alert" class="alert alert-error">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -93,6 +110,8 @@
     use:enhance={({ formData, cancel }) => {
       fieldErrors = {};
       internalError = '';
+      successMessage = '';
+      clearTimeout(successTimeout);
       const errs = validateAll(fields, formData, strings);
       if (Object.keys(errs).length > 0) {
         fieldErrors = errs;
@@ -106,9 +125,11 @@
             record = emptyRecord(fields);
             fieldErrors = {};
             internalError = '';
+            flashSuccess();
           } else if (duplicating) {
             fieldErrors = {};
             internalError = '';
+            flashSuccess();
           } else {
             onSuccess?.();
           }
