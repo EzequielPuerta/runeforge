@@ -8,7 +8,7 @@
   let {
     name,
     id,
-    value = '',
+    value = $bindable(''),
     autocomplete,
     required = true,
     placeholder = '',
@@ -45,7 +45,7 @@
     {id}
     {required}
     {placeholder}
-    {value}
+    bind:value
     {autocomplete}
     type={visible ? 'text' : 'password'}
     class={['grow', inputClass]}
