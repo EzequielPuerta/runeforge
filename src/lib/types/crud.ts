@@ -82,10 +82,15 @@ export interface ActionConfiguration<T extends object = Record<string, unknown>>
 	endpoint?: string;
 	confirm?: boolean;
 	callback?: (items: T[]) => void | Promise<void>;
-	/** Create form only: the "Save and continue" button, which submits to the
-	 * same `endpoint` and then blanks the form so the user can create another
-	 * record from scratch. Enabled by default — pass `{ enabled: false }` to
-	 * hide it. */
+	/** The "Save and continue" button, shown alongside Save/Cancel.
+	 * - Create form: submits to the same `endpoint` and then blanks the form
+	 *   so the user can create another record from scratch. Enabled by
+	 *   default — pass `{ enabled: false }` to hide it.
+	 * - Update form: submits to the same `endpoint` and then loads the record
+	 *   that follows the current one in the list into the same form, so
+	 *   several records can be edited in a row — handy after a bulk import.
+	 *   Falls back to reloading the current instance when there is no next
+	 *   one. Disabled by default — pass `{ enabled: true }` to show it. */
 	continue?: CreateFormButtonConfiguration;
 	/** Create form only: shows a "Duplicate" button alongside Save/Cancel that
 	 * submits to the same `endpoint`, but — unlike "Save and continue", which

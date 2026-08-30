@@ -25,6 +25,7 @@
     serverError = '',
     onCancel,
     onSuccess,
+    onContinue,
   }: {
     labelOne?: string;
     labelMany?: string;
@@ -37,6 +38,7 @@
     serverError?: string;
     onCancel?: () => void;
     onSuccess?: () => void;
+    onContinue?: () => void;
   } = $props();
 
   const icons = $derived(getIconSet() ?? defaultIconSet);
@@ -44,6 +46,7 @@
 
   let fieldErrors = $state<Record<string, string>>({});
   let internalError = $state('');
+  let continuing = $state(false);
 
   function seedFromInstance(inst: Record<string, unknown>): Record<string, unknown> {
     const seeded: Record<string, unknown> = { ...inst };
@@ -66,6 +69,10 @@
 
   const groups = $derived(groupFields(fields));
   const hasFileField = $derived(fields.some((f) => f.type === 'file'));
+
+  const continueEnabled = $derived(update.continue?.enabled ?? false);
+  const continueLabel = $derived(update.continue?.label ?? strings.saveAndContinue);
+  const continueClass = $derived(update.continue?.class ?? '');
 
   const errorEntries = $derived([
     ...((serverError || internalError) ? [['_global', internalError || serverError] as [string, string]] : []),
@@ -113,7 +120,12 @@
       return async ({ result, update: updateForm }) => {
         if (result.type === 'success' || result.type === 'redirect') {
           await updateForm({ reset: false });
-          onSuccess?.();
+          if (continuing) {
+            continuing = false;
+            onContinue?.();
+          } else {
+            onSuccess?.();
+          }
         } else if (result.type === 'error') {
           internalError = result.error?.message ?? strings.serverError;
         } else {
@@ -161,7 +173,17 @@
       <Button variant="ghost" onclick={() => onCancel?.()}>
         {strings.cancel}
       </Button>
-      <Button type="submit" variant="primary">
+      {#if continueEnabled}
+        <Button
+          type="submit"
+          variant="secondary"
+          class={continueClass}
+          onclick={() => { continuing = true; }}
+        >
+          {continueLabel}
+        </Button>
+      {/if}
+      <Button type="submit" variant="primary" onclick={() => { continuing = false; }}>
         {strings.save}
       </Button>
     </div>

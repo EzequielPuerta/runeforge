@@ -154,6 +154,21 @@
 		);
 	}
 
+	// "Save and continue" on the Update form: jumps to editing the record that
+	// follows the current one in the currently loaded list, falling back to
+	// re-editing the same instance when it's the last one (or isn't found).
+	function nextInstance(current: T): T {
+		const currentId = (current as Record<string, unknown>)[idKey];
+		const idx = entityData.findIndex(
+			(item) => (item as Record<string, unknown>)[idKey] === currentId
+		);
+		return (idx !== -1 ? entityData[idx + 1] : undefined) ?? current;
+	}
+	async function navContinueEdit() {
+		if (!singleInstance) return;
+		await navEdit(nextInstance(singleInstance));
+	}
+
 	const resolvedColumns: ColumnDefinition<T>[] = $derived(
 		columns ??
 			(meta
@@ -341,6 +356,7 @@
 		{serverError}
 		onCancel={navList}
 		onSuccess={navList}
+		onContinue={navContinueEdit}
 	/>
 {:else}
 	<List
