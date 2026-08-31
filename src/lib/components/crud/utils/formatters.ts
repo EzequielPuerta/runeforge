@@ -14,7 +14,40 @@ const TOKENS: Record<string, (d: Date) => string> = {
 	ss: (d) => String(d.getSeconds()).padStart(2, '0')
 };
 
-export const formatDatetime = (format = 'dd/mm/YYYY HH:MM'): (() => (value: Date) => string) => {
+// Same tokens, read from Intl.DateTimeFormat parts instead of local Date
+// getters, so the result depends only on `timeZone` — never on the
+// environment (SSR host vs. browser) running the code.
+function tokensFor(d: Date, timeZone: string): Record<string, string> {
+	const parts = new Intl.DateTimeFormat('en-US', {
+		timeZone,
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+		second: '2-digit',
+		hourCycle: 'h23'
+	}).formatToParts(d);
+	const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
+	return {
+		dd: get('day'),
+		mm: get('month'),
+		YYYY: get('year'),
+		HH: get('hour'),
+		MM: get('minute'),
+		ss: get('second')
+	};
+}
+
+// `timeZone` is an IANA zone name (e.g. 'America/Argentina/Buenos_Aires').
+// Omit it to keep formatting in whichever timezone the running environment
+// is in — this differs between SSR (server) and CSR (browser) and will
+// render the same instant differently depending on where it runs, so pass
+// an explicit `timeZone` for any value that must display consistently.
+export const formatDatetime = (
+	format = 'dd/mm/YYYY HH:MM',
+	timeZone?: string
+): (() => (value: Date) => string) => {
 	const fmt = (value: Date): string => {
 		// `null`/`undefined`/`''` (an unset field) must render blank, not epoch 0
 		// — `new Date(null)` is 1970-01-01, a "valid" Date whose getTime() isn't
@@ -22,7 +55,10 @@ export const formatDatetime = (format = 'dd/mm/YYYY HH:MM'): (() => (value: Date
 		if (value === null || value === undefined || (value as unknown) === '') return '';
 		const d = new Date(value);
 		if (isNaN(d.getTime())) return '';
-		return format.replace(/dd|mm|YYYY|HH|MM|ss/g, (token) => TOKENS[token](d));
+		const tokens = timeZone ? tokensFor(d, timeZone) : null;
+		return format.replace(/dd|mm|YYYY|HH|MM|ss/g, (token) =>
+			tokens ? tokens[token] : TOKENS[token](d)
+		);
 	};
 	return () => fmt;
 };
