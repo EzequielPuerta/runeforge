@@ -92,11 +92,15 @@ export interface ActionConfiguration<T extends object = Record<string, unknown>>
 	 *   Falls back to reloading the current instance when there is no next
 	 *   one. Disabled by default — pass `{ enabled: true }` to show it. */
 	continue?: CreateFormButtonConfiguration;
-	/** Create form only: shows a "Duplicate" button alongside Save/Cancel that
-	 * submits to the same `endpoint`, but — unlike "Save and continue", which
-	 * blanks the form — leaves the just-submitted values in place so the user
-	 * can tweak a few fields and save again as a new record. Disabled by
-	 * default — pass `{ enabled: true }` to show it. */
+	/** Shows a "Duplicate" button alongside Save/Cancel.
+	 * - Create form: submits to the same `endpoint`, but — unlike "Save and
+	 *   continue", which blanks the form — leaves the just-submitted values in
+	 *   place so the user can tweak a few fields and save again as a new
+	 *   record.
+	 * - Update form: submits the edit to the same `endpoint`, then opens the
+	 *   create form pre-filled with the just-saved instance's values, so a new
+	 *   record can be started from it without retyping everything.
+	 * Disabled by default — pass `{ enabled: true }` to show it. */
 	duplication?: CreateFormButtonConfiguration;
 }
 

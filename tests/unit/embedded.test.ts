@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
 	emptyRecord,
 	seedField,
+	seedRecord,
 	defaultItemLabel,
 	formatEmbeddedFieldValue
 } from '$lib/components/crud/utils/embedded.js';
@@ -69,6 +70,38 @@ describe('emptyRecord', () => {
 			{ attribute: 'quantity', type: 'number', default: 5 }
 		];
 		expect(emptyRecord(fields)).toEqual({ name: '', quantity: '5' });
+	});
+});
+
+describe('seedRecord', () => {
+	it('normalizes each field from the source object like emptyRecord does for defaults', () => {
+		const fields: FieldDefinition[] = [
+			{ attribute: 'active', type: 'boolean' },
+			{ attribute: 'quantity', type: 'number' },
+			{ attribute: 'tags', type: 'multiselect' }
+		];
+		expect(seedRecord(fields, { active: true, quantity: 5, tags: [1, 2] })).toEqual({
+			active: true,
+			quantity: '5',
+			tags: ['1', '2']
+		});
+	});
+
+	it("prefers a field's seed resolver over the source's raw value", () => {
+		const fields: FieldDefinition[] = [
+			{ attribute: 'label', type: 'text', seed: (src) => `${src.name}!` }
+		];
+		expect(seedRecord(fields, { name: 'foo', label: 'ignored' })).toEqual({
+			name: 'foo',
+			label: 'foo!'
+		});
+	});
+
+	it('keeps source keys that have no matching field, e.g. the id', () => {
+		expect(seedRecord([{ attribute: 'name', type: 'text' }], { id: '123', name: 'foo' })).toEqual({
+			id: '123',
+			name: 'foo'
+		});
 	});
 });
 

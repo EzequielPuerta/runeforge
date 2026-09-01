@@ -139,10 +139,18 @@
 		activeBulkAction = { action, items };
 	}
 
+	let duplicateSeed = $state<Record<string, unknown> | undefined>(undefined);
+
 	async function navList() {
+		duplicateSeed = undefined;
 		await goto(lastListState.search || '?');
 	}
 	async function navCreate() {
+		duplicateSeed = undefined;
+		await goto('?view=create');
+	}
+	async function navDuplicate(record: Record<string, unknown>) {
+		duplicateSeed = record;
 		await goto('?view=create');
 	}
 	async function navRead(item: T) {
@@ -337,6 +345,7 @@
 		fields={resolvedFields}
 		{creation}
 		{serverError}
+		seed={duplicateSeed}
 		onCancel={navList}
 		onSuccess={navList}
 	/>
@@ -364,6 +373,7 @@
 		onCancel={navList}
 		onSuccess={navList}
 		onContinue={navContinueEdit}
+		onDuplicate={navDuplicate}
 	/>
 {:else}
 	<List

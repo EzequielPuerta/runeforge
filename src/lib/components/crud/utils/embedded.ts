@@ -32,6 +32,23 @@ export function emptyRecord<T extends object = Record<string, unknown>>(
 	return Object.fromEntries(fields.map((f) => [f.attribute, seedField(f, f.default)]));
 }
 
+// Shared by Update.svelte (loading the instance being edited) and Create.svelte
+// (pre-filling a new record from a duplicated instance): builds a draft record
+// from an arbitrary source object, running each field's `seed` resolver
+// (falling back to the source's raw value) through the same seedField
+// normalization as emptyRecord.
+export function seedRecord<T extends object = Record<string, unknown>>(
+	fields: FieldDefinition<T>[],
+	source: Record<string, unknown>
+): Record<string, unknown> {
+	const seeded: Record<string, unknown> = { ...source };
+	for (const f of fields) {
+		const raw = f.seed ? f.seed(source) : source[f.attribute];
+		seeded[f.attribute] = seedField(f, raw);
+	}
+	return seeded;
+}
+
 // Shared by defaultItemLabel and the CSV/XLSX export column expansion: renders
 // one sub-field's raw stored value as display text, resolving a select's
 // option label instead of its stored value. Booleans are left to the caller

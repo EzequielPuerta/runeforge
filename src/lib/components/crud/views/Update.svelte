@@ -8,7 +8,7 @@
   import { defaultIconSet } from '$lib/icons/sets/default.js';
   import { validateAll } from '$lib/components/crud/utils/validation.js';
   import { groupFields } from '$lib/components/crud/utils/grouping.js';
-  import { seedField } from '$lib/components/crud/utils/embedded.js';
+  import { seedRecord } from '$lib/components/crud/utils/embedded.js';
   import type { ActionConfiguration, FieldDefinition } from '$lib/types/crud.js';
   import { getStrings } from '$lib/i18n/context.js';
 
@@ -26,6 +26,7 @@
     onCancel,
     onSuccess,
     onContinue,
+    onDuplicate,
   }: {
     labelOne?: string;
     labelMany?: string;
@@ -39,6 +40,7 @@
     onCancel?: () => void;
     onSuccess?: () => void;
     onContinue?: () => void;
+    onDuplicate?: (record: Record<string, unknown>) => void;
   } = $props();
 
   const icons = $derived(getIconSet() ?? defaultIconSet);
@@ -47,24 +49,16 @@
   let fieldErrors = $state<Record<string, string>>({});
   let internalError = $state('');
   let continuing = $state(false);
-
-  function seedFromInstance(inst: Record<string, unknown>): Record<string, unknown> {
-    const seeded: Record<string, unknown> = { ...inst };
-    for (const f of fields) {
-      const raw = f.seed ? f.seed(inst) : inst[f.attribute];
-      seeded[f.attribute] = seedField(f, raw);
-    }
-    return seeded;
-  }
+  let duplicating = $state(false);
 
   let record = $state<Record<string, unknown>>(
-    untrack(() => seedFromInstance(instance as Record<string, unknown>))
+    untrack(() => seedRecord(fields, instance as Record<string, unknown>))
   );
 
   $effect(() => {
     const id = (instance as Record<string, unknown>)[idKey];
     if (!id) return;
-    untrack(() => { record = seedFromInstance(instance as Record<string, unknown>); });
+    untrack(() => { record = seedRecord(fields, instance as Record<string, unknown>); });
   });
 
   const groups = $derived(groupFields(fields));
@@ -73,6 +67,10 @@
   const continueEnabled = $derived(update.continue?.enabled ?? false);
   const continueLabel = $derived(update.continue?.label ?? strings.saveAndContinue);
   const continueClass = $derived(update.continue?.class ?? '');
+
+  const duplicationEnabled = $derived(update.duplication?.enabled ?? false);
+  const duplicationLabel = $derived(update.duplication?.label ?? strings.duplicate);
+  const duplicationClass = $derived(update.duplication?.class ?? '');
 
   const errorEntries = $derived([
     ...((serverError || internalError) ? [['_global', internalError || serverError] as [string, string]] : []),
@@ -123,6 +121,9 @@
           if (continuing) {
             continuing = false;
             onContinue?.();
+          } else if (duplicating) {
+            duplicating = false;
+            onDuplicate?.(record);
           } else {
             onSuccess?.();
           }
@@ -173,17 +174,27 @@
       <Button variant="ghost" onclick={() => onCancel?.()}>
         {strings.cancel}
       </Button>
+      {#if duplicationEnabled}
+        <Button
+          type="submit"
+          variant="warning"
+          class={duplicationClass}
+          onclick={() => { continuing = false; duplicating = true; }}
+        >
+          {duplicationLabel}
+        </Button>
+      {/if}
       {#if continueEnabled}
         <Button
           type="submit"
           variant="secondary"
           class={continueClass}
-          onclick={() => { continuing = true; }}
+          onclick={() => { continuing = true; duplicating = false; }}
         >
           {continueLabel}
         </Button>
       {/if}
-      <Button type="submit" variant="primary" onclick={() => { continuing = false; }}>
+      <Button type="submit" variant="primary" onclick={() => { continuing = false; duplicating = false; }}>
         {strings.save}
       </Button>
     </div>

@@ -8,7 +8,7 @@
   import { defaultIconSet } from '$lib/icons/sets/default.js';
   import { validateAll } from '$lib/components/crud/utils/validation.js';
   import { groupFields } from '$lib/components/crud/utils/grouping.js';
-  import { emptyRecord } from '$lib/components/crud/utils/embedded.js';
+  import { emptyRecord, seedRecord } from '$lib/components/crud/utils/embedded.js';
   import type { ActionConfiguration, FieldDefinition } from '$lib/types/crud.js';
   import { getStrings } from '$lib/i18n/context.js';
 
@@ -21,6 +21,7 @@
     fields = [] as FieldDefinition<T>[],
     creation = {} as ActionConfiguration<T>,
     serverError = '',
+    seed = undefined as Record<string, unknown> | undefined,
     onCancel,
     onSuccess,
   }: {
@@ -31,6 +32,9 @@
     fields?: FieldDefinition<T>[];
     creation?: ActionConfiguration<T>;
     serverError?: string;
+    /** Pre-fills the form from another instance's values — used when the
+     * create view is reached via an Update form's "Duplicate" button. */
+    seed?: Record<string, unknown>;
     onCancel?: () => void;
     onSuccess?: () => void;
   } = $props();
@@ -51,7 +55,9 @@
     successTimeout = setTimeout(() => (successMessage = ''), 4000);
   }
 
-  let record = $state<Record<string, unknown>>(untrack(() => emptyRecord(fields)));
+  let record = $state<Record<string, unknown>>(
+    untrack(() => (seed ? seedRecord(fields, seed) : emptyRecord(fields)))
+  );
 
   const groups = $derived(groupFields(fields));
   const hasFileField = $derived(fields.some((f) => f.type === 'file'));
