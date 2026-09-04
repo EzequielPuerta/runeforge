@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
 	formatBoolean,
 	formatDatetime,
-	formatTruncateTextUpTo,
 	formatInstance
 } from '$lib/components/crud/utils/formatters.js';
 
@@ -49,20 +48,6 @@ describe('formatDatetime', () => {
 		const fmt = formatDatetime('HH:MM:ss')();
 		const d = new Date(2024, 0, 1, 14, 5, 9);
 		expect(fmt(d)).toBe('14:05:09');
-	});
-});
-
-describe('formatTruncateTextUpTo', () => {
-	const fmt = formatTruncateTextUpTo(5)();
-	it('leaves strings at or below max length unchanged', () => {
-		expect(fmt('abc')).toBe('abc');
-		expect(fmt('abcde')).toBe('abcde');
-	});
-	it('truncates with ellipsis when over max length', () => {
-		expect(fmt('abcdefgh')).toBe('abcde…');
-	});
-	it('handles empty string', () => {
-		expect(fmt('')).toBe('');
 	});
 });
 

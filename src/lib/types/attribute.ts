@@ -69,7 +69,15 @@ export type AttributeMetadata = {
   seed?: SeedResolver;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   component?: CellComponent<any, any>;
+  /** Formats the raw value everywhere it's displayed read-only: the list
+   * column's cell, the Read view's field, and any other readonly Field. */
   formatter?: FormatterResolver;
+  /** List column only: truncates the cell's text to this many characters,
+   * appending an ellipsis, applied to `formatter`'s output (or, absent one,
+   * the raw stringified value) — the Read view and Create/Update forms
+   * always show the untruncated value. Handy for a long free-text column
+   * that would otherwise blow out the table's width. */
+  truncateUpTo?: number;
   /** Pass a function to require a field only in certain conditions, e.g. a
    * quantity that only applies to some of a select's options. */
   required?: boolean | RequiredResolver;

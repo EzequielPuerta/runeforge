@@ -14,6 +14,21 @@ export function resolveFormatter(m: AttributeMetadata, d: unknown) {
 	return m.formatter?.(d);
 }
 
+// List column only (GenericCRUD's resolvedColumns): wraps `formatter` (or,
+// absent one, the same raw String(value) TableBody falls back to) so a column
+// that needs to stay narrow can truncate its cell without that truncation
+// leaking into the Read view or the Create/Update forms, which call
+// `formatter` directly and never go through this wrapper.
+export function truncateFormatter<T extends object = Record<string, unknown>, V = unknown>(
+	formatter: ((value: V, row: T) => string) | undefined,
+	maxLength: number
+): (value: V, row: T) => string {
+	return (value, row) => {
+		const str = formatter ? formatter(value, row) : String(value ?? '');
+		return str.length > maxLength ? str.slice(0, maxLength) + '…' : str;
+	};
+}
+
 export function inferType(key: string, value: unknown): AttributeType {
 	if (typeof value === 'boolean') return 'boolean';
 	if (typeof value === 'number') return 'number';

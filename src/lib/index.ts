@@ -99,6 +99,7 @@ export { AUTO_EXCLUDED } from './components/crud/utils/constants.js';
 export {
 	resolveOptions,
 	resolveFormatter,
+	truncateFormatter,
 	inferType,
 	buildFieldDefinitions
 } from './components/crud/utils/resolution.js';
@@ -106,7 +107,6 @@ export { fieldLabel, initials } from './components/crud/utils/misc.js';
 export {
 	formatBoolean,
 	formatDatetime,
-	formatTruncateTextUpTo,
 	formatInstance
 } from './components/crud/utils/formatters.js';
 export { groupFields } from './components/crud/utils/grouping.js';

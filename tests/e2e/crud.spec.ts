@@ -83,6 +83,22 @@ test.describe('GenericCRUD', () => {
 		await expect(link).toHaveAttribute('href', 'https://example.com/groceries');
 	});
 
+	test('read: shows the untruncated value for a column truncated in the list', async ({ page }) => {
+		const longDescription = 'a'.repeat(80);
+		await page.getByRole('button', { name: /Crear/ }).click();
+		await page.getByRole('textbox', { name: 'Title' }).fill('Long description task');
+		await page.getByRole('textbox', { name: 'Description' }).fill(longDescription);
+		await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+
+		const row = page.locator('tbody tr', { hasText: 'Long description task' });
+		await expect(row).toContainText('a'.repeat(60) + '…');
+		await expect(row).not.toContainText(longDescription);
+
+		await row.getByRole('button', { name: 'Ver' }).click();
+		await page.waitForURL(/\?id=/);
+		await expect(page.getByRole('textbox', { name: 'Description' })).toHaveValue(longDescription);
+	});
+
 	test('read: "volver" returns to the list', async ({ page }) => {
 		await page.locator('tbody tr:first-child').getByRole('button', { name: 'Ver' }).click();
 		await page.waitForURL(/\?id=/);

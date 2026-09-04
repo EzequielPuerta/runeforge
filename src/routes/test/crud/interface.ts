@@ -1,5 +1,4 @@
 import { AttributeType, formatBoolean, type InterfaceMetadata } from '$lib/index.js';
-import { formatTruncateTextUpTo } from '$lib/index.js';
 
 export interface ITask {
 	_id: string;
@@ -19,7 +18,7 @@ export const taskMeta = {
 	description: {
 		label: 'Description',
 		type: AttributeType.textarea,
-		formatter: formatTruncateTextUpTo(60),
+		truncateUpTo: 60,
 		placeholder: 'Task description'
 	},
 	link: {

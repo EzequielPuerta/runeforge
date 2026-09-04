@@ -8,6 +8,7 @@
 	import { AUTO_EXCLUDED } from '$lib/components/crud/utils/constants.js';
 	import {
 		resolveFormatter,
+		truncateFormatter,
 		inferType,
 		buildFieldDefinitions
 	} from '$lib/components/crud/utils/resolution.js';
@@ -198,7 +199,7 @@
 							// embedded column without an explicit formatter falls back to
 							// joining each item's label (itemLabel, or the same
 							// sub-field-joining summary the embedded form list uses).
-							const formatter =
+							const resolvedFormatter =
 								resolveFormatter(m, data) ??
 								(embeddedFields
 									? (value: unknown) =>
@@ -212,6 +213,10 @@
 														.join(', ')
 												: ''
 									: undefined);
+							const formatter =
+								m.truncateUpTo != null
+									? truncateFormatter(resolvedFormatter, m.truncateUpTo)
+									: resolvedFormatter;
 							return {
 								attribute: k as keyof T & string,
 								title: m.label ?? k,

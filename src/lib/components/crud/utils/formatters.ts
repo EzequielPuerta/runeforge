@@ -63,13 +63,6 @@ export const formatDatetime = (
 	return () => fmt;
 };
 
-export function formatTruncateTextUpTo(maxLength: number): () => (value: string) => string {
-	return () => (value: string) => {
-		const str = String(value ?? '');
-		return str.length > maxLength ? str.slice(0, maxLength) + '…' : str;
-	};
-}
-
 function escapeHtml(str: string): string {
 	return str
 		.replace(/&/g, '&amp;')

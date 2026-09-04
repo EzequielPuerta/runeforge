@@ -3,6 +3,7 @@ import {
 	resolveOptions,
 	resolveDefault,
 	resolveFormatter,
+	truncateFormatter,
 	inferType,
 	buildFieldDefinitions
 } from '$lib/components/crud/utils/resolution.js';
@@ -60,6 +61,32 @@ describe('resolveFormatter', () => {
 		const m: AttributeMetadata = { formatter: () => inner };
 		const result = resolveFormatter(m, 'anything');
 		expect(result).toBe(inner);
+	});
+});
+
+describe('truncateFormatter', () => {
+	it('leaves strings at or below max length unchanged', () => {
+		const fmt = truncateFormatter(undefined, 5);
+		expect(fmt('abc', {})).toBe('abc');
+		expect(fmt('abcde', {})).toBe('abcde');
+	});
+
+	it('truncates with an ellipsis when over max length', () => {
+		const fmt = truncateFormatter(undefined, 5);
+		expect(fmt('abcdefgh', {})).toBe('abcde…');
+	});
+
+	it('falls back to String(value) when there is no underlying formatter, like TableBody does', () => {
+		const fmt = truncateFormatter<Record<string, unknown>, unknown>(undefined, 10);
+		expect(fmt(null, {})).toBe('');
+		expect(fmt(42, {})).toBe('42');
+	});
+
+	it("wraps the underlying formatter's output instead of the raw value", () => {
+		const inner = (v: unknown) => `Sí: ${String(v)}`;
+		const fmt = truncateFormatter(inner, 5);
+		expect(fmt('x', {})).toBe('Sí: x');
+		expect(fmt('long-value', {})).toBe('Sí: l…');
 	});
 });
 
