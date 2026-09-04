@@ -46,6 +46,7 @@ A SvelteKit toolkit that forges forms, tables, actions, and CRUD workflows from 
       - [Custom row actions](#custom-row-actions)
       - [Custom bulk actions](#custom-bulk-actions)
       - [Exporting data (CSV/XLSX)](#exporting-data-csvxlsx)
+      - [Reordering rows](#reordering-rows)
       - [Server-side pagination, sorting & filtering](#server-side-pagination-sorting--filtering)
     - [PaginatedTable](#paginatedtable)
     - [Form Components](#form-components)
@@ -86,6 +87,7 @@ Runeforge provides a set of composable, metadata-driven components for building 
 - Tailwind CSS 4
 - DaisyUI 5
 - Cally
+- `sortablejs` (optional, only if you enable [drag-to-reorder](#reordering-rows))
 - `xlsx` (optional, only if you enable Excel export)
 
 ---
@@ -102,6 +104,7 @@ Runeforge provides a set of composable, metadata-driven components for building 
 - **Embedded fields** — model one-to-many sub-documents (e.g. line items, adjustments) as an in-form add/edit list backed by a single JSON field.
 - **Custom row & bulk actions** — add entity-specific actions (in a panel or via redirect) alongside the built-in view/edit/delete, and bulk actions that operate on the current selection.
 - **CSV/XLSX export** — one-click export of the current table view, with optional Excel support via the `xlsx` package.
+- **Drag-to-reorder** — an opt-in row-reordering layer that persists a sequential order attribute after each drag.
 - **Server-side pagination, sorting & filtering** — point `GenericCRUD`/`PaginatedTable` at a paginated envelope and it drives page/sort/filter state through the URL for you.
 - **Pluggable icon system** — swap the default icon set or use the included Bootstrap Icons alternative via `setIconSet`.
 - **Standalone components** — table, form, and navigation components can be used independently without the full CRUD orchestrator.
@@ -697,19 +700,22 @@ Key props:
 - `columns` — `ColumnDefinition[]` for the table view
 - `fields` — `FieldDefinition[]` for form views
 - `creation`, `update`, `read`, `deletion` — `ActionConfiguration` objects that define handlers and permissions for each operation. Set `confirm: true` on `deletion` to show a confirmation dialog before any delete (single row or batch)
-- `actions` — `CustomAction[]`, extra per-row actions — see [Custom row actions](#custom-row-actions)
-- `customBulkActions` — `CustomBulkAction[]`, extra actions on the current selection — see [Custom bulk actions](#custom-bulk-actions)
-- `search` — `SearchConfiguration`, shows a free-text search box — see [Free-text search](#free-text-search)
-- `enableExport`, `onExport`, `xlsx` — CSV/Excel export — see [Exporting data](#exporting-data-csvxlsx)
+- `actions` — a `ListActions` object grouping the list view's extra actions:
+  - `actions.custom` — `CustomAction[]`, extra per-row actions — see [Custom row actions](#custom-row-actions)
+  - `actions.bulk` — `CustomBulkAction[]`, extra actions on the current selection — see [Custom bulk actions](#custom-bulk-actions)
+- `config` — a `ListConfig` object grouping the list view's opt-in behaviors:
+  - `config.search` — `SearchConfiguration`, shows a free-text search box — see [Free-text search](#free-text-search)
+  - `config.export` — `ExportConfiguration`, enables CSV/Excel export — see [Exporting data](#exporting-data-csvxlsx)
+  - `config.reorder` — `ReorderConfiguration`, enables drag-to-reorder rows — see [Reordering rows](#reordering-rows)
 
 #### Free-text search
 
-Passing `search` renders a debounced search box in the header. Typing updates a URL search param (`?search=...` by default), resets pagination and any open create/read/edit view, and leaves interpreting the term entirely to your `load` function — it's the same mechanism server-side pagination uses, so it composes naturally with it.
+Passing `config.search` renders a debounced search box in the header. Typing updates a URL search param (`?search=...` by default), resets pagination and any open create/read/edit view, and leaves interpreting the term entirely to your `load` function — it's the same mechanism server-side pagination uses, so it composes naturally with it.
 
 ```ts
 <GenericCRUD
   ...
-  search={{ param: 'q', placeholder: 'Search tasks...', debounceMs: 300 }}
+  config={{ search: { param: 'q', placeholder: 'Search tasks...', debounceMs: 300 } }}
 />
 ```
 
@@ -721,7 +727,7 @@ Passing `search` renders a debounced search box in the header. Typing updates a 
 
 #### Custom row actions
 
-`actions` adds entries to the per-row action menu, alongside the built-in view/edit/delete. Each `CustomAction` resolves in one of two ways — provide exactly one of `view` or `href`:
+`actions.custom` adds entries to the per-row action menu, alongside the built-in view/edit/delete. Each `CustomAction` resolves in one of two ways — provide exactly one of `view` or `href`:
 
 - `href(item)` — plain navigation, e.g. deep-linking into another CRUD's filtered list.
 - `view` — a Svelte component of your own that `GenericCRUD` mounts directly (no wrapper) when the action runs. Since you own the whole component, you decide how it presents itself — typically as a modal built on the exported `Modal` component, sized however that action needs via `Modal`'s `class`/`width`/`maxWidth`/`height`/`maxHeight` props (see [Shared Components](#shared-components)).
@@ -746,13 +752,13 @@ const actions: CustomAction<IWidget>[] = [
 ];
 ```
 
-```svelte
-<GenericCRUD ... {actions} />
+```ts
+<GenericCRUD ... actions={{ custom: actions }} />
 ```
 
 A `view` component receives `instance`, `label`, `endpoint`, `serverError`, `onCancel`, and `onSuccess` — the same shape Create/Update use internally — so it can reuse `enhance`-based form submission while rendering as a parametrized modal:
 
-```svelte
+```ts
 <!-- ArchiveForm.svelte -->
 <script lang="ts">
   import { enhance } from '$app/forms';
@@ -782,15 +788,17 @@ A `view` component receives `instance`, `label`, `endpoint`, `serverError`, `onC
 
 #### Custom bulk actions
 
-`customBulkActions` adds buttons next to the built-in Delete button in the header, operating on the current row selection. Each one is disabled until at least one row is selected, and (like deletion) can require confirmation.
+`actions.bulk` adds buttons next to the built-in Delete button in the header, operating on the current row selection. Each one is disabled until at least one row is selected, and (like deletion) can require confirmation.
 
 ```ts
 <GenericCRUD
   ...
-  customBulkActions={[
-    { label: 'Complete', icon: CheckIcon, endpoint: '?/complete' },
-    { label: 'Mark pending', icon: UndoIcon, endpoint: '?/incomplete', variant: 'error', confirm: true },
-  ]}
+  actions={{
+    bulk: [
+      { kind: 'endpoint', label: 'Complete', icon: CheckIcon, endpoint: '?/complete' },
+      { kind: 'endpoint', label: 'Mark pending', icon: UndoIcon, endpoint: '?/incomplete', variant: 'error', confirm: true },
+    ],
+  }}
 />
 ```
 
@@ -798,7 +806,7 @@ A `view` component receives `instance`, `label`, `endpoint`, `serverError`, `onC
 
 #### Exporting data (CSV/XLSX)
 
-`enableExport` adds an export button to the header offering CSV (always) and Excel (when an `xlsx` module is supplied). Runeforge never bundles `xlsx` itself — install it separately and pass the resolved module in, so the dependency stays fully optional:
+`config.export` adds an export button to the header offering CSV (always) and Excel (when a `xlsx` module is supplied). Its mere presence enables the button — pass `{}` for CSV-only export. Runeforge never bundles `xlsx` itself — install it separately and pass the resolved module in, so the dependency stays fully optional:
 
 ```bash
 pnpm add xlsx
@@ -810,24 +818,115 @@ pnpm add xlsx
   import * as xlsx from 'xlsx';
 </script>
 
-<GenericCRUD ... enableExport {xlsx} />
+<GenericCRUD ... config={{ export: { xlsx } }} />
 ```
 
-In client-pagination mode, export includes every row currently matching the table's filters (not just the visible page). In [server-pagination mode](#server-side-pagination-sorting--filtering), pass `onExport` to fetch the full, unpaginated result set for the current query — without it, export falls back to just the currently loaded page:
+In client-pagination mode, export includes every row currently matching the table's filters (not just the visible page). In [server-pagination mode](#server-side-pagination-sorting--filtering), pass `config.export.callback` to fetch the full, unpaginated result set for the current query — without it, export falls back to just the currently loaded page:
 
 ```ts
 <GenericCRUD
   ...
-  enableExport
-  onExport={async (query) => {
-    const params = new URLSearchParams();
-    if (query.ordering) params.set('ordering', query.ordering);
-    // ...translate query.filters into your API's params
-    const res = await fetch(`/api/widgets/export?${params}`);
-    return res.json();
+  config={{
+    export: {
+      callback: async (query) => {
+        const params = new URLSearchParams();
+        if (query.ordering) params.set('ordering', query.ordering);
+        // ...translate query.filters into your API's params
+        const res = await fetch(`/api/widgets/export?${params}`);
+        return res.json();
+      },
+    },
   }}
 />
 ```
+
+#### Reordering rows
+
+`config.reorder` turns on drag-to-reorder: each row gets a drag handle (⋮⋮ by default — pass `icon` for something else, e.g. a hamburger or a grab-hand icon) with a thicker left border, and dragging a row persists a new sequential value for whichever attribute you point it at. Off by default; only appears once `config.reorder` is set.
+
+Runeforge never imports `sortablejs` itself — install it separately and pass the resolved default export in via `sortable`, the same way `xlsx` works for export, so the dependency stays fully optional:
+
+```bash
+pnpm add sortablejs
+```
+
+```ts
+<script>
+  import { GenericCRUD } from 'runeforge';
+  import Sortable from 'sortablejs';
+</script>
+
+<GenericCRUD
+  ...
+  config={{
+    reorder: { attribute: 'order', sortable: Sortable, endpoint: '?/reorder' },
+  }}
+/>
+```
+
+```ts
+// +page.server.ts
+export const actions: Actions = {
+  reorder: async ({ request }) => {
+    const data = await request.formData();
+    const id = String(data.get('id') ?? '');
+    const order = Number(data.get('order') ?? 0);
+    await setWidgetOrder(id, order);
+    return { success: true };
+  },
+};
+```
+
+`endpoint` is `POST`ed once per row whose `attribute` value actually changed (FormData: `id` plus the attribute, e.g. `order`) after a drag, then the list refreshes — the same convention `deletion`/bulk actions use. Pass `callback` instead to handle the changed rows yourself (each one already carries its new attribute value):
+
+```ts
+config={{
+  reorder: {
+    attribute: 'order',
+    sortable: Sortable,
+    callback: async (items) => {
+      await Promise.all(items.map((item) => api.updateWidget(item._id, { order: item.order })));
+    },
+  },
+}}
+```
+
+A few things worth knowing about how reorder mode behaves:
+
+- **The list is ordered by `attribute` ascending (or `compare`, see below) the whole time reorder is active** — not by `_id`, not by whatever order the backend/array happens to return, and not by clicking a column header either: column-header sorting is unavailable while `config.reorder` is set, since row order needs a single, unambiguous source of truth for dragging to mean anything. This holds even if `attribute` is `excludedFromList` and has no column of its own — ordering reads the raw row value regardless of what's rendered. Per-column filters are unavailable for the same reason (a filtered-out row's position would become undefined).
+- **Pagination stays on.** To move a row across a page boundary, drag it to the narrow zone at either edge of the table and hold — after `pageFlipThresholdMs` (default `2000`) it flips to the previous/next page; keep hovering (without letting go) to flip again. Drop once you're on the right page.
+- It's **not supported in [server-pagination mode](#server-side-pagination-sorting--filtering)** (a `PaginatedEnvelope` `data`) — cross-page drag positions aren't meaningful without a lot more server-side machinery, so `config.reorder` is ignored whenever server pagination is active.
+- Set `enabled: false` to keep the configuration in place (attribute, endpoint, icon) but temporarily turn dragging off, without having to remove the whole object.
+
+**Composite orders.** Sometimes the attribute that stores a row's position isn't unique on its own — e.g. an indicator's `order` only makes sense *within* its parent chapter, so two indicators in different chapters can share the same `order` value, and the true display order is really (chapter's order, indicator's own order). Pass `compare` to take full control of that ordering instead of the plain `attribute`-ascending default:
+
+```ts
+config={{
+  reorder: {
+    attribute: 'order',
+    sortable: Sortable,
+    compare: (a, b) => a.chapter.order - b.chapter.order || a.order - b.order,
+    endpoint: '?/reorder',
+  },
+}}
+```
+
+`attribute` is still what gets written back after a drag (as a plain sequential 0-based index across the whole reordered list) — `compare` only decides how rows are displayed and dragged. If a naive global renumbering doesn't fit your data model (as in the chapter example — you don't want every indicator in every chapter renumbered whenever one indicator moves within its own chapter), use `callback` instead of `endpoint` and remap the incoming rows' indices to whatever scoped scheme your backend actually expects before saving.
+
+**Multi-select drag.** Set `multiDrag: true` to let dragging one row of the current checkbox selection carry the whole selection along with it, via SortableJS's `MultiDrag` plugin — mount it on the module you pass in:
+
+```ts
+import Sortable, { MultiDrag } from 'sortablejs';
+Sortable.mount(new MultiDrag());
+```
+
+```ts
+config={{
+  reorder: { attribute: 'order', sortable: Sortable, multiDrag: true, endpoint: '?/reorder' },
+}}
+```
+
+The existing row-selection checkboxes *are* the multi-drag selection — there's no separate ctrl/cmd-click UI to learn. Note that `multiDrag` uses native HTML5 drag-and-drop rather than the mouse-simulated dragging the rest of reorder mode uses (SortableJS's `MultiDrag` plugin needs it to track a multi-row drag correctly) — runeforge switches automatically, but it's worth knowing if you're scripting drags for tests.
 
 #### Server-side pagination, sorting & filtering
 
@@ -862,7 +961,7 @@ export const load: PageServerLoad = ({ url }) => {
 />
 ```
 
-No other prop changes are needed — column sorting/filtering UI, the paginator, and (with `onExport`) export all keep working the same way, just backed by the server instead of the in-memory array. Boolean-column filters send comma-separated values (`?active=true,false`); date-range filters send `<attribute>_from`/`<attribute>_to`.
+No other prop changes are needed — column sorting/filtering UI, the paginator, and (with `config.export.callback`) export all keep working the same way, just backed by the server instead of the in-memory array. Boolean-column filters send comma-separated values (`?active=true,false`); date-range filters send `<attribute>_from`/`<attribute>_to`.
 
 ### PaginatedTable
 
@@ -877,6 +976,8 @@ A standalone table component with built-in sort, filter, and pagination — the 
 ```
 
 Sort and filter state can be managed externally via the exported `SortState` and `FilterState` classes. Pass a `pagination` prop (`ServerPagination`) plus `onPaginationChange` to opt into the same [server-driven mode](#server-side-pagination-sorting--filtering) `GenericCRUD` uses. `bind:visibleRows` and `bind:query` expose the currently filtered/sorted rows and query snapshot, useful for building your own export UI on top of the raw table.
+
+Pass a `reorder` prop (`{ attribute, sortable, compare?, icon?, multiDrag?, pageFlipThresholdMs? }` — same shape as `GenericCRUD`'s [`config.reorder`](#reordering-rows), minus `endpoint`/`callback`) plus `onReorder` to get the same drag-to-reorder behavior without the CRUD-level persistence wiring — `onReorder` fires with the complete reordered row list after each drag, and it's on you to decide what to do with it. Ignored whenever `pagination` is also set.
 
 ### Form Components
 
@@ -1118,6 +1219,7 @@ All UI strings default to **Spanish** (Argentina). To switch to another language
 | `delete` | `string` | `Eliminar` |
 | `create` | `string` | `Crear` |
 | `searchPlaceholder` | `string` | `Buscar...` |
+| `reorder` | `string` | `Arrastrar para reordenar` |
 | `export` | `string` | `Exportar` |
 | `exportCsv` | `string` | `Exportar a CSV` |
 | `exportExcel` | `string` | `Exportar a Excel` |

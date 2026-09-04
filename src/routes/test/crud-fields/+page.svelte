@@ -29,6 +29,6 @@
 		{meta}
 		dataKey="widgets"
 		deletion={{ endpoint: '?/delete' }}
-		actions={[findInTasksAction]}
+		actions={{ custom: [findInTasksAction] }}
 	/>
 </div>

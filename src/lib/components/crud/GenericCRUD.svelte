@@ -1,7 +1,7 @@
 <script lang="ts" generics="T extends object = Record<string, unknown>">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import List from '$lib/components/crud/views/List.svelte';
+	import List from '$lib/components/crud/views/list/List.svelte';
 	import Read from '$lib/components/crud/views/Read.svelte';
 	import Create from '$lib/components/crud/views/Create.svelte';
 	import Update from '$lib/components/crud/views/Update.svelte';
@@ -13,15 +13,14 @@
 	} from '$lib/components/crud/utils/resolution.js';
 	import { defaultItemLabel } from '$lib/components/crud/utils/embedded.js';
 	import { isFilterable } from '$lib/components/table/utils.js';
-	import type { XlsxModule } from '$lib/components/table/export.js';
 	import type { AttributeMetadata } from '$lib/types/attribute.js';
 	import type {
 		ActionConfiguration,
 		ColumnDefinition,
 		CustomAction,
-		CustomBulkAction,
 		FieldDefinition,
-		SearchConfiguration,
+		ListActions,
+		ListConfig,
 		ViewBasedCustomBulkAction
 	} from '$lib/types/crud.js';
 	import type {
@@ -44,16 +43,12 @@
 		update = {} as ActionConfiguration<T>,
 		read = {} as ActionConfiguration<T>,
 		deletion = {} as ActionConfiguration<T>,
-		actions = [] as CustomAction<T>[],
-		customBulkActions = [] as CustomBulkAction<T>[],
-		search = undefined as SearchConfiguration | undefined,
+		actions = {} as ListActions<T>,
+		config = {} as ListConfig<T>,
 		columns = undefined as ColumnDefinition<T>[] | undefined,
 		fields = undefined as FieldDefinition<T>[] | undefined,
 		meta = undefined as Partial<Record<string, AttributeMetadata>> | undefined,
-		form = null as { error?: string } | null,
-		enableExport = false,
-		onExport = undefined as ((query: TableQuery) => Promise<T[]>) | undefined,
-		xlsx = undefined as XlsxModule | undefined
+		form = null as { error?: string } | null
 	}: {
 		data?: Record<string, unknown>;
 		dataKey?: string;
@@ -67,16 +62,15 @@
 		update?: ActionConfiguration<T>;
 		read?: ActionConfiguration<T>;
 		deletion?: ActionConfiguration<T>;
-		actions?: CustomAction<T>[];
-		customBulkActions?: CustomBulkAction<T>[];
-		search?: SearchConfiguration;
+		/** Extra per-row (`custom`) and per-selection (`bulk`) actions. */
+		actions?: ListActions<T>;
+		/** Opt-in list behaviors: free-text search, CSV/Excel export, and
+		 * drag-to-reorder. */
+		config?: ListConfig<T>;
 		columns?: ColumnDefinition<T>[];
 		fields?: FieldDefinition<T>[];
 		meta?: Partial<Record<string, AttributeMetadata>>;
 		form?: { error?: string } | null;
-		enableExport?: boolean;
-		onExport?: (query: TableQuery) => Promise<T[]>;
-		xlsx?: XlsxModule;
 	} = $props();
 
 	function isEnvelope(value: unknown): value is PaginatedEnvelope<T> {
@@ -388,16 +382,12 @@
 		{read}
 		{deletion}
 		{actions}
-		{customBulkActions}
-		{search}
+		{config}
 		columns={resolvedColumns}
 		pagination={serverPagination}
 		{initialSort}
 		{initialFilters}
 		onPaginationChange={handlePaginationChange}
-		{enableExport}
-		{onExport}
-		{xlsx}
 		onCreate={navCreate}
 		onEdit={navEdit}
 		onView={navRead}

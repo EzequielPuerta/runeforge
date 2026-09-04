@@ -14,5 +14,16 @@ export default defineConfig({
 			},
 			adapter: adapter()
 		})
-	]
+	],
+	// `cally` and `sortablejs` are only ever reached through a dynamic
+	// `import()` (Field/ColumnFilter's datetime picker, the reorder table
+	// layer's SortableJS wiring), so Vite's dependency crawler doesn't see
+	// them ahead of time. Without this, the *first* dev-server request that
+	// hits one of those code paths triggers a "new dependency optimized"
+	// full-page reload mid-interaction — which is exactly what was making
+	// the reorder and datetime-filter e2e specs occasionally flake on a
+	// freshly started server.
+	optimizeDeps: {
+		include: ['cally', 'sortablejs']
+	}
 });
