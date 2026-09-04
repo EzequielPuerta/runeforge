@@ -20,6 +20,7 @@
     distinctValues,
     hasRowActions = false,
     actionsLabel = strings.actions,
+    reorderActive = false,
     onchange,
   }: {
     columns: ColumnDefinition<T>[];
@@ -32,11 +33,12 @@
     distinctValues: Record<string, DistinctEntry<T>[]>;
     hasRowActions?: boolean;
     actionsLabel?: string;
+    reorderActive?: boolean;
     onchange?: () => void;
   } = $props();
 
   function sortBy(col: ColumnDefinition<T>) {
-    if (!isSortable(col)) return;
+    if (reorderActive || !isSortable(col)) return;
     sort.cycle(col.attribute);
     onchange?.();
   }
@@ -44,6 +46,9 @@
 
 <thead class="bg-base-200">
   <tr>
+    {#if reorderActive}
+      <th class="w-10"></th>
+    {/if}
     {#if selectable}
       <th>
         <input
@@ -61,11 +66,11 @@
         <div class="flex items-center gap-1">
           <SortHeader
             {title}
-            sortable={isSortable(col)}
-            direction={sort.directionFor(col.attribute)}
+            sortable={isSortable(col) && !reorderActive}
+            direction={reorderActive ? null : sort.directionFor(col.attribute)}
             onsort={() => sortBy(col)}
           />
-          {#if isFilterable(col)}
+          {#if isFilterable(col) && !reorderActive}
             <ColumnFilter
               column={col}
               entries={distinctValues[col.attribute] ?? []}

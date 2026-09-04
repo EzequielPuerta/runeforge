@@ -23,11 +23,15 @@
 		{meta}
 		dataKey="tasks"
 		deletion={{ endpoint: '?/delete' }}
-		search={{ placeholder: 'Search tasks...' }}
-		enableExport
-		customBulkActions={[
-			{ kind: 'endpoint', label: 'Complete', icon: View, endpoint: '?/complete' },
-			{ kind: 'endpoint', label: 'Mark pending', icon: Edit, endpoint: '?/incomplete' }
-		]}
+		config={{
+			search: { placeholder: 'Search tasks...' },
+			export: {}
+		}}
+		actions={{
+			bulk: [
+				{ kind: 'endpoint', label: 'Complete', icon: View, endpoint: '?/complete' },
+				{ kind: 'endpoint', label: 'Mark pending', icon: Edit, endpoint: '?/incomplete' }
+			]
+		}}
 	/>
 </div>

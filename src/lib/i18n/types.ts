@@ -38,6 +38,11 @@ export interface RuneforgeStrings {
 	// CRUD List generic free-text search (search prop)
 	searchPlaceholder: string;
 
+	// CRUD List reorder (config.reorder)
+	reorder: string;
+	// Drag-to-reorder page-flip edge zone label, e.g. "Page 3"
+	reorderPage: (page: number) => string;
+
 	// CRUD List export menu
 	export: string;
 	exportCsv: string;

@@ -22,6 +22,8 @@ export const es: RuneforgeStrings = {
 	delete: 'Eliminar',
 	create: 'Crear',
 	searchPlaceholder: 'Buscar...',
+	reorder: 'Arrastrar para reordenar',
+	reorderPage: (page) => `Pág ${page}`,
 	export: 'Exportar',
 	exportCsv: 'Exportar a CSV',
 	exportExcel: 'Exportar a Excel',

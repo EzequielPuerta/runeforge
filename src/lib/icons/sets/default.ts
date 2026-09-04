@@ -14,6 +14,7 @@ import Folder from '$lib/icons/defaults/Folder.svelte';
 import PasswordShow from '$lib/icons/defaults/PasswordShow.svelte';
 import PasswordHide from '$lib/icons/defaults/PasswordHide.svelte';
 import Download from '$lib/icons/defaults/Download.svelte';
+import Grip from '$lib/icons/defaults/Grip.svelte';
 
 export const defaultIconSet: CRUDIconSet = {
   sortNone: SortNone,
@@ -31,4 +32,5 @@ export const defaultIconSet: CRUDIconSet = {
   passwordShow: PasswordShow,
   passwordHide: PasswordHide,
   download: Download,
+  grip: Grip,
 };

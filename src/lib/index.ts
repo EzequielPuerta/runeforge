@@ -19,7 +19,8 @@ export type {
 	PaginatedEnvelope,
 	ServerPagination,
 	FilterSnapshot,
-	TableQuery
+	TableQuery,
+	ReorderOptions
 } from './types/table.js';
 export type {
 	ColumnDefinition,
@@ -31,7 +32,11 @@ export type {
 	EndpointBasedCustomBulkAction,
 	CustomBulkAction,
 	RowAction,
-	SearchConfiguration
+	SearchConfiguration,
+	ExportConfiguration,
+	ReorderConfiguration,
+	ListActions,
+	ListConfig
 } from './types/crud.js';
 
 // Config
@@ -78,7 +83,8 @@ export {
 	isSortable,
 	isFilterable,
 	compare,
-	distinctEntries
+	distinctEntries,
+	moveIndexedRow
 } from './components/table/utils.js';
 
 // CRUD components
@@ -88,7 +94,7 @@ export { default as EmbeddedField } from './components/crud/EmbeddedField.svelte
 export { default as Header } from './components/common/Header.svelte';
 export { default as AvatarCell } from './components/crud/columns/Avatar.svelte';
 export { default as IconCell } from './components/crud/columns/Icon.svelte';
-export { default as CRUDList } from './components/crud/views/List.svelte';
+export { default as CRUDList } from './components/crud/views/list/List.svelte';
 export { default as CRUDCreate } from './components/crud/views/Create.svelte';
 export { default as CRUDRead } from './components/crud/views/Read.svelte';
 export { default as CRUDUpdate } from './components/crud/views/Update.svelte';
@@ -112,5 +118,6 @@ export {
 export { groupFields } from './components/crud/utils/grouping.js';
 export type { FieldGroup } from './components/crud/utils/grouping.js';
 export { validateAll } from './components/crud/utils/validation.js';
+export { computeReorderChanges } from './components/crud/utils/reorder.js';
 export { emptyRecord, defaultItemLabel } from './components/crud/utils/embedded.js';
 export { buildChildrenByParent, collectDescendantIds } from './components/crud/utils/tree.js';
