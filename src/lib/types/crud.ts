@@ -76,6 +76,15 @@ export interface CreateFormButtonConfiguration {
 	class?: string;
 }
 
+/** The "Duplicate" button's configuration — a `CreateFormButtonConfiguration`
+ * plus which attributes to leave out of the duplicated draft. */
+export interface DuplicationButtonConfiguration extends CreateFormButtonConfiguration {
+	/** Attribute names reset to the field's `default` instead of copying the
+	 * source instance's value — e.g. a publication date that should depend on
+	 * when the copy is itself published, not on when the original was. */
+	omit?: string[];
+}
+
 export interface ActionConfiguration<T extends object = Record<string, unknown>> {
 	enabled?: boolean;
 	label?: string;
@@ -101,7 +110,7 @@ export interface ActionConfiguration<T extends object = Record<string, unknown>>
 	 *   create form pre-filled with the just-saved instance's values, so a new
 	 *   record can be started from it without retyping everything.
 	 * Disabled by default — pass `{ enabled: true }` to show it. */
-	duplication?: CreateFormButtonConfiguration;
+	duplication?: DuplicationButtonConfiguration;
 }
 
 export interface CustomAction<T extends object = Record<string, unknown>> {

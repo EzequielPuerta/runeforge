@@ -8,7 +8,7 @@
   import { defaultIconSet } from '$lib/icons/sets/default.js';
   import { validateAll } from '$lib/components/crud/utils/validation.js';
   import { groupFields } from '$lib/components/crud/utils/grouping.js';
-  import { seedRecord } from '$lib/components/crud/utils/embedded.js';
+  import { applyDuplicateOmit, seedRecord } from '$lib/components/crud/utils/embedded.js';
   import type { ActionConfiguration, FieldDefinition } from '$lib/types/crud.js';
   import { getStrings } from '$lib/i18n/context.js';
 
@@ -123,7 +123,7 @@
             onContinue?.();
           } else if (duplicating) {
             duplicating = false;
-            onDuplicate?.(record);
+            onDuplicate?.(applyDuplicateOmit(fields, record, update.duplication?.omit));
           } else {
             onSuccess?.();
           }

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+	applyDuplicateOmit,
 	emptyRecord,
 	seedField,
 	seedRecord,
@@ -102,6 +103,36 @@ describe('seedRecord', () => {
 			id: '123',
 			name: 'foo'
 		});
+	});
+});
+
+describe('applyDuplicateOmit', () => {
+	const fields: FieldDefinition[] = [
+		{ attribute: 'description', type: 'text' },
+		{ attribute: 'published', type: 'boolean', default: false }
+	];
+
+	it('returns the record unchanged when there is nothing to omit', () => {
+		const record = { description: 'foo', published: true };
+		expect(applyDuplicateOmit(fields, record)).toEqual(record);
+		expect(applyDuplicateOmit(fields, record, [])).toEqual(record);
+	});
+
+	it("resets an omitted attribute to its field's default, leaving the rest untouched", () => {
+		expect(
+			applyDuplicateOmit(fields, { description: 'foo', published: true }, ['published'])
+		).toEqual({ description: 'foo', published: false });
+	});
+
+	it('is a no-op for an omitted key that has no matching field, e.g. a read-only attribute', () => {
+		// published_at is computed server-side and excluded from the form's
+		// fields entirely, so it can't be reset via its (non-existent) field
+		// definition — omitting `published` itself is what actually matters.
+		expect(
+			applyDuplicateOmit(fields, { description: 'foo', published_at: '2024-01-01' }, [
+				'published_at'
+			])
+		).toEqual({ description: 'foo', published_at: '2024-01-01' });
 	});
 });
 

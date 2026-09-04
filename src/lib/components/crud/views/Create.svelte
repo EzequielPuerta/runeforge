@@ -8,7 +8,7 @@
   import { defaultIconSet } from '$lib/icons/sets/default.js';
   import { validateAll } from '$lib/components/crud/utils/validation.js';
   import { groupFields } from '$lib/components/crud/utils/grouping.js';
-  import { emptyRecord, seedRecord } from '$lib/components/crud/utils/embedded.js';
+  import { applyDuplicateOmit, emptyRecord, seedRecord } from '$lib/components/crud/utils/embedded.js';
   import type { ActionConfiguration, FieldDefinition } from '$lib/types/crud.js';
   import { getStrings } from '$lib/i18n/context.js';
 
@@ -136,6 +136,7 @@
             fieldErrors = {};
             internalError = '';
             flashSuccess();
+            record = applyDuplicateOmit(fields, record, creation.duplication?.omit);
           } else {
             onSuccess?.();
           }

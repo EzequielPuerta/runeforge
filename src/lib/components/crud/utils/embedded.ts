@@ -49,6 +49,23 @@ export function seedRecord<T extends object = Record<string, unknown>>(
 	return seeded;
 }
 
+// Shared by Update.svelte and Create.svelte's "Duplicate" handling: returns a
+// copy of the just-saved record with `omit`-listed attributes reset to their
+// field default, so the new draft doesn't inherit values that only made sense
+// for the original instance (e.g. a publication date).
+export function applyDuplicateOmit<T extends object = Record<string, unknown>>(
+	fields: FieldDefinition<T>[],
+	record: Record<string, unknown>,
+	omit: string[] = []
+): Record<string, unknown> {
+	if (!omit.length) return record;
+	const result = { ...record };
+	for (const f of fields) {
+		if (omit.includes(f.attribute)) result[f.attribute] = seedField(f, f.default);
+	}
+	return result;
+}
+
 // Shared by defaultItemLabel and the CSV/XLSX export column expansion: renders
 // one sub-field's raw stored value as display text, resolving a select's
 // option label instead of its stored value. Booleans are left to the caller
