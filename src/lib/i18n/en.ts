@@ -10,6 +10,7 @@ export const en: RuneforgeStrings = {
 	emptyValue: '(empty)',
 	previous: 'Previous',
 	next: 'Next',
+	chooseDate: 'Choose date from calendar',
 	selectPlaceholder: 'Select an option',
 	selectSearch: 'Search...',
 	selectSearching: 'Searching...',

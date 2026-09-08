@@ -93,6 +93,43 @@
 		return String(n).padStart(2, '0');
 	}
 
+	// ISO (yyyy-mm-dd) <-> display (dd/mm/yyyy) conversion and typing mask.
+	function isoDateToDisplay(iso: string): string {
+		const [year, month, day] = iso.split('-');
+		return `${day}/${month}/${year}`;
+	}
+
+	function displayToIsoDate(display: string): string | null {
+		const match = display.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+		if (!match) return null;
+		const [, dd, mm, yyyy] = match;
+		const day = Number(dd);
+		const month = Number(mm);
+		const year = Number(yyyy);
+		// Rejects invalid dates (e.g. 31/02).
+		const date = new Date(Date.UTC(year, month - 1, day));
+		if (
+			date.getUTCFullYear() !== year ||
+			date.getUTCMonth() !== month - 1 ||
+			date.getUTCDate() !== day
+		) {
+			return null;
+		}
+		return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+	}
+
+	// Inserts "/" as digits are typed: "21" -> "21/", "211" -> "21/1".
+	function maskDateDigits(digits: string): string {
+		const day = digits.slice(0, 2);
+		const month = digits.slice(2, 4);
+		const year = digits.slice(4, 8);
+		let out = day;
+		if (digits.length >= 2) out += '/';
+		out += month;
+		if (digits.length >= 4) out += '/';
+		return out + year;
+	}
+
 	// `record[field.attribute]` may be empty, a bare "YYYY-MM-DD" (freshly
 	// picked, before any time is set) or a full ISO datetime (loaded from an
 	// existing instance) — parsed once here so the date button, the time
@@ -112,14 +149,45 @@
 	const timePart = $derived(
 		parsedDateTime ? `${pad(parsedDateTime.getHours())}:${pad(parsedDateTime.getMinutes())}` : ''
 	);
-	const formattedDatePart = $derived(
-		parsedDateTime
-			? `${pad(parsedDateTime.getDate())}/${pad(parsedDateTime.getMonth() + 1)}/${parsedDateTime.getFullYear()}`
-			: ''
-	);
 
 	function setDateTime(nextDatePart: string, nextTimePart: string) {
 		record[field.attribute] = nextDatePart ? `${nextDatePart}T${nextTimePart || '00:00'}` : '';
+	}
+
+	// Typed display text for the date part, synced from `datePart`.
+	// eslint-disable-next-line svelte/prefer-writable-derived
+	let dateTextValue = $state('');
+	$effect(() => {
+		dateTextValue = datePart ? isoDateToDisplay(datePart) : '';
+	});
+
+	function onDateTextInput(event: Event) {
+		const raw = (event.currentTarget as HTMLInputElement).value;
+		const prevDigits = dateTextValue.replace(/\D/g, '');
+		let digits = raw.replace(/\D/g, '');
+		// Drops one extra digit when backspacing over an inserted "/".
+		if (raw.length < dateTextValue.length && digits.length === prevDigits.length) {
+			digits = digits.slice(0, -1);
+		}
+		digits = digits.slice(0, 8);
+		dateTextValue = maskDateDigits(digits);
+		if (!digits) {
+			setDateTime('', timePart);
+			return;
+		}
+		const parsed = displayToIsoDate(dateTextValue);
+		if (parsed) setDateTime(parsed, timePart);
+	}
+
+	function onDateTextBlur() {
+		if (!dateTextValue.trim()) {
+			setDateTime('', timePart);
+			return;
+		}
+		if (!displayToIsoDate(dateTextValue)) {
+			// Discards invalid input.
+			dateTextValue = datePart ? isoDateToDisplay(datePart) : '';
+		}
 	}
 
 	$effect(() => {
@@ -226,16 +294,41 @@
 					disabled={fieldDisabled}
 				/>
 				<div class="flex gap-2">
-					<button
-						type="button"
-						class="input input-bordered w-full text-left font-normal"
-						class:opacity-40={!record[field.attribute]}
-						disabled={fieldDisabled}
-						popovertarget={datePopId}
-						style="anchor-name:{dateAnchorName}"
-					>
-						{record[field.attribute] ? formattedDatePart : (field.placeholder ?? '')}
-					</button>
+					<div class="relative flex-1" style="anchor-name:{dateAnchorName}">
+						<input
+							type="text"
+							id={field.attribute}
+							placeholder={field.placeholder ?? 'dd/mm/aaaa'}
+							value={dateTextValue}
+							oninput={onDateTextInput}
+							onblur={onDateTextBlur}
+							autocomplete="off"
+							disabled={fieldDisabled}
+							class="input input-bordered w-full pr-9"
+							class:input-error={!!error}
+						/>
+						<button
+							type="button"
+							popovertarget={datePopId}
+							aria-label={strings.chooseDate}
+							disabled={fieldDisabled}
+							class="absolute inset-y-0 right-0 flex items-center px-2.5 text-base-content/50 hover:text-base-content disabled:pointer-events-none disabled:opacity-40"
+						>
+							<svg
+								class="size-4"
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							>
+								<rect x="3" y="4" width="18" height="18" rx="2" />
+								<path d="M16 2v4M8 2v4M3 10h18" />
+							</svg>
+						</button>
+					</div>
 					<input
 						type="time"
 						class="input input-bordered w-32 shrink-0"

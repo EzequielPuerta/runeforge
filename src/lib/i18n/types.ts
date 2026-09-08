@@ -15,6 +15,7 @@ export interface RuneforgeStrings {
 	// Calendar navigation (ColumnFilter + Field datetime picker)
 	previous: string;
 	next: string;
+	chooseDate: string;
 
 	// Select
 	selectPlaceholder: string;
