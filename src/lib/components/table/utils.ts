@@ -47,6 +47,45 @@ export function distinctEntries<T extends object>(
   return result;
 }
 
+/** Resolves the checkbox-list entries for every filterable column: a
+ * column's own `filterOptions` wins when present (a static, exhaustive
+ * list — see its doc comment); a `boolean` column always gets its two known
+ * states; everything else falls back to values actually seen in `data`,
+ * truncated to `sampleSize` when given. Sampling off `data` is only ever a
+ * hint under server-side pagination, where `data` is just the current
+ * page — pass `sampleSize` there; omit it in client mode, where `data` is
+ * the complete, already-filtered row set. */
+export function resolveDistinctValues<T extends object>(
+  data: T[],
+  columns: ColumnDefinition<T>[],
+  sampleSize?: number,
+): Record<string, DistinctEntry<T>[]> {
+  const result: Record<string, DistinctEntry<T>[]> = {};
+  for (const col of columns) {
+    if (!isFilterable(col)) continue;
+    if (col.filterOptions) {
+      result[col.attribute] = col.filterOptions.map((o) => ({
+        key: o.value,
+        label: o.label,
+        row: {} as T,
+      }));
+      continue;
+    }
+    if (col.type === 'boolean') {
+      result[col.attribute] = [
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { key: 'true', label: col.formatter?.(true as any, {} as T), row: {} as T },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { key: 'false', label: col.formatter?.(false as any, {} as T), row: {} as T },
+      ];
+      continue;
+    }
+    const entries = distinctEntries(data, [col])[col.attribute] ?? [];
+    result[col.attribute] = sampleSize != null ? entries.slice(0, sampleSize) : entries;
+  }
+  return result;
+}
+
 /** Returns a copy of `rows` with the item at `from` moved to `to` — pure
  * array surgery, handy for building custom reorder UIs on `PaginatedTable`.
  * Out-of-range indices are a no-op. */

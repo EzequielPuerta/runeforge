@@ -94,6 +94,15 @@ export type AttributeMetadata = {
   excludedFromRead?: boolean;
   sortable?: boolean;
   filterable?: boolean;
+  /** List column filter only: a static, exhaustive set of choices shown in
+   * the column filter's checkbox list, instead of the values sampled off
+   * currently loaded rows. For a bounded, known set (e.g. an enum-like text
+   * column) that the loaded page might not fully represent — especially
+   * under [server-side pagination](#server-side-pagination-sorting--filtering),
+   * where the sample is only a handful of values off the current page. `value`
+   * is matched against the rendered cell text (and sent server-side as-is);
+   * `label` is only what's displayed, falling back to `value`. */
+  filterOptions?: SelectOption[];
   groupedAs?: string;
   min?: number;
   max?: number;

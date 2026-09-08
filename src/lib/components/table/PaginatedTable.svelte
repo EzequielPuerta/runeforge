@@ -5,8 +5,7 @@
 	import TableHeader from '$lib/components/table/TableHeader.svelte';
 	import { SortState, FilterState, snapshotFilter } from '$lib/components/table/state.svelte.js';
 	import {
-		distinctEntries,
-		isFilterable,
+		resolveDistinctValues,
 		resolveReorderComparator
 	} from '$lib/components/table/utils.js';
 	import type {
@@ -83,37 +82,14 @@
 	const serverFilterSampleSize = 5;
 
 	// Server mode: there's no way to know every value a column can take without
-	// querying the whole (server-owned) dataset, so this is deliberately just a
-	// cosmetic hint — up to `serverFilterSampleSize` distinct values found on
-	// the current page, not an exhaustive list. Boolean is the one exception:
-	// its two states are always known, so both show up regardless of what the
-	// current page happens to contain.
+	// querying the whole (server-owned) dataset, so a plain text column's
+	// entries are deliberately just a cosmetic hint — up to
+	// `serverFilterSampleSize` distinct values found on the current page, not
+	// an exhaustive list. `boolean` columns and columns with `filterOptions`
+	// are the exceptions: their full set of choices is always known upfront,
+	// so it shows up regardless of what the current page happens to contain.
 	const distinctValues = $derived(
-		pagination
-			? {
-					...Object.fromEntries(
-						Object.entries(
-							distinctEntries(
-								data,
-								columns.filter((c) => isFilterable(c) && c.type !== 'boolean')
-							)
-						).map(([attribute, entries]) => [attribute, entries.slice(0, serverFilterSampleSize)])
-					),
-					...Object.fromEntries(
-						columns
-							.filter((c) => isFilterable(c) && c.type === 'boolean')
-							.map((c) => [
-								c.attribute,
-								[
-									// eslint-disable-next-line @typescript-eslint/no-explicit-any
-									{ key: 'true', label: c.formatter?.(true as any, {} as T), row: {} as T },
-									// eslint-disable-next-line @typescript-eslint/no-explicit-any
-									{ key: 'false', label: c.formatter?.(false as any, {} as T), row: {} as T }
-								]
-							])
-					)
-				}
-			: distinctEntries(data, columns)
+		resolveDistinctValues(data, columns, pagination ? serverFilterSampleSize : undefined)
 	);
 
 	// Server-pagination mode owns its own full row set server-side, where

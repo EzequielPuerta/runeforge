@@ -70,6 +70,30 @@ test.describe('GenericCRUD (server pagination)', () => {
 		}
 	});
 
+	test('a column with filterOptions lists every known choice, not just what is on the current page', async ({
+		page,
+	}) => {
+		await page.getByRole('button', { name: 'Filtrar City' }).click();
+		const popover = page.locator('#filter-pop-city');
+
+		for (const city of ['Buenos Aires', 'Córdoba', 'Rosario', 'Mendoza', 'Tucumán', 'Salta']) {
+			await expect(popover.getByText(city, { exact: true })).toBeVisible();
+		}
+	});
+
+	test('checking a filterOptions choice that is absent from the loaded page still filters via the backend', async ({
+		page,
+	}) => {
+		await page.getByRole('button', { name: 'Filtrar City' }).click();
+		const popover = page.locator('#filter-pop-city');
+		await popover.getByText('Salta', { exact: true }).click();
+
+		await page.waitForURL(/city=/);
+		// No seeded row has city "Salta" — the table falls back to its empty
+		// state (a single placeholder row), not zero rows.
+		await expect(page.locator('tbody')).toContainText('Sin registros');
+	});
+
 	test('selection is cleared when navigating to a different page', async ({ page }) => {
 		await page.locator('tbody tr:first-child input[type="checkbox"]').click();
 		await expect(page.getByRole('button', { name: /Eliminar \(1\)/ })).toBeVisible();

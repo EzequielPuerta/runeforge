@@ -5,6 +5,7 @@ import {
 	isSortable,
 	isFilterable,
 	distinctEntries,
+	resolveDistinctValues,
 	moveIndexedRow,
 	moveIndexedRows,
 	resolveReorderComparator,
@@ -100,6 +101,74 @@ describe('distinctEntries', () => {
 		] as ColumnDefinition<Row>[];
 		const result = distinctEntries(data, cols);
 		expect(result['name']).toBeUndefined();
+	});
+});
+
+describe('resolveDistinctValues', () => {
+	type Row = { name: string; city: string; active: boolean };
+	const data: Row[] = [
+		{ name: 'Charlie', city: 'Rosario', active: true },
+		{ name: 'Alice', city: 'Buenos Aires', active: false },
+	];
+
+	it('uses filterOptions verbatim, ignoring what is actually in data', () => {
+		const cols = [
+			{
+				attribute: 'city',
+				filterOptions: [
+					{ value: 'Rosario', label: 'Rosario' },
+					{ value: 'Salta', label: 'Salta' },
+				],
+			},
+		] as ColumnDefinition<Row>[];
+		const result = resolveDistinctValues(data, cols);
+		expect(result['city'].map((e) => e.key)).toEqual(['Rosario', 'Salta']);
+	});
+
+	it('carries the label through from filterOptions', () => {
+		const cols = [
+			{ attribute: 'city', filterOptions: [{ value: 'RSA', label: 'Rosario' }] },
+		] as ColumnDefinition<Row>[];
+		const result = resolveDistinctValues(data, cols);
+		expect(result['city']).toEqual([{ key: 'RSA', label: 'Rosario', row: {} }]);
+	});
+
+	it('filterOptions takes priority over the boolean special-case', () => {
+		const cols = [
+			{
+				attribute: 'active',
+				type: 'boolean',
+				filterOptions: [{ value: 'yes', label: 'Yes' }],
+			},
+		] as ColumnDefinition<Row>[];
+		const result = resolveDistinctValues(data, cols);
+		expect(result['active'].map((e) => e.key)).toEqual(['yes']);
+	});
+
+	it('still gives boolean columns both states when filterOptions is absent', () => {
+		const cols = [{ attribute: 'active', type: 'boolean' }] as ColumnDefinition<Row>[];
+		const result = resolveDistinctValues(data, cols);
+		expect(result['active'].map((e) => e.key)).toEqual(['true', 'false']);
+	});
+
+	it('falls back to sampling data when neither applies, truncated to sampleSize', () => {
+		const cols = [{ attribute: 'name' }] as ColumnDefinition<Row>[];
+		const result = resolveDistinctValues(data, cols, 1);
+		expect(result['name'].map((e) => e.key)).toEqual(['Alice']);
+	});
+
+	it('does not truncate sampled data when sampleSize is omitted', () => {
+		const cols = [{ attribute: 'name' }] as ColumnDefinition<Row>[];
+		const result = resolveDistinctValues(data, cols);
+		expect(result['name'].map((e) => e.key)).toEqual(['Alice', 'Charlie']);
+	});
+
+	it('skips non-filterable columns', () => {
+		const cols = [
+			{ attribute: 'city', filterable: false, filterOptions: [{ value: 'x', label: 'x' }] },
+		] as ColumnDefinition<Row>[];
+		const result = resolveDistinctValues(data, cols);
+		expect(result['city']).toBeUndefined();
 	});
 });
 

@@ -379,6 +379,7 @@ Every entry in an `InterfaceMetadata<T>` object is an `AttributeMetadata` — a 
 | `formatter` | `(data) => (value, row) => string` | all | Custom cell text — see [Formatters](#formatters) |
 | `excludedFromList/Create/Read/Update` | `boolean` | all | Hides the field from that specific view |
 | `sortable` / `filterable` | `boolean` | all | Table column controls |
+| `filterOptions` | `SelectOption[]` | all | Static, exhaustive column filter choices, replacing the sampled-from-loaded-rows checkbox list — see [Server-side pagination, sorting & filtering](#server-side-pagination-sorting--filtering) |
 
 ### Validation
 
@@ -962,6 +963,23 @@ export const load: PageServerLoad = ({ url }) => {
 ```
 
 No other prop changes are needed — column sorting/filtering UI, the paginator, and (with `config.export.callback`) export all keep working the same way, just backed by the server instead of the in-memory array. Boolean-column filters send comma-separated values (`?active=true,false`); date-range filters send `<attribute>_from`/`<attribute>_to`.
+
+A text column's filter checkbox list is populated from values seen on the currently loaded page — a cosmetic hint in server mode, not an exhaustive list, since the full set of values lives server-side. For a column whose possible values are a known, bounded set (an enum-like field, a small lookup table), give it `filterOptions` instead so every choice always shows up, regardless of what the current page contains:
+
+```ts
+status: {
+  label: 'Status',
+  type: AttributeType.text,
+  filterable: true,
+  filterOptions: [
+    { value: 'DRAFT', label: 'Draft' },
+    { value: 'PUBLISHED', label: 'Published' },
+    { value: 'ARCHIVED', label: 'Archived' },
+  ],
+},
+```
+
+`value` is matched against the column's rendered cell text and sent server-side as-is (same as any other checkbox filter value); `label` is only what's displayed, falling back to `value`.
 
 ### PaginatedTable
 

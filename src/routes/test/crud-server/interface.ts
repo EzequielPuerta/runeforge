@@ -37,6 +37,11 @@ export const personMeta = {
 		required: true,
 		sortable: true,
 		filterable: true,
+		// Includes 'Salta', which no seeded row ever has — proves the checkbox
+		// list comes from this static list, not from what's on the loaded page.
+		filterOptions: ['Buenos Aires', 'Córdoba', 'Rosario', 'Mendoza', 'Tucumán', 'Salta'].map(
+			(city) => ({ value: city, label: city }),
+		),
 	},
 	active: {
 		label: 'Active',

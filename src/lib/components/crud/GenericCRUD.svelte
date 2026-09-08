@@ -219,6 +219,7 @@
 								component: m.component,
 								sortable: m.sortable,
 								filterable: m.filterable,
+								filterOptions: m.filterOptions,
 								fields: embeddedFields,
 								itemLabel: m.itemLabel
 							};
