@@ -1011,7 +1011,7 @@ Individual form primitives styled with DaisyUI:
 - `Avatar` — user avatar display
 - `Modal` — DaisyUI modal wrapper. Size it with Tailwind utility classes via `class` (e.g. `class="max-w-4xl"`), or with explicit `width`/`maxWidth`/`height`/`maxHeight` CSS lengths, which are applied as inline styles and take priority over `class`
 - `Breadcrumbs` — navigation breadcrumb trail
-- `IconRenderer` — renders icons from the active icon set
+- `IconRenderer` — renders a named SVG file fetched from `setIconAssetsPath` (see [Icon System](#icon-system))
 
 ---
 
@@ -1152,7 +1152,16 @@ export const userMeta = {
 
 ### Example: icon column
 
-A simpler case — render a Bootstrap icon by name stored as a plain string:
+A simpler case — render an SVG file by name, stored as a plain string (e.g. `bar-chart.svg`). Drop the curated set of icons your app actually uses under `static/icons/` (or any path), point `IconRenderer`/`IconCell` at it once with `setIconAssetsPath`, and the field just stores the filename:
+
+```ts
+<!-- routes/+layout.svelte -->
+<script lang="ts">
+  import { setIconAssetsPath } from 'runeforge';
+
+  setIconAssetsPath('/icons');
+</script>
+```
 
 ```ts
 <!-- components/IconCell.svelte -->
@@ -1173,6 +1182,8 @@ icon: {
   component: IconCell,
 },
 ```
+
+Only the SVG files a row actually references are ever fetched — nothing is bundled or preloaded up front, unlike importing an entire icon package to look up a component by name.
 
 > [!TIP]
 > Both `AvatarCell` and `IconCell` are included in the package and ready to use — you don't need to build them from scratch:
@@ -1274,17 +1285,19 @@ All UI strings default to **Spanish** (Argentina). To switch to another language
 
 ## Icon System
 
-Runeforge ships with a default icon set. To use Bootstrap Icons instead:
+Runeforge ships with a default icon set for the fixed set of CRUD action icons (sort, filter, create, edit, delete, ...). To use Bootstrap Icons instead:
 
 ```ts
 <script>
-  import { setIconSet, bootstrapIcons } from 'runeforge';
+  import { setIconSet, bootstrapIconSet } from 'runeforge';
 
-  setIconSet(bootstrapIcons);
+  setIconSet(bootstrapIconSet);
 </script>
 ```
 
 You can also provide a fully custom icon set by passing an object that satisfies the icon set interface.
+
+For per-row/per-entity icons chosen dynamically by name (e.g. a "pick an icon" field on a model), don't use `CRUDIconSet` — see [Example: icon column](#example-icon-column) for `IconRenderer`/`setIconAssetsPath` instead. That path fetches one SVG file per name from a static folder in your app, rather than importing an entire icon package to resolve a component by name.
 
 ---
 

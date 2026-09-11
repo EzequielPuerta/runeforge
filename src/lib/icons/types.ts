@@ -21,5 +21,4 @@ export interface CRUDIconSet {
   /** Drag handle shown at the start of each row when list reordering is
    * enabled. Optional so existing custom icon sets keep compiling. */
   grip?: IconComponent;
-  getByName?: (name: string) => IconComponent | null;
 }
