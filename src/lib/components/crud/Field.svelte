@@ -1,6 +1,7 @@
 <script lang="ts" generics="T extends object = Record<string, unknown>">
 	import { onMount } from 'svelte';
 	import Avatar from '$lib/components/Avatar.svelte';
+	import Button from '$lib/components/form/Button.svelte';
 	import Label from '$lib/components/form/Label.svelte';
 	import Select from '$lib/components/form/Select.svelte';
 	import MultiSelect from '$lib/components/form/MultiSelect.svelte';
@@ -72,6 +73,9 @@
 		typeof field.hidden === 'function' ? field.hidden(record) : !!field.hidden
 	);
 	const isMultiValued = $derived(field.type === 'multiselect' || field.type === 'tree');
+	const fieldActions = $derived(
+		(field.actions ?? []).filter((action) => action.condition?.(record) ?? true)
+	);
 
 	// cally's `change` event doesn't bubble, so the usual `onchange={...}` prop
 	// never fires — Svelte 5 delegates events like `change` to a listener on
@@ -224,12 +228,36 @@
 			</div>
 		{/if}
 
-		<Label
-			text={labelText}
-			for={field.attribute}
-			capitalize={true}
-			required={fieldRequired && !readonly}
-		/>
+		<div class="flex items-center justify-between gap-2">
+			<Label
+				text={labelText}
+				for={field.attribute}
+				capitalize={true}
+				required={fieldRequired && !readonly}
+			/>
+			{#if !readonly && fieldActions.length > 0}
+				<div class="flex items-center gap-1">
+					{#each fieldActions as action (action.label)}
+						<Button
+							type="button"
+							variant="ghost"
+							class={['btn-xs', action.class]}
+							title={action.label}
+							onclick={() =>
+								action.run(record[field.attribute], record, (attribute, value) => {
+									record[attribute] = value;
+								})}
+						>
+							{#if action.icon}
+								{@const Icon = action.icon}
+								<Icon class="size-4" />
+							{/if}
+							{action.label}
+						</Button>
+					{/each}
+				</div>
+			{/if}
+		</div>
 
 		{#if field.type === 'boolean'}
 			<input

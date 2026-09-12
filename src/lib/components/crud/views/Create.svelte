@@ -78,35 +78,37 @@
 
 <div class="flex flex-col gap-6">
 
-  <Header
-    title={labelMany}
-    breadcrumbs={[
-      { label: labelMany, icon: entityIcon, link: { href: '#', onclick: (e) => { e.preventDefault(); onCancel?.(); } }, prominent: true },
-      { label: creation.label ?? labelOne, icon: icons.create },
-    ]}
-  />
+  <div class="sticky-header sticky z-10 flex flex-col gap-6 bg-base-100 pb-2">
+    <Header
+      title={labelMany}
+      breadcrumbs={[
+        { label: labelMany, icon: entityIcon, link: { href: '#', onclick: (e) => { e.preventDefault(); onCancel?.(); } }, prominent: true },
+        { label: creation.label ?? labelOne, icon: icons.create },
+      ]}
+    />
 
-  {#if successMessage}
-    <div role="alert" class="alert alert-success">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-      </svg>
-      <span class="text-sm">{successMessage}</span>
-    </div>
-  {/if}
+    {#if successMessage}
+      <div role="alert" class="alert alert-success">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        <span class="text-sm">{successMessage}</span>
+      </div>
+    {/if}
 
-  {#if errorEntries.length > 0}
-    <div role="alert" class="alert alert-error">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <ul class="list-disc list-inside text-sm">
-        {#each errorEntries as [key, msg] (key)}
-          <li>{msg}</li>
-        {/each}
-      </ul>
-    </div>
-  {/if}
+    {#if errorEntries.length > 0}
+      <div role="alert" class="alert alert-error">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <ul class="list-disc list-inside text-sm">
+          {#each errorEntries as [key, msg] (key)}
+            <li>{msg}</li>
+          {/each}
+        </ul>
+      </div>
+    {/if}
+  </div>
 
   <form
     method="POST"
@@ -228,5 +230,9 @@
 <style>
   form {
     max-width: var(--runeforge-form-max-width, 32rem);
+  }
+
+  .sticky-header {
+    top: var(--runeforge-sticky-header-top, 0);
   }
 </style>

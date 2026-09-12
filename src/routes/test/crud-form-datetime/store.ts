@@ -1,8 +1,8 @@
 import type { IAppointment } from './interface.js';
 
 const INITIAL: IAppointment[] = [
-	{ id: '1', title: 'Kickoff', scheduled: '2026-03-15T09:30' },
-	{ id: '2', title: 'Unscheduled follow-up', scheduled: '' }
+	{ id: '1', title: 'Kickoff', scheduled: '2026-03-15T09:30', followUp: '' },
+	{ id: '2', title: 'Unscheduled follow-up', scheduled: '', followUp: '' }
 ];
 
 export let appointments: IAppointment[] = INITIAL.map((a) => ({ ...a }));

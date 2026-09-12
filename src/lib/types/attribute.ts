@@ -50,6 +50,28 @@ export type SeedResolver = (instance: any) => unknown;
 /** Embedded fields only: renders a short summary for one item in the list.
  * Falls back to a dash-joined summary of the item's sub-field values. */
 export type EmbeddedItemLabelResolver = (item: Record<string, unknown>) => string;
+export type ValidateResolver = (
+	value: unknown,
+	record: Record<string, unknown>
+) => string | undefined;
+/** Sets a field's value from within a `FieldButtonAction.run` callback —
+ * usually the same field the button sits next to, but any sibling attribute
+ * works too. */
+export type FieldSetter = (attribute: string, value: unknown) => void;
+/** A button rendered next to a field's label that runs entirely client-side
+ * — no submit, no request — instead of persisting a model attribute of its
+ * own. See `AttributeMetadata.actions`. */
+export type FieldButtonAction = {
+	label: string;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	icon?: any;
+	class?: string;
+	/** Hide the button in certain conditions. Re-evaluated live, same as `disabled`. */
+	condition?: (record: Record<string, unknown>) => boolean;
+	/** Receives the field's current value, the form's full draft record, and a
+	 * setter to write back into this field (or a sibling one). */
+	run: (value: unknown, record: Record<string, unknown>, setField: FieldSetter) => void;
+};
 
 export type AttributeMetadata = {
   label?: string;
@@ -110,6 +132,15 @@ export type AttributeMetadata = {
   minLength?: number;
   maxLength?: number;
   pattern?: string;
+  /** Custom validation, run after this field's built-in rules
+   * (required/min/max/minLength/maxLength/pattern) pass, and only when none
+   * of them already failed. Receives the field's submitted value and the
+   * full draft record (including sibling fields currently in the form), so
+   * the same hook covers a lone-field rule and a cross-field rule alike —
+   * e.g. an `extension_date` that must be later than the record's
+   * `submission_date`. Return an error message, or `undefined` when the
+   * value is valid. */
+  validate?: ValidateResolver;
   /** Textarea fields only: the HTML `rows` attribute, controlling height. */
   rows?: number;
   /** Embedded fields only: schema for each item added through the "+" modal. */
@@ -123,4 +154,8 @@ export type AttributeMetadata = {
    * stacked on mobile — see the Field rows section. Only merges fields that
    * are also in the same `groupedAs` bucket (or both ungrouped). */
   row?: string;
+  /** Extra buttons rendered next to this field's label — e.g. a "Capitalize"
+   * button that transforms the field's own value client-side. See "Field
+   * actions" in the README. */
+  actions?: FieldButtonAction[];
 };

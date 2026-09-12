@@ -31,6 +31,10 @@ export function validateAll<T extends object = Record<string, unknown>>(
 			if (required && (!Array.isArray(items) || items.length === 0)) {
 				errors[field.attribute] = strings.required(fieldLabel(field));
 			}
+			if (!errors[field.attribute] && field.validate) {
+				const message = field.validate(items, record);
+				if (message) errors[field.attribute] = message;
+			}
 			continue;
 		}
 
@@ -61,6 +65,11 @@ export function validateAll<T extends object = Record<string, unknown>>(
 			} else if (field.pattern && !new RegExp(field.pattern).test(val)) {
 				errors[field.attribute] = strings.pattern(fieldLabel(field));
 			}
+		}
+
+		if (!errors[field.attribute] && field.validate) {
+			const message = field.validate(val, record);
+			if (message) errors[field.attribute] = message;
 		}
 	}
 

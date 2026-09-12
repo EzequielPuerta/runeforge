@@ -164,8 +164,11 @@ Responsive overrides work too:
 | `--runeforge-breadcrumb-font-size` | `0.875rem` | Breadcrumb label text size |
 | `--runeforge-breadcrumb-icon-size` | `1rem` | Breadcrumb icon width and height |
 | `--runeforge-tree-max-height` | `24rem` | Max height of a `tree` field before it scrolls internally |
+| `--runeforge-sticky-header-top` | `0` | Offset of the sticky title/breadcrumbs/alert block in Create, Update, and Read views — raise it if your app already has its own sticky top bar taking up space |
 
 Modal sizing (see [Shared Components](#shared-components)) is set per-instance via props rather than a CSS variable.
+
+The title, breadcrumbs and any error/success alert at the top of the Create, Update and Read views stay pinned (`position: sticky`) to the top of the nearest scrolling ancestor, so they — and a validation error that just appeared — stay visible while a long form scrolls underneath. Set `--runeforge-sticky-header-top` if that ancestor already has its own fixed/sticky bar above this block.
 
 ---
 
@@ -364,6 +367,8 @@ Every entry in an `InterfaceMetadata<T>` object is an `AttributeMetadata` — a 
 | `integer` | `boolean` | `number` | Rejects non-whole numbers |
 | `minLength` / `maxLength` | `number` | text-like | Character-count validation |
 | `pattern` | `string` | text-like | Regex the value must match (`new RegExp(pattern)`) |
+| `validate` | `(value, record) => string \| undefined` | all | Custom validation, including cross-field rules — see [Validation](#validation) |
+| `actions` | `FieldButtonAction[]` | all | Extra buttons rendered next to the field's label — see [Field actions](#field-actions) |
 | `disabled` | `(record) => boolean` | all | Conditionally disables the input — see [Conditional fields](#conditional-fields) |
 | `hidden` | `boolean \| (record) => boolean` | all | Conditionally removes the field from the form entirely — not rendered, not validated, not submitted — see [Conditional fields](#conditional-fields) |
 | `groupedAs` | `string` | all | Visually groups fields under a titled section — see [Field grouping](#field-grouping) |
@@ -428,6 +433,27 @@ quantity: {
 
 The label's required marker and the submit-time check both re-evaluate the same way `disabled` does — see [Conditional fields](#conditional-fields).
 
+For anything the built-in rules above don't cover — including a rule that depends on another field, not just this one — pass `validate`. It runs after this field's built-in rules pass (and is skipped if one of them already failed), and receives both the field's own value and the full draft record, so the same hook covers a lone-field rule and a cross-field one alike:
+
+```ts
+submissionDate: {
+  label: 'Submission date',
+  type: AttributeType.datetime,
+},
+extensionDate: {
+  label: 'Extension date',
+  type: AttributeType.datetime,
+  validate: (value, record) =>
+    typeof value === 'string' &&
+    typeof record.submissionDate === 'string' &&
+    value <= record.submissionDate
+      ? 'Extension date must be later than the submission date'
+      : undefined,
+},
+```
+
+There's deliberately no separate, form-wide validation hook — every error belongs to the field whose value is wrong, even when the rule reads a sibling's value to decide that, so a per-field `validate` is all that's needed.
+
 > [!TIP]
 > Client-side validation is a UX nicety, not a security boundary — always re-validate in your form actions.
 
@@ -475,6 +501,31 @@ cardExpiry: {
 ```
 
 Switching `paymentMethod` between `card` and `cash` swaps which fields are present, live, in the same create/edit view — no separate step or modal needed to collect the payment-specific details.
+
+### Field actions
+
+`actions` renders one or more buttons next to a field's label, for a client-side transform that doesn't belong to any field of its own — nothing is submitted, nothing hits the server, the button just runs synchronously and updates the form. Useful for things like normalizing free text as the user types it:
+
+```ts
+import Edit from './icons/Edit.svelte';
+
+description: {
+  label: 'Description',
+  type: AttributeType.textarea,
+  actions: [
+    {
+      label: 'Capitalize',
+      icon: Edit,
+      run: (value, record, setField) => {
+        const str = String(value ?? '');
+        setField('description', str ? str[0].toUpperCase() + str.slice(1).toLowerCase() : str);
+      },
+    },
+  ],
+},
+```
+
+`run` receives the field's current value, the form's full draft record, and a `setField(attribute, value)` setter — which can just as well target a sibling attribute instead of the field the button sits next to. `icon` is a Svelte component, same convention as [custom row actions](#custom-row-actions). `condition` hides the button in certain conditions, re-evaluated live like `disabled`. Actions never render in the read-only view.
 
 ### Field grouping
 

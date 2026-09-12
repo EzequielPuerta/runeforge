@@ -378,4 +378,36 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 		await expect(page).toHaveURL(/\/test\/crud\?search=Widget/);
 		await expect(page.getByRole('heading', { name: 'Tasks' })).toBeVisible();
 	});
+
+	// ─── Field actions ───────────────────────────────────────────────────────────
+
+	test('create: a field action button transforms the field value without submitting', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+
+		const notes = page.getByRole('textbox', { name: 'Notes' });
+		await notes.fill('hello WORLD');
+		await page.getByRole('button', { name: 'Capitalize' }).click();
+
+		await expect(notes).toHaveValue('Hello world');
+		// Still on the create form: the button never submitted.
+		await expect(page.getByRole('button', { name: 'Guardar', exact: true })).toBeVisible();
+	});
+
+	test('create: a field action does not interfere with the field\'s own validation', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+		await page.getByRole('textbox', { name: 'Name' }).fill('Widget C');
+		await page.getByRole('textbox', { name: 'Code' }).fill('ABC123');
+
+		const notes = page.getByRole('textbox', { name: 'Notes' });
+		await notes.fill('hi');
+		await page.getByRole('button', { name: 'Capitalize' }).click();
+		await expect(notes).toHaveValue('Hi');
+
+		await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+		await expect(page.locator('[role="alert"]')).toContainText('al menos 3 caracteres');
+	});
 });

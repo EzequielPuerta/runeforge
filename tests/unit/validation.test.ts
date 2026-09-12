@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { validateAll } from '$lib/components/crud/utils/validation.js';
 import { en } from '$lib/i18n/en.js';
 import type { FieldDefinition } from '$lib/types/crud.js';
@@ -191,5 +191,71 @@ describe('validateAll', () => {
 		const errors = validateAll(fields, formData({ age: '30' }), en);
 		expect(errors.name).toBe('name is required');
 		expect(errors.age).toBe('age must be less than or equal to 24');
+	});
+
+	it('runs a custom `validate` hook after built-in rules pass', () => {
+		const fields: FieldDefinition[] = [
+			{
+				attribute: 'code',
+				validate: (value) => (value === 'BANNED' ? 'code is not allowed' : undefined)
+			}
+		];
+		expect(validateAll(fields, formData({ code: 'BANNED' }), en).code).toBe('code is not allowed');
+		expect(validateAll(fields, formData({ code: 'OK' }), en).code).toBeUndefined();
+	});
+
+	it('does not run the custom `validate` hook when a built-in rule already failed', () => {
+		const validate = vi.fn(() => 'custom message');
+		const fields: FieldDefinition[] = [{ attribute: 'age', type: 'number', min: 18, validate }];
+		const errors = validateAll(fields, formData({ age: '10' }), en);
+		expect(errors.age).toBe('age must be greater than or equal to 18');
+		expect(validate).not.toHaveBeenCalled();
+	});
+
+	it('runs `validate` with the full submitted record for cross-field rules', () => {
+		const fields: FieldDefinition[] = [
+			{ attribute: 'submissionDate' },
+			{
+				attribute: 'extensionDate',
+				validate: (value, record) =>
+					typeof value === 'string' &&
+					typeof record.submissionDate === 'string' &&
+					value <= record.submissionDate
+						? 'extensionDate must be later than submissionDate'
+						: undefined
+			}
+		];
+
+		const invalid = validateAll(
+			fields,
+			formData({ submissionDate: '2026-02-01', extensionDate: '2026-01-01' }),
+			en
+		);
+		expect(invalid.extensionDate).toBe('extensionDate must be later than submissionDate');
+
+		const valid = validateAll(
+			fields,
+			formData({ submissionDate: '2026-02-01', extensionDate: '2026-03-01' }),
+			en
+		);
+		expect(valid.extensionDate).toBeUndefined();
+	});
+
+	it('does not run `validate` on an empty, non-required field', () => {
+		const validate = vi.fn(() => 'custom message');
+		const fields: FieldDefinition[] = [{ attribute: 'nickname', validate }];
+		const errors = validateAll(fields, formData({}), en);
+		expect(errors.nickname).toBeUndefined();
+		expect(validate).not.toHaveBeenCalled();
+	});
+
+	it('runs `validate` on a required embedded/multiselect/tree field with the parsed items', () => {
+		const validate = vi.fn((items: unknown) =>
+			Array.isArray(items) && items.length > 2 ? 'too many tags' : undefined
+		);
+		const fields: FieldDefinition[] = [{ attribute: 'tags', type: 'multiselect', validate }];
+		const errors = validateAll(fields, formData({ tags: JSON.stringify(['a', 'b', 'c']) }), en);
+		expect(errors.tags).toBe('too many tags');
+		expect(validate).toHaveBeenCalledWith(['a', 'b', 'c'], expect.any(Object));
 	});
 });

@@ -1,5 +1,6 @@
 import { deserialize } from '$app/forms';
 import { AttributeType, formatBoolean, type InterfaceMetadata } from '$lib/index.js';
+import Edit from '$lib/icons/defaults/Edit.svelte';
 import type { IOwner } from './store.js';
 
 export interface IAdjustment {
@@ -59,7 +60,17 @@ export const widgetMeta = {
 		type: AttributeType.textarea,
 		placeholder: 'Extra notes...',
 		minLength: 3,
-		maxLength: 200
+		maxLength: 200,
+		actions: [
+			{
+				label: 'Capitalize',
+				icon: Edit,
+				run: (value, _record, setField) => {
+					const str = String(value ?? '');
+					setField('notes', str ? str[0].toUpperCase() + str.slice(1).toLowerCase() : str);
+				}
+			}
+		]
 	},
 	owner: {
 		label: 'Owner',

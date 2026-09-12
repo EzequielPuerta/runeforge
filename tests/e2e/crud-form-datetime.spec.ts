@@ -17,7 +17,10 @@ test.describe('GenericCRUD - datetime field masked text input', () => {
 		await page.waitForURL(/\?id=.+&view=edit/);
 
 		await expect(page.getByRole('textbox', { name: 'Scheduled' })).toHaveValue('15/03/2026');
-		await expect(page.locator('input[type="time"]')).toHaveValue('09:30');
+		// `.first()`: the fixture now has a second datetime field (Follow-up,
+		// used by the cross-field `validate` tests below), so this generic
+		// selector matches two time inputs — Scheduled renders first.
+		await expect(page.locator('input[type="time"]').first()).toHaveValue('09:30');
 	});
 
 	test('update: typing a masked date updates and persists the value', async ({ page }) => {
@@ -53,7 +56,7 @@ test.describe('GenericCRUD - datetime field masked text input', () => {
 		const dateInput = page.getByRole('textbox', { name: 'Scheduled' });
 		await dateInput.pressSequentially('01062026');
 		await expect(dateInput).toHaveValue('01/06/2026');
-		await page.locator('input[type="time"]').fill('08:15');
+		await page.locator('input[type="time"]').first().fill('08:15');
 
 		await page.getByRole('button', { name: 'Guardar', exact: true }).click();
 
@@ -68,8 +71,8 @@ test.describe('GenericCRUD - datetime field masked text input', () => {
 			.click();
 		await page.waitForURL(/\?id=.+&view=edit/);
 
-		await page.getByRole('button', { name: 'Elegir fecha en el calendario' }).click();
-		const popover = page.locator('[popover]');
+		await page.getByRole('button', { name: 'Elegir fecha en el calendario' }).first().click();
+		const popover = page.locator('[popover]').first();
 		await expect(popover).toBeVisible();
 		await popover.getByRole('button', { name: 'March 20' }).click();
 
@@ -111,6 +114,42 @@ test.describe('GenericCRUD - datetime field masked text input', () => {
 		await dateInput.blur();
 
 		await expect(dateInput).toHaveValue('');
-		await expect(page.locator('input[type="time"]')).toBeDisabled();
+		await expect(page.locator('input[type="time"]').first()).toBeDisabled();
+	});
+
+	test('create: a custom cross-field `validate` rejects a follow-up date not later than scheduled', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+		await page.getByRole('textbox', { name: 'Title' }).fill('Review');
+
+		await page.getByRole('textbox', { name: 'Scheduled' }).pressSequentially('15062026');
+		await page.locator('input[type="time"]').first().fill('10:00');
+
+		await page.getByRole('textbox', { name: 'Follow-up' }).pressSequentially('10062026');
+		await page.locator('input[type="time"]').last().fill('09:00');
+
+		await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+
+		await expect(page.locator('[role="alert"]')).toContainText(
+			'Follow-up must be later than the scheduled date'
+		);
+	});
+
+	test('create: a custom cross-field `validate` accepts a follow-up date later than scheduled', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+		await page.getByRole('textbox', { name: 'Title' }).fill('Review');
+
+		await page.getByRole('textbox', { name: 'Scheduled' }).pressSequentially('15062026');
+		await page.locator('input[type="time"]').first().fill('10:00');
+
+		await page.getByRole('textbox', { name: 'Follow-up' }).pressSequentially('20062026');
+		await page.locator('input[type="time"]').last().fill('09:00');
+
+		await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+
+		await expect(page.locator('tbody tr', { hasText: 'Review' })).toContainText('20/06/2026');
 	});
 });

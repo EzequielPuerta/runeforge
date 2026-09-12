@@ -11,7 +11,8 @@ export const load: PageServerLoad = ({ url }) => {
 function appointmentFromFormData(data: FormData) {
 	return {
 		title: String(data.get('title') ?? '').trim(),
-		scheduled: String(data.get('scheduled') ?? '').trim()
+		scheduled: String(data.get('scheduled') ?? '').trim(),
+		followUp: String(data.get('followUp') ?? '').trim()
 	};
 }
 

@@ -4,7 +4,8 @@ import type {
 	AttributeType,
 	SearchResolver,
 	RequiredResolver,
-	SelectOption
+	SelectOption,
+	FieldButtonAction
 } from '$lib/types/attribute.js';
 import type { CellComponent, CellFormatter, SortableModule, TableQuery } from '$lib/types/table.js';
 import type { XlsxModule } from '$lib/components/table/export.js';
@@ -55,6 +56,8 @@ export interface FieldDefinition<T extends object = Record<string, unknown>> {
 	minLength?: number;
 	maxLength?: number;
 	pattern?: string;
+	/** See `AttributeMetadata.validate`. */
+	validate?: (value: unknown, record: Record<string, unknown>) => string | undefined;
 	/** Textarea fields only: the HTML `rows` attribute, controlling height. */
 	rows?: number;
 	/** Embedded fields only: sub-field definitions for each item, built from
@@ -66,6 +69,8 @@ export interface FieldDefinition<T extends object = Record<string, unknown>> {
 	defaultExpanded?: boolean;
 	/** Fields sharing the same `row` string render side by side. */
 	row?: string;
+	/** See `AttributeMetadata.actions`. */
+	actions?: FieldButtonAction[];
 }
 
 /** A create-form button whose visibility, label and styling can all be

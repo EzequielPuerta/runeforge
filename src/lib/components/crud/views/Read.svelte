@@ -67,13 +67,15 @@
 
 <div class="flex flex-col gap-6">
 
-  <Header
-    title={labelMany}
-    breadcrumbs={[
-      { label: labelMany, icon: entityIcon, link: { href: '#', onclick: (e) => { e.preventDefault(); onCancel?.(); } }, prominent: true },
-      { label: read.label ?? labelOne, icon: icons.view },
-    ]}
-  />
+  <div class="sticky-header sticky z-10 bg-base-100 pb-2">
+    <Header
+      title={labelMany}
+      breadcrumbs={[
+        { label: labelMany, icon: entityIcon, link: { href: '#', onclick: (e) => { e.preventDefault(); onCancel?.(); } }, prominent: true },
+        { label: read.label ?? labelOne, icon: icons.view },
+      ]}
+    />
+  </div>
 
   <div class="fields-panel mx-auto flex w-full flex-col gap-4 px-4">
     {#each groups as group, i (group.title ?? `_ungrouped_${i}`)}
@@ -120,5 +122,9 @@
 <style>
   .fields-panel {
     max-width: var(--runeforge-form-max-width, 32rem);
+  }
+
+  .sticky-header {
+    top: var(--runeforge-sticky-header-top, 0);
   }
 </style>
