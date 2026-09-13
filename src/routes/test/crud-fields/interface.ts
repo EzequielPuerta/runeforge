@@ -99,16 +99,28 @@ export const widgetMeta = {
 		// mirrors how real usages. Keep embedded fields out of the list and
 		// only show them in forms.
 		excludedFromList: true,
+		// "Penalty" only makes sense once the widget's own visibility is
+		// "advanced" — this exercises both new embedded/parent features:
+		// `kind`'s dependentOptions below reads the *parent* widget (not just
+		// its own draft) to decide which options to offer, and `dependsOn` +
+		// `revalidate` drop any already-added Penalty the moment visibility
+		// flips back to "basic", instead of leaving it silently stranded.
+		dependsOn: 'visibility',
+		revalidate: (items, parent) =>
+			parent.visibility === 'advanced'
+				? items
+				: items.filter((item) => item.kind !== 'penalty'),
 		fields: {
 			kind: {
 				label: 'Kind',
 				type: AttributeType.select,
 				required: true,
 				row: 'kindAmount',
-				options: [
-					{ value: 'bonus', label: 'Bonus' },
-					{ value: 'penalty', label: 'Penalty' }
-				]
+				dependentOptions: (_data, _record, parent) => {
+					const options = [{ value: 'bonus', label: 'Bonus' }];
+					if (parent?.visibility === 'advanced') options.push({ value: 'penalty', label: 'Penalty' });
+					return options;
+				}
 			},
 			amount: {
 				label: 'Amount',

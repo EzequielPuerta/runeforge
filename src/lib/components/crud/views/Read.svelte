@@ -7,7 +7,8 @@
   import { getIconSet } from '$lib/icons/context.js';
   import { defaultIconSet } from '$lib/icons/sets/default.js';
   import { groupFields } from '$lib/components/crud/utils/grouping.js';
-  import type { ActionConfiguration, FieldDefinition } from '$lib/types/crud.js';
+  import type { ActionConfiguration } from '$lib/types/crud/actions.js';
+  import type { FieldDefinition } from '$lib/types/crud/fields.js';
   import { getStrings } from '$lib/i18n/context.js';
 
   const strings = getStrings();
@@ -87,11 +88,11 @@
               {#if row.length > 1}
                 <div class="flex flex-col gap-4 md:flex-row">
                   {#each row as field (field.attribute)}
-                    <Field {field} {record} readonly class="md:min-w-0 md:flex-1" />
+                    <Field {field} bind:record readonly class="md:min-w-0 md:flex-1" />
                   {/each}
                 </div>
               {:else}
-                <Field field={row[0]} {record} readonly />
+                <Field field={row[0]} bind:record readonly />
               {/if}
             {/each}
           </div>
@@ -101,11 +102,11 @@
           {#if row.length > 1}
             <div class="flex flex-col gap-4 md:flex-row">
               {#each row as field (field.attribute)}
-                <Field {field} {record} readonly class="md:min-w-0 md:flex-1" />
+                <Field {field} bind:record readonly class="md:min-w-0 md:flex-1" />
               {/each}
             </div>
           {:else}
-            <Field field={row[0]} {record} readonly />
+            <Field field={row[0]} bind:record readonly />
           {/if}
         {/each}
       {/if}

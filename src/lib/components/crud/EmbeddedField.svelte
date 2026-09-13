@@ -1,4 +1,5 @@
 <script lang="ts" generics="T extends object = Record<string, unknown>">
+	import { untrack } from 'svelte';
 	import Field from '$lib/components/crud/Field.svelte';
 	import Button from '$lib/components/form/Button.svelte';
 	import Modal from '$lib/components/Modal.svelte';
@@ -6,7 +7,7 @@
 	import { fieldLabel } from '$lib/components/crud/utils/misc.js';
 	import { validateAll } from '$lib/components/crud/utils/validation.js';
 	import { groupFields } from '$lib/components/crud/utils/grouping.js';
-	import type { FieldDefinition } from '$lib/types/crud.js';
+	import type { FieldDefinition } from '$lib/types/crud/fields.js';
 	import { getStrings } from '$lib/i18n/context.js';
 
 	const strings = getStrings();
@@ -17,6 +18,11 @@
 		readonly = false
 	}: {
 		field: FieldDefinition<T>;
+		/** The record that owns this embedded field (the form record for a
+		 * top-level embedded field, or the outer item's draft for one nested
+		 * inside another embedded field) — passed through to each sub-field's
+		 * `hidden`/`disabled`/`required`/`dependentOptions` as their `parent`
+		 * argument, and to `field.revalidate` as its own parent argument. */
 		record?: Record<string, unknown>;
 		readonly?: boolean;
 	} = $props();
@@ -24,6 +30,28 @@
 	const subFields = $derived(field.fields ?? []);
 	const subGroups = $derived(groupFields(subFields));
 	const items = $derived((record[field.attribute] as Record<string, unknown>[] | undefined) ?? []);
+
+	// Re-derives the embedded list right after `field.dependsOn` changes value
+	// on the parent record — e.g. dropping items that no longer apply once a
+	// sibling "owner kind" select flips — instead of leaving them stale until
+	// the user happens to touch this field again. Scoped to exactly that one
+	// parent attribute: reading it is this effect's only tracked dependency,
+	// and everything else (including its own write to `record[field.attribute]`)
+	// runs inside `untrack` so the effect never re-triggers itself.
+	$effect(() => {
+		if (!field.dependsOn || !field.revalidate) return;
+		// Read (only) to register as this effect's sole tracked dependency —
+		// everything that actually acts on it happens inside untrack() below,
+		// so the effect reruns exactly when this one value changes and never
+		// because of its own write to record[field.attribute].
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const dependencyValue = record[field.dependsOn];
+		untrack(() => {
+			const current = (record[field.attribute] as Record<string, unknown>[] | undefined) ?? [];
+			const next = field.revalidate!(current, record);
+			if (next !== current) record[field.attribute] = next;
+		});
+	});
 
 	let modalOpen = $state(false);
 	// null while adding a new item; the item's index while editing an existing
@@ -141,11 +169,11 @@
 								{#if row.length > 1}
 									<div class="flex flex-col gap-4 md:flex-row">
 										{#each row as f (f.attribute)}
-											<Field field={f} bind:record={draft} error={draftErrors[f.attribute] ?? ''} class="md:min-w-0 md:flex-1" />
+											<Field field={f} bind:record={draft} parentRecord={record} error={draftErrors[f.attribute] ?? ''} class="md:min-w-0 md:flex-1" />
 										{/each}
 									</div>
 								{:else}
-									<Field field={row[0]} bind:record={draft} error={draftErrors[row[0].attribute] ?? ''} />
+									<Field field={row[0]} bind:record={draft} parentRecord={record} error={draftErrors[row[0].attribute] ?? ''} />
 								{/if}
 							{/each}
 						</div>
@@ -155,11 +183,11 @@
 						{#if row.length > 1}
 							<div class="flex flex-col gap-4 md:flex-row">
 								{#each row as f (f.attribute)}
-									<Field field={f} bind:record={draft} error={draftErrors[f.attribute] ?? ''} class="md:min-w-0 md:flex-1" />
+									<Field field={f} bind:record={draft} parentRecord={record} error={draftErrors[f.attribute] ?? ''} class="md:min-w-0 md:flex-1" />
 								{/each}
 							</div>
 						{:else}
-							<Field field={row[0]} bind:record={draft} error={draftErrors[row[0].attribute] ?? ''} />
+							<Field field={row[0]} bind:record={draft} parentRecord={record} error={draftErrors[row[0].attribute] ?? ''} />
 						{/if}
 					{/each}
 				{/if}

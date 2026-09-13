@@ -39,12 +39,32 @@ export type SelectOption = { value: string; label: string; parentValue?: string 
 export type OptionsResolver = SelectOption[] | ((data: any) => SelectOption[]);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type FormatterResolver = (data?: any) => CellFormatter<any, any>;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type DependentOptionsResolver = (data: any, record: Record<string, unknown>) => SelectOption[];
+/** `parent` is only ever populated for a sub-field nested inside an
+ * `embedded` field — the outer form's own record, distinct from `record`
+ * (the embedded item's own draft). Undefined for a top-level field. */
+export type DependentOptionsResolver = (
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	data: any,
+	record: Record<string, unknown>,
+	parent?: Record<string, unknown>
+) => SelectOption[];
 export type SearchResolver = (query: string) => Promise<SelectOption[]>;
-export type DisabledResolver = (record: Record<string, unknown>) => boolean;
-export type HiddenResolver = (record: Record<string, unknown>) => boolean;
-export type RequiredResolver = (record: Record<string, unknown>) => boolean;
+/** See `DependentOptionsResolver` re: `parent`. */
+export type DisabledResolver = (record: Record<string, unknown>, parent?: Record<string, unknown>) => boolean;
+/** See `DependentOptionsResolver` re: `parent`. */
+export type HiddenResolver = (record: Record<string, unknown>, parent?: Record<string, unknown>) => boolean;
+/** See `DependentOptionsResolver` re: `parent`. */
+export type RequiredResolver = (record: Record<string, unknown>, parent?: Record<string, unknown>) => boolean;
+/** Embedded fields only: called once right after the parent record's
+ * `dependsOn` attribute changes value (not on every parent mutation) —
+ * receives the embedded list's current items and the parent record, and
+ * returns the list that should replace it. Return the same array reference
+ * unchanged when nothing needs to happen; a new array (e.g. `items.filter(…)`)
+ * prunes/adjusts now-invalid items instead of leaving them silently stale. */
+export type EmbeddedRevalidateResolver = (
+	items: Record<string, unknown>[],
+	parent: Record<string, unknown>
+) => Record<string, unknown>[];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type SeedResolver = (instance: any) => unknown;
 /** Embedded fields only: renders a short summary for one item in the list.
@@ -148,6 +168,14 @@ export type AttributeMetadata = {
   fields?: InterfaceMetadata<any>;
   /** Embedded fields only: short label for an item in the list. */
   itemLabel?: EmbeddedItemLabelResolver;
+  /** Embedded fields only: re-derives the embedded list whenever the parent
+   * record's `dependsOn` attribute changes — see `EmbeddedRevalidateResolver`.
+   * Requires `dependsOn`; ignored without it. */
+  revalidate?: EmbeddedRevalidateResolver;
+  /** Embedded fields only: parent record attribute that `revalidate` reacts
+   * to. Only that one attribute is watched — changes to anything else in the
+   * parent record don't trigger `revalidate`. */
+  dependsOn?: string;
   /** Tree fields only: whether parent nodes start expanded. Defaults to `true`. */
   defaultExpanded?: boolean;
   /** Fields sharing the same `row` string render side by side on desktop and

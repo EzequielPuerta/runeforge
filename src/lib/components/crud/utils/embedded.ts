@@ -1,4 +1,4 @@
-import type { FieldDefinition } from '$lib/types/crud.js';
+import type { FieldDefinition } from '$lib/types/crud/fields.js';
 import { fieldLabel } from './misc.js';
 
 // Shared by emptyRecord/Update.svelte's seedFromInstance/EmbeddedField's edit

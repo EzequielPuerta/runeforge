@@ -7,7 +7,7 @@ import {
 	defaultItemLabel,
 	formatEmbeddedFieldValue
 } from '$lib/components/crud/utils/embedded.js';
-import type { FieldDefinition } from '$lib/types/crud.js';
+import type { FieldDefinition } from '$lib/types/crud/fields.js';
 
 describe('seedField', () => {
 	it('coerces booleans to a real boolean', () => {

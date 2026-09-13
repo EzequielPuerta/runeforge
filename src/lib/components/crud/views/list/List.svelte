@@ -7,13 +7,13 @@
 	import { computeReorderChanges } from '$lib/components/crud/utils/reorder.js';
 	import type {
 		ActionConfiguration,
-		ColumnDefinition,
 		CustomAction,
 		CustomBulkAction,
 		ListActions,
-		ListConfig,
 		ViewBasedCustomBulkAction
-	} from '$lib/types/crud.js';
+	} from '$lib/types/crud/actions.js';
+	import type { ColumnDefinition } from '$lib/types/crud/columns.js';
+	import type { ListConfig } from '$lib/types/crud/list-config.js';
 	import type {
 		FilterSnapshot,
 		ServerPagination,

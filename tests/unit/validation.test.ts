@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { validateAll } from '$lib/components/crud/utils/validation.js';
 import { en } from '$lib/i18n/en.js';
-import type { FieldDefinition } from '$lib/types/crud.js';
+import type { FieldDefinition } from '$lib/types/crud/fields.js';
 
 function formData(entries: Record<string, string>): FormData {
 	const fd = new FormData();

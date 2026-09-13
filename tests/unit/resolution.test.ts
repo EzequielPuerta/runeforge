@@ -198,6 +198,35 @@ describe('buildFieldDefinitions', () => {
 		expect(fields[0].default).toBe(5);
 	});
 
+	it('wraps dependentOptions to forward the parent argument through to the metadata resolver', () => {
+		const dependentOptions = (
+			data: unknown,
+			record: Record<string, unknown>,
+			parent?: Record<string, unknown>
+		) => [{ value: String(record.x), label: String(parent?.owner_kind ?? 'none') }];
+		const meta: Partial<Record<string, AttributeMetadata>> = {
+			field: { label: 'Field', dependentOptions }
+		};
+
+		const fields = buildFieldDefinitions(meta, 'data', 'excludedFromCreate', excluded);
+		const parent = { owner_kind: 'USER' };
+
+		expect(fields[0].dependentOptions!({ x: 1 }, parent)).toEqual([{ value: '1', label: 'USER' }]);
+		expect(fields[0].dependentOptions!({ x: 1 })).toEqual([{ value: '1', label: 'none' }]);
+	});
+
+	it('passes revalidate/dependsOn through unchanged for embedded fields', () => {
+		const revalidate = (items: Record<string, unknown>[]) => items;
+		const meta: Partial<Record<string, AttributeMetadata>> = {
+			items: { label: 'Items', type: 'embedded', dependsOn: 'owner_kind', revalidate }
+		};
+
+		const fields = buildFieldDefinitions(meta, undefined, 'excludedFromCreate', excluded);
+
+		expect(fields[0].dependsOn).toBe('owner_kind');
+		expect(fields[0].revalidate).toBe(revalidate);
+	});
+
 	it('builds nested sub-field definitions and passes itemLabel through for embedded fields', () => {
 		const itemLabel = (item: Record<string, unknown>) => `${item.formula} -> ${item.quantity}`;
 		const meta: Partial<Record<string, AttributeMetadata>> = {

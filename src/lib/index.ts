@@ -22,9 +22,9 @@ export type {
 	TableQuery,
 	ReorderOptions
 } from './types/table.js';
+export type { ColumnDefinition } from './types/crud/columns.js';
+export type { FieldDefinition } from './types/crud/fields.js';
 export type {
-	ColumnDefinition,
-	FieldDefinition,
 	ActionConfiguration,
 	CustomAction,
 	BaseCustomBulkAction,
@@ -32,12 +32,14 @@ export type {
 	EndpointBasedCustomBulkAction,
 	CustomBulkAction,
 	RowAction,
+	ListActions
+} from './types/crud/actions.js';
+export type {
 	SearchConfiguration,
 	ExportConfiguration,
-	ReorderConfiguration,
-	ListActions,
 	ListConfig
-} from './types/crud.js';
+} from './types/crud/list-config.js';
+export type { ReorderConfiguration } from './types/crud/reorder.js';
 
 // Config
 export type { RuneforgeConfig } from './config/context.js';

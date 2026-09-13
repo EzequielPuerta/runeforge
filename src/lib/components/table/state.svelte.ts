@@ -1,5 +1,5 @@
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
-import type { ColumnDefinition } from '$lib/types/crud.js';
+import type { ColumnDefinition } from '$lib/types/crud/columns.js';
 import { cellRenderedText, compare, isFilterable } from '$lib/components/table/utils.js';
 import type { FilterSnapshot, IndexedRow, SortDirection } from '$lib/types/table.js';
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import PaginatedTable from '$lib/components/table/PaginatedTable.svelte';
-  import type { ColumnDefinition } from '$lib/types/crud.js';
+  import type { ColumnDefinition } from '$lib/types/crud/columns.js';
 
   type Person = { name: string; age: number; city: string };
 

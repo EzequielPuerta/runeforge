@@ -9,7 +9,8 @@
   import { validateAll } from '$lib/components/crud/utils/validation.js';
   import { groupFields } from '$lib/components/crud/utils/grouping.js';
   import { applyDuplicateOmit, seedRecord } from '$lib/components/crud/utils/embedded.js';
-  import type { ActionConfiguration, FieldDefinition } from '$lib/types/crud.js';
+  import type { ActionConfiguration } from '$lib/types/crud/actions.js';
+  import type { FieldDefinition } from '$lib/types/crud/fields.js';
   import { getStrings } from '$lib/i18n/context.js';
 
   const strings = getStrings();

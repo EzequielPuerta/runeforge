@@ -4,12 +4,9 @@
 	import PaginatedTable from '$lib/components/table/PaginatedTable.svelte';
 	import { getIconSet } from '$lib/icons/context.js';
 	import { defaultIconSet } from '$lib/icons/sets/default.js';
-	import type {
-		ColumnDefinition,
-		CustomAction,
-		ReorderConfiguration,
-		RowAction
-	} from '$lib/types/crud.js';
+	import type { ColumnDefinition } from '$lib/types/crud/columns.js';
+	import type { CustomAction, RowAction } from '$lib/types/crud/actions.js';
+	import type { ReorderConfiguration } from '$lib/types/crud/reorder.js';
 	import type {
 		FilterSnapshot,
 		ServerPagination,

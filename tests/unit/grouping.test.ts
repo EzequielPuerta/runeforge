@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { groupFields } from '$lib/components/crud/utils/grouping.js';
-import type { FieldDefinition } from '$lib/types/crud.js';
+import type { FieldDefinition } from '$lib/types/crud/fields.js';
 
 function field(attribute: string, groupedAs?: string, row?: string): FieldDefinition {
 	return { attribute, groupedAs, row };

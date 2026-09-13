@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { getStrings } from '$lib/i18n/context.js';
-	import type { SearchConfiguration } from '$lib/types/crud.js';
+	import type { SearchConfiguration } from '$lib/types/crud/list-config.js';
 
 	const strings = getStrings();
 

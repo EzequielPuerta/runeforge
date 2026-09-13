@@ -1,7 +1,7 @@
 <script lang="ts" generics="T extends object">
   import type { Snippet } from 'svelte';
   import type { SvelteSet } from 'svelte/reactivity';
-  import type { ColumnDefinition } from '$lib/types/crud.js';
+  import type { ColumnDefinition } from '$lib/types/crud/columns.js';
   import type { IndexedRow, ReorderOptions } from '$lib/types/table.js';
   import { sortableRows, type SortEndIndices } from '$lib/components/table/sortable.js';
   import { moveIndexedRows } from '$lib/components/table/utils.js';

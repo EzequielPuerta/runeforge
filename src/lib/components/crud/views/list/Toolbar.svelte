@@ -6,12 +6,11 @@
 	import { defaultIconSet } from '$lib/icons/sets/default.js';
 	import type {
 		ActionConfiguration,
-		ColumnDefinition,
 		CustomBulkAction,
-		ExportConfiguration,
-		SearchConfiguration,
 		ViewBasedCustomBulkAction
-	} from '$lib/types/crud.js';
+	} from '$lib/types/crud/actions.js';
+	import type { ColumnDefinition } from '$lib/types/crud/columns.js';
+	import type { ExportConfiguration, SearchConfiguration } from '$lib/types/crud/list-config.js';
 	import type { ServerPagination, TableQuery } from '$lib/types/table.js';
 	import { getStrings } from '$lib/i18n/context.js';
 	import SearchInput from '$lib/components/crud/SearchInput.svelte';

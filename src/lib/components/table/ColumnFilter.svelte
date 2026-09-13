@@ -13,7 +13,7 @@
 	});
 	import type { DistinctEntry } from '$lib/types/table.js';
 	import type { FilterState } from '$lib/components/table/state.svelte.js';
-	import type { ColumnDefinition } from '$lib/types/crud.js';
+	import type { ColumnDefinition } from '$lib/types/crud/columns.js';
 
 	let {
 		column,

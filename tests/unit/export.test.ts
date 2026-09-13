@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildTable } from '$lib/components/table/export.js';
-import type { ColumnDefinition, FieldDefinition } from '$lib/types/crud.js';
+import type { ColumnDefinition } from '$lib/types/crud/columns.js';
+import type { FieldDefinition } from '$lib/types/crud/fields.js';
 
 describe('buildTable', () => {
 	it('behaves exactly as before when there are no embedded columns', () => {

@@ -1,5 +1,5 @@
 import type { AttributeMetadata, AttributeType, SelectOption } from '$lib/types/attribute.js';
-import type { FieldDefinition } from '$lib/types/crud.js';
+import type { FieldDefinition } from '$lib/types/crud/fields.js';
 
 export function resolveOptions(m: AttributeMetadata, d: unknown): SelectOption[] | undefined {
 	if (!m.options) return undefined;
@@ -71,7 +71,8 @@ export function buildFieldDefinitions<T extends object = Record<string, unknown>
 			default: resolveDefault(m, data),
 			options: resolveOptions(m, data),
 			dependentOptions: m.dependentOptions
-				? (record: Record<string, unknown>) => m.dependentOptions!(data, record)
+				? (record: Record<string, unknown>, parent?: Record<string, unknown>) =>
+						m.dependentOptions!(data, record, parent)
 				: undefined,
 			search: m.search,
 			disabled: m.disabled,
@@ -89,6 +90,8 @@ export function buildFieldDefinitions<T extends object = Record<string, unknown>
 			rows: m.rows,
 			fields: m.fields ? buildFieldDefinitions(m.fields, data, excludedFlag, new Set()) : undefined,
 			itemLabel: m.itemLabel,
+			revalidate: m.revalidate,
+			dependsOn: m.dependsOn,
 			defaultExpanded: m.defaultExpanded,
 			row: m.row,
 			actions: m.actions

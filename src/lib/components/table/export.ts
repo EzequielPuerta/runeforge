@@ -1,4 +1,5 @@
-import type { ColumnDefinition, FieldDefinition } from '$lib/types/crud.js';
+import type { ColumnDefinition } from '$lib/types/crud/columns.js';
+import type { FieldDefinition } from '$lib/types/crud/fields.js';
 import { cellRenderedText } from '$lib/components/table/utils.js';
 import { formatEmbeddedFieldValue } from '$lib/components/crud/utils/embedded.js';
 

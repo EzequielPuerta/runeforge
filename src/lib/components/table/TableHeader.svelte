@@ -3,7 +3,7 @@
   import ColumnFilter from '$lib/components/table/ColumnFilter.svelte';
   import { isSortable, isFilterable } from '$lib/components/table/utils.js';
   import type { DistinctEntry } from '$lib/types/table.js';
-  import type { ColumnDefinition } from '$lib/types/crud.js';
+  import type { ColumnDefinition } from '$lib/types/crud/columns.js';
   import type { SortState, FilterState } from '$lib/components/table/state.svelte.js';
   import { getStrings } from '$lib/i18n/context.js';
 

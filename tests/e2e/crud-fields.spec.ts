@@ -196,6 +196,10 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 
 	test('create: removing an added embedded item takes it out of the list', async ({ page }) => {
 		await page.getByRole('button', { name: /Crear/ }).click();
+		// "Penalty" only appears once visibility is "advanced" — see the
+		// dependentOptions on adjustments.kind below.
+		await page.getByRole('textbox', { name: 'Visibility' }).click();
+		await page.getByRole('button', { name: 'Advanced', exact: true }).click();
 		await page.getByRole('button', { name: '+ Agregar' }).click();
 
 		const modal = page.locator('dialog.modal');
@@ -286,6 +290,10 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 		await page.getByRole('textbox', { name: 'Name' }).fill('Widget D');
 		await page.getByRole('textbox', { name: 'Code' }).fill('DEF456');
 		await page.getByRole('spinbutton', { name: 'Quantity' }).fill('5');
+		// "Penalty" only appears once visibility is "advanced" — see the
+		// dependentOptions on adjustments.kind below.
+		await page.getByRole('textbox', { name: 'Visibility' }).click();
+		await page.getByRole('button', { name: 'Advanced', exact: true }).click();
 
 		await page.getByRole('button', { name: '+ Agregar' }).click();
 		const modal = page.locator('dialog.modal');
@@ -302,6 +310,79 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 			.getByRole('button', { name: 'Ver' })
 			.click();
 		await expect(page.getByText('Penalty: 2')).toBeVisible();
+	});
+
+	// ─── Embedded field: parent-aware sub-fields + dependsOn/revalidate ─────────
+
+	test("create: an embedded sub-field's dependentOptions can read the parent record, not just its own draft", async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+
+		// visibility defaults to "basic" — "Penalty" shouldn't be offered yet.
+		await page.getByRole('button', { name: '+ Agregar' }).click();
+		let modal = page.locator('dialog.modal');
+		await modal.getByPlaceholder('Seleccioná una opción').click();
+		await expect(modal.getByRole('button', { name: 'Bonus' })).toBeVisible();
+		await expect(modal.getByRole('button', { name: 'Penalty' })).toHaveCount(0);
+		await page.keyboard.press('Escape');
+		await modal.getByRole('button', { name: 'Cancelar' }).click();
+
+		const visibilityInput = page.getByRole('textbox', { name: 'Visibility' });
+		await visibilityInput.click();
+		await page.getByRole('button', { name: 'Advanced', exact: true }).click();
+
+		await page.getByRole('button', { name: '+ Agregar' }).click();
+		modal = page.locator('dialog.modal');
+		await modal.getByPlaceholder('Seleccioná una opción').click();
+		await expect(modal.getByRole('button', { name: 'Penalty' })).toBeVisible();
+	});
+
+	test('create: flipping visibility back to basic drops an already-added Penalty adjustment', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+
+		const visibilityInput = page.getByRole('textbox', { name: 'Visibility' });
+		await visibilityInput.click();
+		await page.getByRole('button', { name: 'Advanced', exact: true }).click();
+
+		await page.getByRole('button', { name: '+ Agregar' }).click();
+		const modal = page.locator('dialog.modal');
+		await modal.getByPlaceholder('Seleccioná una opción').click();
+		await modal.getByRole('button', { name: 'Penalty' }).click();
+		await modal.getByRole('spinbutton', { name: 'Amount' }).fill('3');
+		await modal.getByRole('button', { name: 'Agregar', exact: true }).click();
+		await expect(page.getByText('Penalty: 3')).toBeVisible();
+
+		await visibilityInput.click();
+		await page.getByRole('button', { name: 'Basic', exact: true }).click();
+
+		await expect(page.getByText('Penalty: 3')).toHaveCount(0);
+		await expect(page.getByText('Sin elementos agregados')).toBeVisible();
+	});
+
+	test('create: a Bonus adjustment survives visibility flipping back to basic', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+
+		const visibilityInput = page.getByRole('textbox', { name: 'Visibility' });
+		await visibilityInput.click();
+		await page.getByRole('button', { name: 'Advanced', exact: true }).click();
+
+		await page.getByRole('button', { name: '+ Agregar' }).click();
+		const modal = page.locator('dialog.modal');
+		await modal.getByPlaceholder('Seleccioná una opción').click();
+		await modal.getByRole('button', { name: 'Bonus' }).click();
+		await modal.getByRole('spinbutton', { name: 'Amount' }).fill('4');
+		await modal.getByRole('button', { name: 'Agregar', exact: true }).click();
+		await expect(page.getByText('Bonus: 4')).toBeVisible();
+
+		await visibilityInput.click();
+		await page.getByRole('button', { name: 'Basic', exact: true }).click();
+
+		await expect(page.getByText('Bonus: 4')).toBeVisible();
 	});
 
 	// ─── Conditional hidden field ────────────────────────────────────────────────

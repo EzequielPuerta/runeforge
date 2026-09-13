@@ -10,7 +10,7 @@ import {
 	moveIndexedRows,
 	resolveReorderComparator,
 } from '$lib/components/table/utils.js';
-import type { ColumnDefinition } from '$lib/types/crud.js';
+import type { ColumnDefinition } from '$lib/types/crud/columns.js';
 import type { IndexedRow } from '$lib/types/table.js';
 
 describe('compare', () => {

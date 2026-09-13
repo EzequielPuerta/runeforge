@@ -17,7 +17,7 @@
 		TableQuery
 	} from '$lib/types/table.js';
 	import { tick, type Snippet } from 'svelte';
-	import type { ColumnDefinition } from '$lib/types/crud.js';
+	import type { ColumnDefinition } from '$lib/types/crud/columns.js';
 	import { getStrings } from '$lib/i18n/context.js';
 
 	const strings = getStrings();

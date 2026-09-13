@@ -1,7 +1,7 @@
 <script lang="ts" generics="T extends object = Record<string, unknown>">
 	import Button from '$lib/components/form/Button.svelte';
 	import Modal from '$lib/components/Modal.svelte';
-	import type { CustomBulkAction } from '$lib/types/crud.js';
+	import type { CustomBulkAction } from '$lib/types/crud/actions.js';
 	import { getStrings } from '$lib/i18n/context.js';
 
 	const strings = getStrings();

@@ -1,4 +1,4 @@
-import type { FieldDefinition } from '$lib/types/crud.js';
+import type { FieldDefinition } from '$lib/types/crud/fields.js';
 
 export type FieldRow<T extends object = Record<string, unknown>> = FieldDefinition<T>[];
 

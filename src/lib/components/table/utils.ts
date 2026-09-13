@@ -1,4 +1,4 @@
-import type { ColumnDefinition } from '$lib/types/crud.js';
+import type { ColumnDefinition } from '$lib/types/crud/columns.js';
 import type { DistinctEntry, IndexedRow } from '$lib/types/table.js';
 
 export function cellRenderedText<T extends object>(row: T, col: ColumnDefinition<T>): string {
