@@ -9,11 +9,21 @@
  *   import { bootstrapIconSet } from 'runeforge/icons/sets/bootstrap';
  *   setIconSet(bootstrapIconSet);
  */
-import {
-  ChevronExpand, CaretUpFill, CaretDownFill, Funnel, FunnelFill,
-  Plus, Eye, PencilSquare, Trash3, HouseDoor, Folder, EyeSlash, X,
-  Download, GripVertical,
-} from 'svelte-bootstrap-icons';
+import ChevronExpand from 'svelte-bootstrap-icons/lib/ChevronExpand.svelte';
+import CaretUpFill from 'svelte-bootstrap-icons/lib/CaretUpFill.svelte';
+import CaretDownFill from 'svelte-bootstrap-icons/lib/CaretDownFill.svelte';
+import Funnel from 'svelte-bootstrap-icons/lib/Funnel.svelte';
+import FunnelFill from 'svelte-bootstrap-icons/lib/FunnelFill.svelte';
+import Plus from 'svelte-bootstrap-icons/lib/Plus.svelte';
+import Eye from 'svelte-bootstrap-icons/lib/Eye.svelte';
+import PencilSquare from 'svelte-bootstrap-icons/lib/PencilSquare.svelte';
+import Trash3 from 'svelte-bootstrap-icons/lib/Trash3.svelte';
+import HouseDoor from 'svelte-bootstrap-icons/lib/HouseDoor.svelte';
+import Folder from 'svelte-bootstrap-icons/lib/Folder.svelte';
+import EyeSlash from 'svelte-bootstrap-icons/lib/EyeSlash.svelte';
+import X from 'svelte-bootstrap-icons/lib/X.svelte';
+import Download from 'svelte-bootstrap-icons/lib/Download.svelte';
+import GripVertical from 'svelte-bootstrap-icons/lib/GripVertical.svelte';
 import type { CRUDIconSet, IconComponent } from '$lib/icons/types.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
