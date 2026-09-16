@@ -84,7 +84,11 @@
 		value.map((v) => options.find((o) => o.value === v)?.label ?? pickedLabels.get(v) ?? v)
 	);
 	const buttonLabel = $derived(
-		value.length === 0 ? placeholder : strings.selectedCount(value.length)
+		value.length === 0
+			? placeholder
+			: value.length === 1
+				? selectedLabels[0]
+				: strings.selectedCount(value.length)
 	);
 
 	function toggle(option: SelectOption) {

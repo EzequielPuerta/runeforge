@@ -62,7 +62,7 @@
 
 <div
 	class="overflow-y-auto rounded-box border border-base-300 p-2"
-	style="max-height: var(--runeforge-tree-max-height, 24rem)"
+	style="height: var(--runeforge-tree-max-height, 24rem)"
 	class:opacity-50={disabled}
 	class:pointer-events-none={disabled}
 >

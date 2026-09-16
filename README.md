@@ -163,7 +163,7 @@ Responsive overrides work too:
 | `--runeforge-crud-title-size` | `1.875rem` | `<h1>` inside the `Header` component |
 | `--runeforge-breadcrumb-font-size` | `0.875rem` | Breadcrumb label text size |
 | `--runeforge-breadcrumb-icon-size` | `1rem` | Breadcrumb icon width and height |
-| `--runeforge-tree-max-height` | `24rem` | Max height of a `tree` field before it scrolls internally |
+| `--runeforge-tree-max-height` | `24rem` | Fixed height of a `tree` field — it doesn't shrink or grow with content (e.g. while searching), scrolling internally instead |
 | `--runeforge-sticky-header-top` | `0` | Offset of the sticky title/breadcrumbs/alert block in Create, Update, and Read views — raise it if your app already has its own sticky top bar taking up space |
 
 Modal sizing (see [Shared Components](#shared-components)) is set per-instance via props rather than a CSS variable.
@@ -680,7 +680,7 @@ categories: {
 
 The stored value is a `string[]` of selected node values, submitted the same way as `multiselect` — a single hidden field holding a JSON array, parsed back out server-side with `JSON.parse`. `dependentOptions` and `hidden` work the same as any other field type.
 
-By default every parent node renders expanded; set `defaultExpanded: false` to start with the whole tree collapsed instead (the user can still expand any branch — this only sets the initial state). The field itself is capped at `--runeforge-tree-max-height` (default `24rem`, see [CSS variables](#css-variables)) and scrolls internally once its content grows past that.
+By default every parent node renders expanded; set `defaultExpanded: false` to start with the whole tree collapsed instead (the user can still expand any branch — this only sets the initial state). The field renders at a fixed `--runeforge-tree-max-height` (default `24rem`, see [CSS variables](#css-variables)) regardless of how much is expanded or matched by a search, scrolling internally instead of growing or shrinking the field itself.
 
 A search box above the tree filters nodes by label as the user types (case-insensitive, substring match), auto-expanding whatever branches lead to a match and hiding everything else — set `searchable: false` to drop the box for a tree short enough not to need it.
 

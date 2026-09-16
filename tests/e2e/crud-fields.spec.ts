@@ -408,7 +408,21 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 
 	// ─── Multiselect field ───────────────────────────────────────────────────────
 
-	test('create: multiselect toggles options without closing, and shows a selected count', async ({
+	test('create: multiselect shows the option name directly for a single selection', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+
+		const multiInput = page.getByRole('textbox', { name: 'Tags' });
+		await multiInput.click();
+		const dropdown = page.locator('ul').filter({ hasText: 'Fragile' });
+		await dropdown.getByRole('button', { name: 'Fragile' }).click();
+
+		await page.keyboard.press('Escape');
+		await expect(multiInput).toHaveValue('Fragile');
+	});
+
+	test('create: multiselect toggles options without closing, and shows a selected count once there are two or more', async ({
 		page
 	}) => {
 		await page.getByRole('button', { name: /Crear/ }).click();
