@@ -85,6 +85,13 @@ export class FilterState {
 		);
 	}
 
+	hasAny(): boolean {
+		for (const value of this.text.values()) if (value) return true;
+		for (const set of this.values.values()) if (set.size > 0) return true;
+		for (const range of this.dateRanges.values()) if (range.from || range.to) return true;
+		return false;
+	}
+
 	isChecked(attribute: string, value: string): boolean {
 		return this.values.get(attribute)?.has(value) ?? false;
 	}

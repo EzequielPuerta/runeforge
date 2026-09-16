@@ -59,11 +59,13 @@
 		/** Current ordering + filters snapshot, kept in sync for callers that
 		 * need to replicate the active query (e.g. exporting server-side). */
 		query?: TableQuery;
-		/** Turns on drag-to-reorder. Per-column filters are suppressed and row
-		 * order is fully owned by `reorder.compare`/`reorder.attribute` while
-		 * it's active — ignored entirely in server-pagination mode
-		 * (`pagination` set), since the full row set needs to be reachable
-		 * client-side for drag positions to be meaningful. */
+		/** Turns on drag-to-reorder. Row order is fully owned by
+		 * `reorder.compare`/`reorder.attribute` while it's active — active only
+		 * when no column filter is currently set (a filter pauses reorder
+		 * until it's cleared, see `reorderActive` below) and never in
+		 * server-pagination mode (`pagination` set), since the full row set
+		 * needs to be reachable client-side for drag positions to be
+		 * meaningful. */
 		reorder?: ReorderOptions<T>;
 		/** Fires after a drag settles with the complete reordered row list
 		 * (client mode only). The caller decides how to persist it. */
@@ -94,8 +96,12 @@
 
 	// Server-pagination mode owns its own full row set server-side, where
 	// drag positions can't be reconciled across pages — reorder only makes
-	// sense once the whole (client-mode) row set is reachable.
-	const reorderActive = $derived(!!reorder && !pagination);
+	// sense once the whole (client-mode) row set is reachable. An active
+	// column filter pauses reorder the same way: a filtered-out row's drag
+	// position would be undefined, so reorder mode steps aside (and the
+	// table behaves like a plain sortable/filterable one) for as long as any
+	// filter stays on, resuming automatically once every filter clears.
+	const reorderActive = $derived(!!reorder && !pagination && !filter.hasAny());
 
 	const indexed = $derived(data.map((row, index): IndexedRow<T> => ({ row, index })));
 	// Dragging needs the complete row set reachable, so filters (which would

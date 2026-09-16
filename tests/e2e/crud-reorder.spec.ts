@@ -157,4 +157,28 @@ test.describe('GenericCRUD - reorder', () => {
 		await page.waitForLoadState('networkidle');
 		expect(await rowTitles(page)).toEqual(INITIAL_ORDER.slice(0, PAGE_SIZE));
 	});
+
+	test('the column filter is reachable even while reorder mode is active', async ({ page }) => {
+		await expect(page.getByRole('button', { name: 'Filtrar Title' })).toBeVisible();
+	});
+
+	test('setting a column filter pauses reorder mode', async ({ page }) => {
+		await page.getByRole('button', { name: 'Filtrar Title' }).click();
+		await page.locator('#filter-pop-title').getByPlaceholder('Filtrar…').fill('ing');
+
+		await expect(page.locator('tbody tr')).toHaveCount(1);
+		await expect(page.locator('tbody tr')).toHaveText(/Housing/);
+		await expect(page.locator('[data-reorder-handle]')).toHaveCount(0);
+	});
+
+	test('clearing the last active filter resumes reorder mode', async ({ page }) => {
+		await page.getByRole('button', { name: 'Filtrar Title' }).click();
+		await page.locator('#filter-pop-title').getByPlaceholder('Filtrar…').fill('ing');
+		await expect(page.locator('[data-reorder-handle]')).toHaveCount(0);
+
+		await page.getByRole('button', { name: 'Limpiar filtro' }).click();
+
+		await expect(page.locator('[data-reorder-handle]:visible')).toHaveCount(PAGE_SIZE);
+		expect(await rowTitles(page)).toEqual(INITIAL_ORDER.slice(0, PAGE_SIZE));
+	});
 });

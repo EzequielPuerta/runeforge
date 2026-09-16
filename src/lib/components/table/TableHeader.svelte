@@ -70,7 +70,7 @@
             direction={reorderActive ? null : sort.directionFor(col.attribute)}
             onsort={() => sortBy(col)}
           />
-          {#if isFilterable(col) && !reorderActive}
+          {#if isFilterable(col)}
             <ColumnFilter
               column={col}
               entries={distinctValues[col.attribute] ?? []}
