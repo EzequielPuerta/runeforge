@@ -147,7 +147,13 @@ export class FilterState {
 			const text = this.text.get(col.attribute);
 			if (text && !cell.toLowerCase().includes(text.toLowerCase())) return false;
 			const selected = this.values.get(col.attribute);
-			if (selected && selected.size > 0 && !selected.has(cell)) return false;
+			if (selected && selected.size > 0) {
+				const key =
+					col.type === 'boolean'
+						? String(!!(row as Record<string, unknown>)[col.attribute])
+						: cell;
+				if (!selected.has(key)) return false;
+			}
 			return true;
 		});
 	}

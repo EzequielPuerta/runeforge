@@ -202,4 +202,24 @@ test.describe('GenericCRUD', () => {
 		await input.fill('');
 		await expect(page.locator('tbody tr')).toHaveCount(3);
 	});
+
+	// ─── Column filter on a formatted boolean column ────────────────────────────
+
+	test('column filter: checking a boolean checkbox matches rows despite its formatter', async ({
+		page
+	}) => {
+		// `completed` renders via `formatBoolean()` ("Sí"/"No"), not the raw
+		// `true`/`false` — the filter must still match against the underlying
+		// value, not the formatted display text.
+		await page.locator('tbody tr:nth-child(1) input[type="checkbox"]').click();
+		await page.locator('tbody tr:nth-child(2) input[type="checkbox"]').click();
+		await page.getByRole('button', { name: /Complete \(2\)/ }).click();
+		await expect(page.locator('tbody tr td', { hasText: 'Sí' })).toHaveCount(2);
+
+		await page.getByRole('button', { name: 'Filtrar Completed' }).click();
+		await page.getByLabel('Sí', { exact: true }).check();
+
+		await expect(page.locator('tbody tr')).toHaveCount(2);
+		await expect(page.locator('tbody tr td', { hasText: 'No' })).toHaveCount(0);
+	});
 });
