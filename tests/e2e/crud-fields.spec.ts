@@ -451,6 +451,39 @@ test.describe('GenericCRUD - grouped fields, conditional disable, validation', (
 		await expect(powerToolsRow).not.toBeChecked();
 	});
 
+	test('create: searching the tree by name narrows it to matches and their ancestors', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+
+		await expect(page.getByRole('checkbox', { name: 'Software' })).toBeVisible();
+		await page.getByRole('searchbox').fill('power');
+
+		// The match and the ancestor chain needed to reach it stay visible...
+		await expect(page.getByRole('checkbox', { name: 'Power tools' })).toBeVisible();
+		await expect(page.getByRole('checkbox', { name: 'Tools', exact: true })).toBeVisible();
+		await expect(page.getByRole('checkbox', { name: 'Hardware', exact: true })).toBeVisible();
+		// ...while unrelated branches drop out, even though "Hardware" starts
+		// expanded by default and would normally show all of its children.
+		await expect(page.getByRole('checkbox', { name: 'Fasteners' })).toBeHidden();
+		await expect(page.getByRole('checkbox', { name: 'Software' })).toBeHidden();
+
+		await page.getByRole('searchbox').fill('');
+		await expect(page.getByRole('checkbox', { name: 'Fasteners' })).toBeVisible();
+		await expect(page.getByRole('checkbox', { name: 'Software' })).toBeVisible();
+	});
+
+	test('create: a tree search with no matches shows an empty state instead of the full tree', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: /Crear/ }).click();
+
+		await page.getByRole('searchbox').fill('nonexistent category');
+
+		await expect(page.getByRole('checkbox', { name: 'Hardware', exact: true })).toBeHidden();
+		await expect(page.getByText('Sin resultados')).toBeVisible();
+	});
+
 	// ─── Custom action: href-based redirect ─────────────────────────────────────
 
 	test('list: href custom action navigates away instead of opening a modal', async ({ page }) => {

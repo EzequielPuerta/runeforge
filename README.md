@@ -374,6 +374,7 @@ Every entry in an `InterfaceMetadata<T>` object is an `AttributeMetadata` — a 
 | `groupedAs` | `string` | all | Visually groups fields under a titled section — see [Field grouping](#field-grouping) |
 | `row` | `string` | all | Renders fields sharing the same value side by side (desktop) / stacked (mobile) — see [Field rows](#field-rows) |
 | `defaultExpanded` | `boolean` | `tree` | Whether parent nodes start expanded. Defaults to `true` |
+| `searchable` | `boolean` | `tree` | Whether a search-by-name box is shown above the tree. Defaults to `true` |
 | `options` | `SelectOption[] \| (data) => SelectOption[]` | `select`, `multiselect`, `tree` | Static or computed option list — see [Select options](#select-options). `tree` options additionally accept `parentValue` — see [Tree fields](#tree-fields) |
 | `dependentOptions` | `(data, record) => SelectOption[]` | `select`, `multiselect`, `tree` | Options derived from other fields' current values |
 | `search` | `(query) => Promise<SelectOption[]>` | `select`, `multiselect` | Server-side option search as the user types |
@@ -680,6 +681,8 @@ categories: {
 The stored value is a `string[]` of selected node values, submitted the same way as `multiselect` — a single hidden field holding a JSON array, parsed back out server-side with `JSON.parse`. `dependentOptions` and `hidden` work the same as any other field type.
 
 By default every parent node renders expanded; set `defaultExpanded: false` to start with the whole tree collapsed instead (the user can still expand any branch — this only sets the initial state). The field itself is capped at `--runeforge-tree-max-height` (default `24rem`, see [CSS variables](#css-variables)) and scrolls internally once its content grows past that.
+
+A search box above the tree filters nodes by label as the user types (case-insensitive, substring match), auto-expanding whatever branches lead to a match and hiding everything else — set `searchable: false` to drop the box for a tree short enough not to need it.
 
 ### Embedded fields (sub-documents)
 

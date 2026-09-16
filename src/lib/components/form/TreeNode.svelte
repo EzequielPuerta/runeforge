@@ -11,6 +11,8 @@
 		depth,
 		columns,
 		defaultExpanded,
+		visible = null,
+		forceExpanded = null
 	}: {
 		node: SelectOption;
 		childrenByParent: Map<string | null, SelectOption[]>;
@@ -20,11 +22,27 @@
 		depth: number;
 		columns: number;
 		defaultExpanded: boolean;
+		// Active search results: node values allowed to render, and the subset
+		// that must stay expanded because their match is in a descendant, not
+		// on the node itself. Both null outside of a search.
+		visible?: Set<string> | null;
+		forceExpanded?: Set<string> | null;
 	} = $props();
 
 	let expanded = $state(defaultExpanded);
 
-	const children = $derived(childrenByParent.get(node.value) ?? []);
+	// A search match below this node overrides manual collapse so the result
+	// is reachable; re-derived only when this node's forced state actually
+	// flips, so a manual collapse made afterwards (still mid-search) sticks.
+	const isForceExpanded = $derived(forceExpanded?.has(node.value) ?? false);
+	$effect(() => {
+		if (isForceExpanded) expanded = true;
+	});
+
+	const allChildren = $derived(childrenByParent.get(node.value) ?? []);
+	const children = $derived(
+		visible ? allChildren.filter((child) => visible.has(child.value)) : allChildren
+	);
 	const hasChildren = $derived(children.length > 0);
 </script>
 
@@ -60,7 +78,18 @@
 
 	{#if expanded && hasChildren}
 		{#each children as child (child.value)}
-			<TreeNode node={child} {childrenByParent} {selected} {onToggle} {disabled} depth={depth + 1} {columns} {defaultExpanded} />
+			<TreeNode
+				node={child}
+				{childrenByParent}
+				{selected}
+				{onToggle}
+				{disabled}
+				depth={depth + 1}
+				{columns}
+				{defaultExpanded}
+				{visible}
+				{forceExpanded}
+			/>
 		{/each}
 	{/if}
 </div>

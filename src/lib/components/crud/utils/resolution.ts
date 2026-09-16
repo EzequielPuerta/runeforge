@@ -93,6 +93,7 @@ export function buildFieldDefinitions<T extends object = Record<string, unknown>
 			revalidate: m.revalidate,
 			dependsOn: m.dependsOn,
 			defaultExpanded: m.defaultExpanded,
+			searchable: m.searchable,
 			row: m.row,
 			actions: m.actions
 		}));

@@ -56,6 +56,9 @@ export interface FieldDefinition<T extends object = Record<string, unknown>> {
 	dependsOn?: string;
 	/** Tree fields only: whether parent nodes start expanded. Defaults to `true`. */
 	defaultExpanded?: boolean;
+	/** Tree fields only: whether a search-by-name box is shown above the tree.
+	 * Defaults to `true`; set `false` for trees short enough not to need it. */
+	searchable?: boolean;
 	/** Fields sharing the same `row` string render side by side. */
 	row?: string;
 	/** See `AttributeMetadata.actions`. */

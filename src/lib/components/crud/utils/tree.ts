@@ -31,3 +31,46 @@ export function collectDescendantIds(
 	visit(value);
 	return ids;
 }
+
+export interface TreeSearchState {
+	// Nodes to render: the query's own matches plus every ancestor needed to
+	// reach them, so the tree structure around a hit stays intact.
+	visible: Set<string>;
+	// Subset of `visible` that must be force-expanded because the match lives
+	// in its subtree rather than on the node itself.
+	forceExpanded: Set<string>;
+}
+
+// Shared by Tree.svelte: narrows the tree to whatever matches the typed
+// query, by label, case-insensitively. Returns null for a blank query so
+// callers can tell "no filter" apart from "filter matched nothing".
+export function buildTreeSearchState(
+	query: string,
+	childrenByParent: Map<string | null, SelectOption[]>
+): TreeSearchState | null {
+	const needle = query.trim().toLowerCase();
+	if (!needle) return null;
+
+	const visible = new Set<string>();
+	const forceExpanded = new Set<string>();
+
+	function visit(node: SelectOption): boolean {
+		let hasMatchingDescendant = false;
+		for (const child of childrenByParent.get(node.value) ?? []) {
+			if (visit(child)) hasMatchingDescendant = true;
+		}
+		const selfMatches = node.label.toLowerCase().includes(needle);
+		if (selfMatches || hasMatchingDescendant) {
+			visible.add(node.value);
+			if (hasMatchingDescendant) forceExpanded.add(node.value);
+			return true;
+		}
+		return false;
+	}
+
+	for (const root of childrenByParent.get(null) ?? []) {
+		visit(root);
+	}
+
+	return { visible, forceExpanded };
+}

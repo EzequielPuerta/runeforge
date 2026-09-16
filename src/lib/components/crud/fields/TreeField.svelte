@@ -57,6 +57,7 @@
 		options={selectOptions}
 		disabled={fieldDisabled}
 		defaultExpanded={field.defaultExpanded ?? true}
+		searchable={field.searchable ?? true}
 	/>
 {/if}
 
