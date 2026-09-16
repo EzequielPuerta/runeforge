@@ -1,6 +1,6 @@
 {
 	"name": "runeforge",
-	"version": "0.0.63",
+	"version": "0.0.64",
 	"description": "SvelteKit toolkit for building metadata-driven CRUD interfaces with tables, forms, and actions",
 	"license": "MIT",
 	"author": "Ezequiel Puerta",
