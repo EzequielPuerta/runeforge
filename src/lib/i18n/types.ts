@@ -53,6 +53,7 @@ export interface RuneforgeStrings {
 	save: string;
 	saveAndContinue: string;
 	duplicate: string;
+	loading: string;
 	cancel: string;
 	back: string;
 	/** Create form only: shown after "Save and continue"/"Duplicate" save

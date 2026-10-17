@@ -3,6 +3,7 @@
   import { enhance } from '$app/forms';
   import Field from '$lib/components/crud/Field.svelte';
   import Button from '$lib/components/form/Button.svelte';
+  import Spinner from '$lib/components/Spinner.svelte';
   import Header from '$lib/components/common/Header.svelte';
   import { getIconSet } from '$lib/icons/context.js';
   import { defaultIconSet } from '$lib/icons/sets/default.js';
@@ -37,7 +38,7 @@
      * create view is reached via an Update form's "Duplicate" button. */
     seed?: Record<string, unknown>;
     onCancel?: () => void;
-    onSuccess?: () => void;
+    onSuccess?: () => void | Promise<void>;
   } = $props();
 
   const icons = $derived(getIconSet() ?? defaultIconSet);
@@ -49,6 +50,7 @@
   let successTimeout: ReturnType<typeof setTimeout> | undefined;
   let continueCreating = $state(false);
   let duplicating = $state(false);
+  let submitting = $state(false);
 
   function flashSuccess() {
     successMessage = strings.saveSuccess;
@@ -127,26 +129,31 @@
         cancel();
         return;
       }
+      submitting = true;
       return async ({ result, update }) => {
-        if (result.type === 'success' || result.type === 'redirect') {
-          await update({ reset: false });
-          if (continueCreating) {
-            record = emptyRecord(fields);
-            fieldErrors = {};
-            internalError = '';
-            flashSuccess();
-          } else if (duplicating) {
-            fieldErrors = {};
-            internalError = '';
-            flashSuccess();
-            record = applyDuplicateOmit(fields, record, creation.duplication?.omit);
+        try {
+          if (result.type === 'success' || result.type === 'redirect') {
+            await update({ reset: false });
+            if (continueCreating) {
+              record = emptyRecord(fields);
+              fieldErrors = {};
+              internalError = '';
+              flashSuccess();
+            } else if (duplicating) {
+              fieldErrors = {};
+              internalError = '';
+              flashSuccess();
+              record = applyDuplicateOmit(fields, record, creation.duplication?.omit);
+            } else {
+              await onSuccess?.();
+            }
+          } else if (result.type === 'error') {
+            internalError = result.error?.message ?? strings.serverError;
           } else {
-            onSuccess?.();
+            await update({ reset: false });
           }
-        } else if (result.type === 'error') {
-          internalError = result.error?.message ?? strings.serverError;
-        } else {
-          await update({ reset: false });
+        } finally {
+          submitting = false;
         }
       };
     }}
@@ -184,8 +191,11 @@
       {/if}
     {/each}
 
-    <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
-      <Button variant="ghost" onclick={() => onCancel?.()}>
+    <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end">
+      {#if submitting}
+        <Spinner class="self-center" />
+      {/if}
+      <Button variant="ghost" disabled={submitting} onclick={() => onCancel?.()}>
         {strings.cancel}
       </Button>
       {#if duplicationEnabled}
@@ -193,6 +203,7 @@
           type="submit"
           variant="warning"
           class={duplicationClass}
+          disabled={submitting}
           onclick={() => {
             continueCreating = false;
             duplicating = true;
@@ -206,6 +217,7 @@
           type="submit"
           variant="secondary"
           class={continueClass}
+          disabled={submitting}
           onclick={() => {
             continueCreating = true;
             duplicating = false;
@@ -217,6 +229,7 @@
       <Button
         type="submit"
         variant="primary"
+        disabled={submitting}
         onclick={() => {
           continueCreating = false;
           duplicating = false;

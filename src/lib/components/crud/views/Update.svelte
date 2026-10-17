@@ -3,6 +3,7 @@
   import { enhance } from '$app/forms';
   import Field from '$lib/components/crud/Field.svelte';
   import Button from '$lib/components/form/Button.svelte';
+  import Spinner from '$lib/components/Spinner.svelte';
   import Header from '$lib/components/common/Header.svelte';
   import { getIconSet } from '$lib/icons/context.js';
   import { defaultIconSet } from '$lib/icons/sets/default.js';
@@ -39,9 +40,9 @@
     update?: ActionConfiguration<T>;
     serverError?: string;
     onCancel?: () => void;
-    onSuccess?: () => void;
-    onContinue?: () => void;
-    onDuplicate?: (record: Record<string, unknown>) => void;
+    onSuccess?: () => void | Promise<void>;
+    onContinue?: () => void | Promise<void>;
+    onDuplicate?: (record: Record<string, unknown>) => void | Promise<void>;
   } = $props();
 
   const icons = $derived(getIconSet() ?? defaultIconSet);
@@ -51,6 +52,7 @@
   let internalError = $state('');
   let continuing = $state(false);
   let duplicating = $state(false);
+  let submitting = $state(false);
 
   let record = $state<Record<string, unknown>>(
     untrack(() => seedRecord(fields, instance as Record<string, unknown>))
@@ -118,22 +120,27 @@
         cancel();
         return;
       }
+      submitting = true;
       return async ({ result, update: updateForm }) => {
-        if (result.type === 'success' || result.type === 'redirect') {
-          await updateForm({ reset: false });
-          if (continuing) {
-            continuing = false;
-            onContinue?.();
-          } else if (duplicating) {
-            duplicating = false;
-            onDuplicate?.(applyDuplicateOmit(fields, record, update.duplication?.omit));
+        try {
+          if (result.type === 'success' || result.type === 'redirect') {
+            await updateForm({ reset: false });
+            if (continuing) {
+              continuing = false;
+              await onContinue?.();
+            } else if (duplicating) {
+              duplicating = false;
+              await onDuplicate?.(applyDuplicateOmit(fields, record, update.duplication?.omit));
+            } else {
+              await onSuccess?.();
+            }
+          } else if (result.type === 'error') {
+            internalError = result.error?.message ?? strings.serverError;
           } else {
-            onSuccess?.();
+            await updateForm({ reset: false });
           }
-        } else if (result.type === 'error') {
-          internalError = result.error?.message ?? strings.serverError;
-        } else {
-          await updateForm({ reset: false });
+        } finally {
+          submitting = false;
         }
       };
     }}
@@ -173,8 +180,11 @@
       {/if}
     {/each}
 
-    <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
-      <Button variant="ghost" onclick={() => onCancel?.()}>
+    <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end">
+      {#if submitting}
+        <Spinner class="self-center" />
+      {/if}
+      <Button variant="ghost" disabled={submitting} onclick={() => onCancel?.()}>
         {strings.cancel}
       </Button>
       {#if duplicationEnabled}
@@ -182,6 +192,7 @@
           type="submit"
           variant="warning"
           class={duplicationClass}
+          disabled={submitting}
           onclick={() => { continuing = false; duplicating = true; }}
         >
           {duplicationLabel}
@@ -192,12 +203,13 @@
           type="submit"
           variant="secondary"
           class={continueClass}
+          disabled={submitting}
           onclick={() => { continuing = true; duplicating = false; }}
         >
           {continueLabel}
         </Button>
       {/if}
-      <Button type="submit" variant="primary" onclick={() => { continuing = false; duplicating = false; }}>
+      <Button type="submit" variant="primary" disabled={submitting} onclick={() => { continuing = false; duplicating = false; }}>
         {strings.save}
       </Button>
     </div>
