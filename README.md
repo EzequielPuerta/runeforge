@@ -1346,15 +1346,22 @@ All UI strings default to **Spanish** (Argentina). To switch to another language
 
 ## Icon System
 
-Runeforge ships with a default icon set for the fixed set of CRUD action icons (sort, filter, create, edit, delete, ...). To use Bootstrap Icons instead:
+Runeforge ships with a default icon set for the fixed set of CRUD action icons (sort, filter, create, edit, delete, ...). It's made of inline SVGs and needs no extra package. To use Bootstrap Icons instead, install `svelte-bootstrap-icons` and import the set from its own subpath:
+
+```bash
+pnpm add svelte-bootstrap-icons
+```
 
 ```ts
 <script>
-  import { setIconSet, bootstrapIconSet } from 'runeforge';
+  import { setIconSet } from 'runeforge';
+  import { bootstrapIconSet } from 'runeforge/icons/bootstrap';
 
   setIconSet(bootstrapIconSet);
 </script>
 ```
+
+`bootstrapIconSet` is not exported from `'runeforge'` itself. That keeps `svelte-bootstrap-icons` an optional peer dependency: projects using the default set, or their own, don't need it installed.
 
 You can also provide a fully custom icon set by passing an object that satisfies the icon set interface.
 

@@ -50,7 +50,7 @@ export { setConfig, getConfig } from './config/context.js';
 export type { CRUDIconSet, IconComponent } from './icons/types.js';
 export { setIconSet, getIconSet, setIconAssetsPath, getIconAssetsPath } from './icons/context.js';
 export { defaultIconSet } from './icons/sets/default.js';
-export { bootstrapIconSet } from './icons/sets/bootstrap.js';
+// `bootstrapIconSet` lives at 'runeforge/icons/bootstrap', so this entry never imports svelte-bootstrap-icons.
 
 // i18n
 export type { RuneforgeStrings } from './i18n/types.js';

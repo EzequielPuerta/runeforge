@@ -6,8 +6,11 @@
  *
  * Usage:
  *   import { setIconSet } from 'runeforge';
- *   import { bootstrapIconSet } from 'runeforge/icons/sets/bootstrap';
+ *   import { bootstrapIconSet } from 'runeforge/icons/bootstrap';
  *   setIconSet(bootstrapIconSet);
+ *
+ * Exposed only through that subpath, never from the main entry, so projects
+ * that don't use it don't need svelte-bootstrap-icons installed.
  */
 import ChevronExpand from 'svelte-bootstrap-icons/lib/ChevronExpand.svelte';
 import CaretUpFill from 'svelte-bootstrap-icons/lib/CaretUpFill.svelte';
