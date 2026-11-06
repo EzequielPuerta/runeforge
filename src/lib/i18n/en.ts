@@ -31,6 +31,7 @@ export const en: RuneforgeStrings = {
 	save: 'Save',
 	saveAndContinue: 'Save and continue',
 	duplicate: 'Duplicate',
+	loading: 'Loading…',
 	cancel: 'Cancel',
 	back: 'Back',
 	saveSuccess: 'Saved successfully.',

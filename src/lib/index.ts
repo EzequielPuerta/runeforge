@@ -70,6 +70,7 @@ export { default as PasswordInput } from './components/form/PasswordInput.svelte
 // Shared components
 export { default as Avatar } from './components/Avatar.svelte';
 export { default as Modal } from './components/Modal.svelte';
+export { default as Spinner } from './components/Spinner.svelte';
 export { default as IconRenderer } from './components/IconRenderer.svelte';
 export { default as Breadcrumbs } from './components/navigation/Breadcrumbs.svelte';
 
