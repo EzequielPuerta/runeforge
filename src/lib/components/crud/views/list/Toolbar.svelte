@@ -147,7 +147,7 @@
 			<div
 				popover="auto"
 				id="export-menu-{exportId}"
-				style="position-anchor:--export-anchor-{exportId}"
+				style="position-anchor:--export-anchor-{exportId}; position-try-fallbacks:flip-inline, flip-block, flip-block flip-inline;"
 				class="dropdown dropdown-end w-40 rounded-box border border-base-content/10 bg-base-100 p-1 shadow-lg"
 				bind:this={exportPopoverEl}
 			>
@@ -243,7 +243,7 @@
 				<div
 					popover="auto"
 					id="actions-menu-{actionsMenuId}"
-					style="position-anchor:--actions-anchor-{actionsMenuId}"
+					style="position-anchor:--actions-anchor-{actionsMenuId}; position-try-fallbacks:flip-inline, flip-block, flip-block flip-inline;"
 					class="dropdown dropdown-end w-56 rounded-box border border-base-content/10 bg-base-100 p-1 shadow-lg"
 					bind:this={actionsPopoverEl}
 				>

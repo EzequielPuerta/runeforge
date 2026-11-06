@@ -224,7 +224,7 @@
 		popover="auto"
 		id={datePopId}
 		bind:this={datePopoverEl}
-		style="position-anchor:{dateAnchorName}; position-try-fallbacks:flip-block;"
+		style="position-anchor:{dateAnchorName}; position-try-fallbacks:flip-inline, flip-block, flip-block flip-inline;"
 		class="dropdown mt-1 rounded-box border border-base-content/10 bg-base-100 p-2 shadow-lg"
 	>
 		<calendar-date class="cally" bind:this={calendarDateEl} value={datePart}>

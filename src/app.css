@@ -1,0 +1,3 @@
+/* Styles for the demo/test pages, so e2e specs see the real layout. */
+@import 'tailwindcss';
+@plugin 'daisyui';

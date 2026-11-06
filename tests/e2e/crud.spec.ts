@@ -222,4 +222,23 @@ test.describe('GenericCRUD', () => {
 		await expect(page.locator('tbody tr')).toHaveCount(2);
 		await expect(page.locator('tbody tr td', { hasText: 'No' })).toHaveCount(0);
 	});
+
+	// ─── Column filter popover placement ────────────────────────────────────────
+
+	test('column filter: the popover stays inside the viewport near either edge', async ({
+		page
+	}) => {
+		const viewport = page.viewportSize()!;
+		const buttons = page.getByRole('button', { name: /^Filtrar / });
+		for (const button of [buttons.first(), buttons.last()]) {
+			await button.click();
+			const popover = page.locator('[popover]:popover-open');
+			await expect(popover).toBeVisible();
+			const box = (await popover.boundingBox())!;
+			expect(box.x).toBeGreaterThanOrEqual(0);
+			expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+			await page.keyboard.press('Escape');
+			await expect(popover).toHaveCount(0);
+		}
+	});
 });
