@@ -8,14 +8,19 @@ import { formatEmbeddedFieldValue } from '$lib/components/crud/utils/embedded.js
  * building a workbook. Runeforge never imports `xlsx` itself — the consumer
  * installs it and passes the resolved module in, so the dependency stays
  * fully optional and never affects consumers who don't use Excel export.
+ *
+ * Declared as methods, not arrow-typed properties: method parameters are
+ * compared bivariantly, so SheetJS's own signatures (`WorkBook`/`WorkSheet`
+ * instead of `unknown`) are assignable and `import * as xlsx from 'xlsx'`
+ * can be passed in without a cast.
  */
 export interface XlsxModule {
   utils: {
-    aoa_to_sheet: (data: unknown[][]) => unknown;
-    book_new: () => unknown;
-    book_append_sheet: (workbook: unknown, worksheet: unknown, name?: string) => void;
+    aoa_to_sheet(data: unknown[][]): unknown;
+    book_new(): unknown;
+    book_append_sheet(workbook: unknown, worksheet: unknown, name?: string): unknown;
   };
-  writeFile: (workbook: unknown, filename: string) => void;
+  writeFile(workbook: unknown, filename: string): void;
 }
 
 function isEmbeddedColumn<T extends object>(

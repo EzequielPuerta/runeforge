@@ -88,7 +88,7 @@ Runeforge provides a set of composable, metadata-driven components for building 
 - DaisyUI 5
 - Cally
 - `sortablejs` (optional, only if you enable [drag-to-reorder](#reordering-rows))
-- `xlsx` (optional, only if you enable Excel export)
+- `xlsx` (optional, only if you enable Excel export; install it from the SheetJS CDN, see [Exporting data](#exporting-data-csvxlsx))
 
 ---
 
@@ -864,8 +864,10 @@ A `view` component receives `instance`, `label`, `endpoint`, `serverError`, `onC
 `config.export` adds an export button to the header offering CSV (always) and Excel (when a `xlsx` module is supplied). Its mere presence enables the button — pass `{}` for CSV-only export. Runeforge never bundles `xlsx` itself — install it separately and pass the resolved module in, so the dependency stays fully optional:
 
 ```bash
-pnpm add xlsx
+pnpm add https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz
 ```
+
+SheetJS no longer publishes to npm: `pnpm add xlsx` installs 0.18.5, which has known vulnerabilities. Install it from the SheetJS CDN instead, as above.
 
 ```ts
 <script>
@@ -875,6 +877,8 @@ pnpm add xlsx
 
 <GenericCRUD ... config={{ export: { xlsx } }} />
 ```
+
+The module is passed as is, without a cast. To type it yourself, use the exported `XlsxModule`.
 
 In client-pagination mode, export includes every row currently matching the table's filters (not just the visible page). In [server-pagination mode](#server-side-pagination-sorting--filtering), pass `config.export.callback` to fetch the full, unpaginated result set for the current query — without it, export falls back to just the currently loaded page:
 

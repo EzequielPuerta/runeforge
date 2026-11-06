@@ -40,6 +40,7 @@ export type {
 	ListConfig
 } from './types/crud/list-config.js';
 export type { ReorderConfiguration } from './types/crud/reorder.js';
+export type { XlsxModule } from './components/table/export.js';
 
 // Config
 export type { RuneforgeConfig } from './config/context.js';
