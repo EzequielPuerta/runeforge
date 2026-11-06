@@ -1,0 +1,10 @@
+/*
+ * Tailwind v4 never scans node_modules, so it can't see the utility classes
+ * runeforge's components use. Import this file after Tailwind:
+ *
+ *   @import 'tailwindcss';
+ *   @import 'runeforge/tailwind.css';
+ *
+ * The path below resolves relative to this file, wherever the package is installed.
+ */
+@source './';

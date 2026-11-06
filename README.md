@@ -123,13 +123,15 @@ pnpm add runeforge
 
 ### Tailwind source scanning
 
-Runeforge components use Tailwind CSS utility classes internally. Tailwind v4 does not scan `node_modules` by default, so add an `@source` directive in your project's `app.css` to ensure every utility class is generated:
+Runeforge components use Tailwind CSS utility classes internally. Tailwind v4 never scans `node_modules`, so import `runeforge/tailwind.css` in your project's `app.css`, right after Tailwind, to ensure every utility class is generated:
 
 ```css
 @import "tailwindcss";
-@source "../node_modules/runeforge/dist";
+@import "runeforge/tailwind.css";
 @plugin "daisyui";
 ```
+
+The file only holds an `@source` pointing at runeforge's own components, resolved relative to the package. Unlike a hand-written `@source "../node_modules/runeforge/dist"`, it doesn't depend on where your `app.css` sits or how your package manager lays out `node_modules`. That older line still works, so existing projects don't need to change anything.
 
 ### CSS variables
 
